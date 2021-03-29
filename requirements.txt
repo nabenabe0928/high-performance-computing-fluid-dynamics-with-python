@@ -1,0 +1,7 @@
+pycodestyle
+numpy
+scipy
+matplotlib
+tqdm
+pillow
+flake8
