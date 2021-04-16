@@ -220,7 +220,13 @@ class FluidField2D():
         self._pdf = deepcopy(pdf_mid)
         self.update_pdf()
 
-        # main
+        if boundary_handling is not None:
+            pdf_post = deepcopy(self.pdf)
+            self._pdf = boundary_handling(pdf_pre=pdf_pre,
+                                          pdf_mid=pdf_mid,
+                                          pdf_post=pdf_post,
+                                          density=self.density,
+                                          velocity=self.velocity)
 
         self.update_density()
         self.update_velocity()
