@@ -220,5 +220,7 @@ class FluidField2D():
         self._pdf = deepcopy(pdf_mid)
         self.update_pdf()
 
+        # main
+
         self.update_density()
         self.update_velocity()
