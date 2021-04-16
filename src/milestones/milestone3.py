@@ -21,6 +21,6 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, total_time_steps: 
 
 if __name__ == '__main__':
     density, vel = sinusoidal_density(lattice_grid_shape, epsilon=0.01, rho0=0.5)
-    main(init_density=density, init_velocity=vel)
+    main(init_density=density, init_velocity=vel, total_time_steps=100)
     density, vel = sinusoidal_velocity(lattice_grid_shape, epsilon=0.01)
-    main(init_density=density, init_velocity=vel)
+    main(init_density=density, init_velocity=vel, total_time_steps=100)

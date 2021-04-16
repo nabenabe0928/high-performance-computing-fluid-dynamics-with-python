@@ -6,7 +6,7 @@ from test.utils import abssum
 
 
 class SinusoidalVelocity(unittest.TestCase):
-    def test_sinusoidal_velocity(self):
+    def test_sinusoidal_velocity(self) -> None:
         lattice_grid_shape = (3, 3)
         ans = np.array([0.0, 0.008660254037844387, -0.008660254037844384] * 3).reshape(lattice_grid_shape)
         ans = np.dstack([ans, np.zeros(lattice_grid_shape)])
@@ -14,7 +14,7 @@ class SinusoidalVelocity(unittest.TestCase):
         self.assertAlmostEqual(abssum(density, np.ones(lattice_grid_shape)), 0.0, places=1)
         self.assertAlmostEqual(abssum(vel, ans), 0.0, places=1)
 
-    def test_sinusoidal_density(self):
+    def test_sinusoidal_density(self) -> None:
         lattice_grid_shape = (3, 3)
         ans = np.array([0.5, 0.50866025, 0.49133975] * 3).reshape(lattice_grid_shape).T
         density, vel = sinusoidal_density(lattice_grid_shape=(3, 3), epsilon=0.01, rho0=0.5)
