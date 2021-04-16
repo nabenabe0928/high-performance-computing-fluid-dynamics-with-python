@@ -1,61 +1,74 @@
-import numpy as np
 import unittest
 
 from src.utils.formula import FluidField2D
+from test.constants import TestInputs, TestOutputs
 from test.utils import abssum
 
 
 class TestFluidField2D(unittest.TestCase):
     def setUp(self):
-        init_vals = np.arange(9)[np.newaxis, np.newaxis, :]
-        self.init_vals = np.array(init_vals, dtype=np.float32)
+        self.lattice_grid_shape = (3, 3)
+        self.init_density = TestInputs.init_density
+        self.init_pdf = TestInputs.init_pdf
+        self.init_vel = TestInputs.init_vel
+
+    def initial_set(self, omega=0.5) -> FluidField2D:
+        field = FluidField2D(*self.lattice_grid_shape, omega=omega)
+        field.init_vals(init_pdf=self.init_pdf,
+                        init_density=self.init_density,
+                        init_vel=self.init_vel)
+        return field
 
     def test_init_vals(self):
-        field = FluidField2D(1, 1)
-        init_density = np.random.random((1, 1))
-        init_vel = np.random.random((1, 1, 2))
-        field.init_vals(init_pdf=self.init_vals,
-                        init_density=init_density,
-                        init_vel=init_vel)
+        field = self.initial_set()
 
-        self.assertEqual(field.pdf.shape, self.init_vals.shape)
-        self.assertEqual(field.velocity.shape, init_vel.shape)
-        self.assertEqual(field.density.shape, init_density.shape)
-        self.assertAlmostEqual(abssum(field.pdf, self.init_vals), 0.0, places=1)
-        self.assertAlmostEqual(abssum(field.velocity, init_vel), 0.0, places=1)
-        self.assertAlmostEqual(abssum(field.density, init_density), 0.0, places=1)
+        self.assertEqual(field.pdf.shape, self.init_pdf.shape)
+        self.assertEqual(field.velocity.shape, self.init_vel.shape)
+        self.assertEqual(field.density.shape, self.init_density.shape)
+        self.assertAlmostEqual(abssum(field.pdf, self.init_pdf), 0.0, places=1)
+        self.assertAlmostEqual(abssum(field.velocity, self.init_vel), 0.0, places=1)
+        self.assertAlmostEqual(abssum(field.density, self.init_density), 0.0, places=1)
 
     def test_update_density(self):
-        field = FluidField2D(1, 1)
-        field.init_vals(init_pdf=self.init_vals)
+        field = self.initial_set()
         field.update_density()
-        self.assertAlmostEqual(field.density, 36.0)
+        ans = TestOutputs.density_update
+        self.assertAlmostEqual(abssum(field.density, ans), 0.0, places=1)
 
     def test_update_velocity(self):
-        field = FluidField2D(1, 1)
-        field.init_vals(init_pdf=self.init_vals)
+        field = self.initial_set()
         field.update_density()
         field.update_velocity()
-        ans = np.array([[[- 2.0 / 36.0, - 6.0 / 36.0]]])
+        ans = TestOutputs.velocity_update
 
         self.assertEqual(field.velocity.shape, ans.shape)
         self.assertAlmostEqual(abssum(field.velocity, ans), 0.0, places=1)
 
     def test_update_pdf(self):
-        field = FluidField2D(1, 1)
-        field.init_vals(init_pdf=self.init_vals)
+        field = self.initial_set()
         field.update_density()
         field.update_velocity()
         field.update_pdf()
-        ans = np.array([[[0., 1., 2., 3., 4., 5., 6., 7., 8.]]])
+        ans = TestOutputs.pdf_update
+
         self.assertEqual(field.pdf.shape, ans.shape)
         self.assertAlmostEqual(abssum(field.pdf, ans), 0.0, places=1)
 
     def test_apply_local_equilibrium(self):
-        field = FluidField2D(1, 1)
-        field.init_vals(init_pdf=self.init_vals)
+        field = self.initial_set()
         field._apply_local_equilibrium()
-        raise ValueError
+        ans = TestOutputs.pdf_eq_update
+
+        self.assertEqual(field.pdf_eq.shape, ans.shape)
+        self.assertAlmostEqual(abssum(field.pdf_eq, ans), 0.0, places=1)
+
+    def test_lattice_boltzmann_step(self):
+        field = self.initial_set()
+        field.lattice_boltzmann_step()
+
+        ans = TestOutputs.pdf_boltzmann
+        self.assertEqual(field.pdf.shape, ans.shape)
+        self.assertAlmostEqual(abssum(field.pdf, ans), 0.0, places=1)
 
 
 if __name__ == '__main__':
