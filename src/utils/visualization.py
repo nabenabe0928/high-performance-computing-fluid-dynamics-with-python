@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
+from scipy.signal import argrelextrema
 
 from src.utils.formula import FluidField2D
+from src.utils.constants import EquationFuncType
 
 
 DEFAULT_CMAP = 'gist_rainbow'
@@ -36,4 +38,22 @@ def visualize_density_surface(field: FluidField2D, cmap: str = DEFAULT_CMAP) -> 
     plt.xlabel('x')
     plt.ylabel('y')
     plt.colorbar(m)
+    plt.show()
+
+
+def visualize_quantity_vs_time(quantities: np.ndarray, quantity_name: str,
+                               total_time_steps: int, equation: EquationFuncType
+                               ) -> np.ndarray:
+    indices = argrelextrema(quantities, np.greater)[0]
+    extrema = quantities[indices]
+
+    t = np.arange(total_time_steps)
+    analytical_vals = equation(t)
+
+    plt.plot(indices, extrema, label=f"Simulated cumulated max {quantity_name}")
+    plt.plot(t, quantities, label=f"Simulated {quantity_name}")
+    plt.plot(t, analytical_vals, label=f"Analytical {quantity_name}")
+    plt.legend()
+    plt.xlabel("Time")
+    plt.ylabel(f"Amplitude of {quantity_name}")
     plt.show()

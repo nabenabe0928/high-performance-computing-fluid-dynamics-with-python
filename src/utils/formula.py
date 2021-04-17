@@ -212,6 +212,10 @@ class FluidField2D():
             1. + 3. * dotprod + 4.5 * dotprod ** 2 - 1.5 * v_norm2[..., np.newaxis]
         )
 
+    def local_equilibrium_pdf_update(self) -> None:
+        self._apply_local_equilibrium()
+        self._pdf = deepcopy(self._pdf_eq)
+
     def lattice_boltzmann_step(self, boundary_handling=None) -> None:
         self._apply_local_equilibrium()
 
