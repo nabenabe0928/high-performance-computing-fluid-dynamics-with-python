@@ -1,8 +1,8 @@
 import numpy as np
 from tqdm import trange
 
-from src.utils.visualization import visualize_velocity_streaming
-from src.utils.formula import FluidField2D
+from src.utils.visualization import visualize_velocity_field
+from src.simulation_attributes.formula import FluidField2D
 
 
 def main() -> None:
@@ -10,15 +10,14 @@ def main() -> None:
     total_time_steps = 20
 
     pdf = np.zeros((X, Y, 9))
-    pdf[:X//2, :Y//2, 5] = np.ones((X // 2, Y // 2))
-    field = FluidField2D(X, Y)
-    field.init_vals(init_pdf=pdf)
+    pdf[:X // 2, :Y // 2, 5] = np.ones((X // 2, Y // 2))
+    field = FluidField2D(X, Y, init_pdf=pdf)
 
     for t in trange(total_time_steps):
         field.update_density()
         field.update_velocity()
         field.update_pdf()
-        visualize_velocity_streaming(field)
+        visualize_velocity_field(field)
 
 
 if __name__ == '__main__':
