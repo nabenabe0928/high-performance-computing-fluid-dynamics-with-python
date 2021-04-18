@@ -9,7 +9,7 @@ from src.utils.attr_dict import AttrDict
 class ExperimentVariables(AttrDict):
     omega: float = 0.5
     total_time_steps: int = 1000
-    wall_vel: np.ndarray([10, 0])
+    wall_vel: np.ndarray = np.array([10, 0])
 
 
 lattice_grid_shape = (50, 50)

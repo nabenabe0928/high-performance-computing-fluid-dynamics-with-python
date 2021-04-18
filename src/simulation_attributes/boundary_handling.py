@@ -9,7 +9,7 @@ from src.simulation_attributes.formula import AdjacentIndices, FluidField2D
 
 class AbstractBoundaryHandling(object, metaclass=ABCMeta):
     @abstractmethod
-    def boundary_handling(self, field: FluidField2D, **kwargs) -> np.ndarray:
+    def boundary_handling(self, field: FluidField2D) -> None:
         """
         Compute the PDF using pdf_pre, pdf_mid, pdf and density, velocity
         and return the PDF after boundary handling.
@@ -41,7 +41,7 @@ class BaseWall():
         return self._boundary_indices
 
     @property
-    def reflected_direction(self) -> None:
+    def reflected_direction(self) -> np.ndarray:
         return self._reflected_direction
 
     def _init_boundary_indices(self) -> None:
@@ -96,7 +96,7 @@ class MovingWall(BaseWall, AbstractBoundaryHandling):
         """ The velocity of the wall """
         return self._wall_vel
 
-    def _precompute(self):
+    def _precompute(self) -> None:
         assert not self._finish_precompute
         self.weights = self.weights[self.boundary_indices]
         self.vs = self.vs[self.boundary_indices]

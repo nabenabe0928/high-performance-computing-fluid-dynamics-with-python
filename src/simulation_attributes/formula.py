@@ -201,8 +201,7 @@ class FluidField2D():
 
     def update_density(self) -> None:
         assert self._finish_initialize
-        assert len(self.pdf.shape) > 1
-        self._density = np.sum(self.pdf, axis=-1)
+        self._density = np.array(np.sum(self.pdf, axis=-1))
 
     def update_velocity(self) -> None:
         assert self._finish_initialize
