@@ -10,7 +10,7 @@ from src.utils.constants import EquationFuncType
 DEFAULT_CMAP = 'gist_rainbow'
 
 
-def visualize_velocity_streaming(field: FluidField2D, cmap: str = DEFAULT_CMAP) -> None:
+def visualize_velocity_field(field: FluidField2D, cmap: str = DEFAULT_CMAP) -> None:
     """
     Visualizie the velocity field as streaming
     """
@@ -22,7 +22,7 @@ def visualize_velocity_streaming(field: FluidField2D, cmap: str = DEFAULT_CMAP) 
     level = np.linalg.norm(field.velocity, axis=-1)
 
     plt.streamplot(x, y, vel[..., 0], vel[..., 1],
-                   color=level, cmap='gist_rainbow')
+                   color=level, cmap='seismic')
     plt.xlim(0, X - 1)
     plt.ylim(0, Y - 1)
     plt.colorbar()
@@ -75,7 +75,6 @@ def visualize_velocity_field_of_moving_wall(field: FluidField2D, wall_vel: np.nd
         arrow = [vxy, 0]
         plt.quiver(*src, *arrow, color='red', scale_units='xy', scale=1, headwidth=3, width=3e-3)
 
-    print(vx)
     plt.plot(vx[X // 2, :], np.arange(Y), label="Simulated result", color="blue", linestyle=":", linewidth=1)
     plt.plot(wv * (Y - np.arange(Y + 1)) / Y, np.arange(Y + 1) - 0.5, label="Theoretical value")
 

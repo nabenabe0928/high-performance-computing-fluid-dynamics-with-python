@@ -125,6 +125,15 @@ class RigidWall(BaseWall, AbstractBoundaryHandling):
 class MovingWall(BaseWall, AbstractBoundaryHandling):
     def __init__(self, field: FluidField2D, init_boundary: np.ndarray, wall_vel: np.ndarray):
         """
+        Attributes:
+            _wall_vel (np.ndarray):
+                The velocity vector of the movement of the wall
+
+            _weighted_vel_dot_wall_vel6 (np.ndarray):
+                The computation results of
+                2 * wi * rhow * (ci @ uw) / cs ** 2
+                in the equation for the moving wall.
+
         Example:
             ##### -> the wall will move to this direction.
              ...

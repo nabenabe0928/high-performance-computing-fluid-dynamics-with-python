@@ -1,7 +1,7 @@
 import numpy as np
 from tqdm import trange
 
-from src.utils.visualization import visualize_velocity_streaming
+from src.utils.visualization import visualize_velocity_field
 from src.simulation_attributes.formula import FluidField2D
 
 
@@ -17,7 +17,7 @@ def main() -> None:
         field.update_density()
         field.update_velocity()
         field.update_pdf()
-        visualize_velocity_streaming(field)
+        visualize_velocity_field(field)
 
 
 if __name__ == '__main__':
