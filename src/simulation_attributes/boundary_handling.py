@@ -24,105 +24,143 @@ class AbstractBoundaryHandling(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def _precompute(self) -> None:
+        """ pre-computation if required """
+        raise NotImplementedError
 
-class BaseWall():
-    def __init__(self, field: FluidField2D, init_boundary: np.ndarray, **kwargs: Dict[str, Any]):
+
+class BaseBoundary():
+    def __init__(self, field: FluidField2D, init_boundary: np.ndarray,
+                 pressure_variation: bool = False, **kwargs: Dict[str, Any]):
         """
         Attributes:
-            _boundary (np.ndarray):
-                If there are walls (or boundary) or not.
-                Each element is True or False
-                The shape is (X, Y, 9).
+            _out_boundary (np.ndarray):
+                Direction to come out.
+                In other words, if there are walls (or boundary) or not
+                or the outlet of pipes.
+                Each element is True or False with the shape is (X, Y, 9).
 
-            _boundary_indices (np.ndarray):
-                It stands for which directions (from 9 adjacent cells) can have the boundary.
+            _in_boundary (np.ndarray):
+                Direction to come in.
+                In other words, if the reflected direction of _out_boundary
+                or the inlet of pipes.
+                Each element is True or False with the shape is (X, Y, 9).
+
+            _out_indices (np.ndarray):
+                It stands for which directions (from 9 adjacent cells) can have the out-boundary.
                 The shape is (n_direction, ) where n_direction is smaller than 9.
 
-            _reflected_indices (np.ndarray):
-                The corresponding indices for the bouncing direction of _boundary_indices.
+            _in_indices (np.ndarray):
+                The corresponding indices for the bouncing direction of _out_indices.
                 The shape is (n_direction, ).
         """
-        self._boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)
-        self._reflected_boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)
-        self._reflected_indices = AdjacentAttributes.reflected_direction
-        self._boundary_indices = np.arange(9)
+        self._out_boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)
+        self._out_indices = np.arange(9)
+        self._in_boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)
+        self._in_indices = AdjacentAttributes.reflected_direction
         self._finish_initialize = False
 
-        self._init_boundary(init_boundary)
+        self._init_boundary(init_boundary, pressure_variation=pressure_variation)
 
     @property
-    def boundary(self) -> np.ndarray:
-        return self._boundary
+    def in_boundary(self) -> np.ndarray:
+        return self._in_boundary
 
-    @boundary.setter
-    def boundary(self) -> None:
-        raise NotImplementedError("boundary is not supposed to change from outside.")
-
-    @property
-    def reflected_boundary(self) -> np.ndarray:
-        return self._reflected_boundary
-
-    @reflected_boundary.setter
-    def reflected_boundary(self) -> None:
-        raise NotImplementedError("reflected_boundary is not supposed to change from outside.")
+    @in_boundary.setter
+    def in_boundary(self) -> None:
+        raise NotImplementedError("in_boundary is not supposed to change from outside.")
 
     @property
-    def boundary_indices(self) -> np.ndarray:
-        return self._boundary_indices
+    def out_boundary(self) -> np.ndarray:
+        return self._out_boundary
 
-    @boundary_indices.setter
-    def boundary_indices(self) -> None:
-        raise NotImplementedError("boundary_indices is not supposed to change from outside.")
+    @out_boundary.setter
+    def out_boundary(self) -> None:
+        raise NotImplementedError("out_boundary is not supposed to change from outside.")
 
     @property
-    def reflected_indices(self) -> np.ndarray:
-        return self._reflected_indices
+    def in_indices(self) -> np.ndarray:
+        return self._in_indices
 
-    @reflected_indices.setter
-    def reflected_indices(self) -> None:
-        raise NotImplementedError("reflected_indices is not supposed to change from outside.")
+    @in_indices.setter
+    def in_indices(self) -> None:
+        raise NotImplementedError("in_indices is not supposed to change from outside.")
 
-    def _init_boundary_indices(self, init_boundary: np.ndarray) -> None:
+    @property
+    def out_indices(self) -> np.ndarray:
+        return self._out_indices
+
+    @out_indices.setter
+    def out_indices(self) -> None:
+        raise NotImplementedError("out_indices is not supposed to change from outside.")
+
+    def _init_boundary_indices(self, init_boundary: np.ndarray, pressure_variation: bool) -> None:
         """
         Suppose walls are not disjointed and do not have curves
         and they exist only at the edges of the field.
+
+        Args:
+            init_boundary (np.ndarray):
+                The True or False array with the shape of (X, Y).
+                If True, there is a boundary.
+
+            pressure_variation (bool):
+                If True, pressure variation dominates the influence from
+                the collision with the wall.
         """
         assert not self._finish_initialize
-        if np.all(init_boundary[0, :]):
-            self._boundary_indices = np.array([1, 5, 8])
-        if np.all(init_boundary[-1, :]):
-            self._boundary_indices = np.array([3, 6, 7])
-        if np.all(init_boundary[:, 0]):
-            self._boundary_indices = np.array([4, 7, 8])
-        if np.all(init_boundary[:, -1]):
-            self._boundary_indices = np.array([2, 5, 6])
+        out_indices = []
+        if not pressure_variation:
+            if np.all(init_boundary[0, :]):
+                out_indices += [1, 5, 8]
+            if np.all(init_boundary[-1, :]):
+                out_indices += [3, 6, 7]
+            if np.all(init_boundary[:, 0]):
+                out_indices += [4, 7, 8]
+            if np.all(init_boundary[:, -1]):
+                out_indices += [2, 5, 6]
+        else:
+            vert = (np.all(init_boundary[0, :]) and np.all(init_boundary[-1, :]))
+            horiz = np.all(init_boundary[:, 0]) and np.all(init_boundary[:, -1])
+            assert vert or horiz
+            if horiz:
+                # left to right
+                out_indices = [1, 5, 8]
+            else:
+                # bottom to top
+                out_indices = [2, 5, 6]
 
-        self._reflected_indices = self.reflected_indices[self.boundary_indices]
+        self._out_indices = np.array(out_indices)
+        self._in_indices = self.in_indices[self.out_indices]
 
-    def _init_boundary(self, init_boundary: np.ndarray) -> None:
+    def _init_boundary(self, init_boundary: np.ndarray, pressure_variation: bool) -> None:
         assert not self._finish_initialize
-        assert self.boundary.shape[:-1] == init_boundary.shape
+        assert self.out_boundary.shape[:-1] == init_boundary.shape
         init_boundary = init_boundary.astype(np.bool8)
-        self._init_boundary_indices(init_boundary)
+        self._init_boundary_indices(init_boundary, pressure_variation)
 
-        for bidx, ridx in zip(self.boundary_indices, self.reflected_indices):
-            self._boundary[:, :, bidx] = init_boundary
-            self._reflected_boundary[:, :, ridx] = init_boundary
+        for out_idx, in_idx in zip(self.out_indices, self.in_indices):
+            self._out_boundary[:, :, out_idx] = init_boundary
+            self._in_boundary[:, :, in_idx] = init_boundary
 
         self._finish_initialize = True
 
 
-class RigidWall(BaseWall, AbstractBoundaryHandling):
+class RigidWall(BaseBoundary, AbstractBoundaryHandling):
     def __init__(self, field: FluidField2D, init_boundary: np.ndarray):
         super().__init__(field, init_boundary)
 
+    def _precompute(self):
+        pass
+
     def boundary_handling(self, field: FluidField2D) -> None:
         pdf_post = deepcopy(field.pdf)
-        pdf_post[self.reflected_boundary] = field.pdf_pre[self.boundary]
+        pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
         field.overwrite_pdf(new_pdf=pdf_post)
 
 
-class MovingWall(BaseWall, AbstractBoundaryHandling):
+class MovingWall(BaseBoundary, AbstractBoundaryHandling):
     def __init__(self, field: FluidField2D, init_boundary: np.ndarray, wall_vel: np.ndarray):
         """
         Attributes:
@@ -169,12 +207,12 @@ class MovingWall(BaseWall, AbstractBoundaryHandling):
 
     def _precompute(self) -> None:
         assert not self._finish_precompute
-        ws = AdjacentAttributes.weights[self.boundary_indices]
-        vs = AdjacentAttributes.velocity_direction_set[self.boundary_indices]
+        ws = AdjacentAttributes.weights[self.out_indices]
+        vs = AdjacentAttributes.velocity_direction_set[self.out_indices]
 
-        self._weighted_vel_dot_wall_vel6 = np.zeros_like(self.boundary, np.float32)
-        for bidx, v, w in zip(self.boundary_indices, vs, ws):
-            self._weighted_vel_dot_wall_vel6[:, :, bidx] = 6 * w * (v @ self.wall_vel)
+        self._weighted_vel_dot_wall_vel6 = np.zeros_like(self.out_boundary, np.float32)
+        for out_idx, v, w in zip(self.out_indices, vs, ws):
+            self._weighted_vel_dot_wall_vel6[:, :, out_idx] = 6 * w * (v @ self.wall_vel)
 
         self._finish_precompute = True
 
@@ -185,10 +223,75 @@ class MovingWall(BaseWall, AbstractBoundaryHandling):
         pdf_post = deepcopy(field.pdf)
         average_density = field.density.mean()
 
-        pdf_post[self.reflected_boundary] = (
-            field.pdf_pre[self.boundary]
+        pdf_post[self.in_boundary] = (
+            field.pdf_pre[self.out_boundary]
             - average_density *
-            self.weighted_vel_dot_wall_vel6[self.boundary]
+            self.weighted_vel_dot_wall_vel6[self.out_boundary]
         )
 
         field.overwrite_pdf(new_pdf=pdf_post)
+
+
+class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
+    def __init__(self, field: FluidField2D, init_boundary: np.ndarray,
+                 in_density_factor: float, out_density_factor: float):
+
+        self._vert = (np.all(init_boundary[0, :]) and np.all(init_boundary[-1, :]))
+        self._horiz = np.all(init_boundary[:, 0]) and np.all(init_boundary[:, -1])
+        assert self._vert or self._horiz
+
+        super().__init__(field, init_boundary)
+        self._in_density = 3 * in_density_factor
+        self._out_density = 3 * out_density_factor
+
+    @property
+    def in_density(self) -> float:
+        return self._in_density
+
+    @property
+    def out_density(self) -> float:
+        return self._out_density
+
+    def boundary_handling(self, field: FluidField2D) -> None:
+        pdf_post = deepcopy(field.pdf)
+        pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
+        field.overwrite_pdf(new_pdf=pdf_post)
+
+
+"""
+def periodic_with_pressure_variations(boundary: np.ndarray, p_in: float, p_out: float) \
+        -> Callable[[np.ndarray, np.ndarray, np.ndarray, np.ndarray], np.ndarray]:
+    assert boundary.dtype == 'bool'
+    assert np.all(boundary[0, :] == boundary[-1, :]) or np.all(boundary[:, 0] == boundary[:, -1])
+
+    # precompute required variables s.t. they do not have to be recomputed over and over again
+    c_s = 1 / np.sqrt(3)
+    if np.all(boundary[0, :] == boundary[-1, :]):
+        density_in = np.ones_like(boundary[0, :]) * density_in
+        density_out = np.divide(p_out, c_s ** 2)
+        density_out = np.ones_like(boundary[-1, :]) * density_out
+        change_directions_1 = [1, 5, 8]  # left to right
+        change_directions_2 = [3, 6, 7]  # right to left
+    elif np.all(boundary[:, 0] == boundary[:, -1]):
+        density_in = np.ones_like(boundary[:, 0]) * density_in
+        density_out = np.divide(p_out, c_s ** 2)
+        density_out = np.ones_like(boundary[:, -1]) * density_out
+        change_directions_1 = [2, 5, 6]  # bottom to top
+        change_directions_2 = [4, 7, 8]  # top to bottom
+
+    def bc(f_pre_streaming: np.ndarray, density: np.ndarray, velocity: np.ndarray) -> np.ndarray:
+        assert boundary.shape == f_pre_streaming.shape[0:2]
+
+        f_eq = equilibrium_distr_func(density, velocity)
+        f_eq_in = equilibrium_distr_func(density_in, velocity[-2, ...]).squeeze()
+        f_pre_streaming[0, ..., change_directions_1] = f_eq_in[..., change_directions_1].T + (
+                f_pre_streaming[-2, ..., change_directions_1] - f_eq[-2, ..., change_directions_1])
+
+        f_eq_out = equilibrium_distr_func(density_out, velocity[1, ...]).squeeze()
+        f_pre_streaming[-1, ..., change_directions_2] = f_eq_out[..., change_directions_2].T + (
+                f_pre_streaming[1, ..., change_directions_2] - f_eq[1, ..., change_directions_2])
+
+        return f_pre_streaming
+
+    return bc
+"""
