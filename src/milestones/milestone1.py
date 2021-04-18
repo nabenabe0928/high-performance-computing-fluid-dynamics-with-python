@@ -10,9 +10,8 @@ def main() -> None:
     total_time_steps = 20
 
     pdf = np.zeros((X, Y, 9))
-    pdf[:X//2, :Y//2, 5] = np.ones((X // 2, Y // 2))
-    field = FluidField2D(X, Y)
-    field.init_vals(init_pdf=pdf)
+    pdf[:X // 2, :Y // 2, 5] = np.ones((X // 2, Y // 2))
+    field = FluidField2D(X, Y, init_pdf=pdf)
 
     for t in trange(total_time_steps):
         field.update_density()

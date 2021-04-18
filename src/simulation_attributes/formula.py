@@ -1,55 +1,59 @@
 import numpy as np
-from typing import Callable, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 from copy import deepcopy
 
 
 EPS = 1e-12
 
 
-class AdjacentIndices():
+class MetaAdjacentAttributes(type):
     """
-    The indices for the adjacent cells are:
+    The attributes for the adjacent cells.
+    such as the following indices are:
     y_upper  -> 6 2 5
     y_center -> 3 0 1
     y_lower  -> 7 4 8
     """
-    @staticmethod
-    def x_left() -> np.ndarray:
+    def __init__(cls, *args: List[Any], **kwargs: Dict[str, Any]):
+        pass
+
+    @property
+    def x_left(cls) -> np.ndarray:
         return np.array([3, 6, 7])
 
-    @staticmethod
-    def x_center() -> np.ndarray:
+    @property
+    def x_center(cls) -> np.ndarray:
         return np.array([0, 2, 4])
 
-    @staticmethod
-    def x_right() -> np.ndarray:
+    @property
+    def x_right(cls) -> np.ndarray:
         return np.array([1, 5, 8])
 
-    @staticmethod
-    def y_upper() -> np.ndarray:
+    @property
+    def y_upper(cls) -> np.ndarray:
         return np.array([2, 5, 6])
 
-    @staticmethod
-    def y_center() -> np.ndarray:
+    @property
+    def y_center(cls) -> np.ndarray:
         return np.array([0, 1, 3])
 
-    @staticmethod
-    def y_lower() -> np.ndarray:
+    @property
+    def y_lower(cls) -> np.ndarray:
         return np.array([4, 7, 8])
 
-    @staticmethod
-    def velocity_direction_set() -> np.ndarray:
+    @property
+    def velocity_direction_set(cls) -> np.ndarray:
         """ Note: Those do not have identical norms. """
         return np.array([[0, 0], [1, 0], [0, 1],
                          [-1, 0], [0, -1], [1, 1],
                          [-1, 1], [-1, -1], [1, -1]])
 
-    @staticmethod
-    def reflected_direction() -> np.ndarray:
+    @property
+    def reflected_direction(cls) -> np.ndarray:
         return np.array([0, 3, 4, 1, 2, 7, 8, 5, 6])
 
-    @staticmethod
-    def weights() -> np.ndarray:
+    @property
+    def weights(cls) -> np.ndarray:
         """ The weights for each adjacent cell """
         return np.array(
             [4. / 9.]
@@ -58,8 +62,16 @@ class AdjacentIndices():
         )
 
 
+class AdjacentAttributes(metaclass=MetaAdjacentAttributes):
+    """ From this class, you can call properties above """
+    pass
+
+
 class FluidField2D():
-    def __init__(self, X: int, Y: int, omega: float = 0.5):
+    def __init__(self, X: int, Y: int, omega: float = 0.5,
+                 init_pdf: Optional[np.ndarray] = None,
+                 init_density: Optional[np.ndarray] = None,
+                 init_vel: Optional[np.ndarray] = None):
         """
         This class computes and stores
         the density and velocity field
@@ -99,9 +111,13 @@ class FluidField2D():
         self._lattice_grid_shape = (X, Y)
         self._finish_initialize = False
 
+        self._init_vals(init_pdf=init_pdf,
+                        init_density=init_density,
+                        init_vel=init_vel)
+
         """ pdf for boundary handling """
-        self._pdf_pre = np.zeros((X, Y, 9))
-        self._pdf_mid = np.zeros((X, Y, 9))
+        self._pdf_pre = np.zeros_like(self.pdf)
+        self._pdf_mid = np.zeros_like(self.pdf)
 
         assert 0 < omega < 2
         self._omega = omega
@@ -111,7 +127,7 @@ class FluidField2D():
         return self._pdf
 
     @pdf.setter
-    def pdf(self, vals: np.ndarray) -> None:
+    def pdf(self) -> None:
         raise NotImplementedError("pdf is not supposed to change from outside.")
 
     @property
@@ -119,15 +135,15 @@ class FluidField2D():
         return self._pdf_pre
 
     @pdf_pre.setter
-    def pdf_pre(self, vals: np.ndarray) -> None:
+    def pdf_pre(self) -> None:
         raise NotImplementedError("pdf_pre is not supposed to change from outside.")
 
     @property
     def pdf_mid(self) -> np.ndarray:
-        return self._pdf_pre
+        return self._pdf_mid
 
     @pdf_mid.setter
-    def pdf_mid(self, vals: np.ndarray) -> None:
+    def pdf_mid(self) -> None:
         raise NotImplementedError("pdf_mid is not supposed to change from outside.")
 
     @property
@@ -135,7 +151,7 @@ class FluidField2D():
         return self._pdf_eq
 
     @pdf_eq.setter
-    def pdf_eq(self, vals: np.ndarray) -> None:
+    def pdf_eq(self) -> None:
         raise NotImplementedError("pdf_eq is not supposed to change from outside.")
 
     @property
@@ -143,7 +159,7 @@ class FluidField2D():
         return self._density
 
     @density.setter
-    def density(self, vals: np.ndarray) -> None:
+    def density(self) -> None:
         raise NotImplementedError("density is not supposed to change from outside.")
 
     @property
@@ -151,24 +167,16 @@ class FluidField2D():
         return self._velocity
 
     @velocity.setter
-    def velocity(self, vals: np.ndarray) -> None:
+    def velocity(self) -> None:
         raise NotImplementedError("velocity is not supposed to change from outside.")
 
     @property
     def lattice_grid_shape(self) -> Tuple[int, int]:
         return self._lattice_grid_shape
 
-    @lattice_grid_shape.setter
-    def lattice_grid_shape(self, val: Tuple[int, int]) -> None:
-        raise NotImplementedError("lattice_grid_shape is not supposed to change from outside.")
-
     @property
     def omega(self) -> float:
         return self._omega
-
-    @omega.setter
-    def omega(self, val: float) -> None:
-        raise NotImplementedError("omega is not supposed to change from outside.")
 
     def _init_pdf(self, init_vals: np.ndarray) -> None:
         assert init_vals.shape == self._pdf.shape
@@ -185,9 +193,9 @@ class FluidField2D():
         assert not self._finish_initialize
         self._velocity = init_vals
 
-    def init_vals(self, init_pdf: Optional[np.ndarray] = None,
-                  init_density: Optional[np.ndarray] = None,
-                  init_vel: Optional[np.ndarray] = None) -> None:
+    def _init_vals(self, init_pdf: Optional[np.ndarray] = None,
+                   init_density: Optional[np.ndarray] = None,
+                   init_vel: Optional[np.ndarray] = None) -> None:
         assert not self._finish_initialize
 
         if init_pdf is not None:
@@ -207,18 +215,18 @@ class FluidField2D():
         assert self._finish_initialize
 
         self._velocity[:, :, 0] = (
-            np.sum(self.pdf[:, :, AdjacentIndices.x_right()], axis=-1)
-            - np.sum(self.pdf[:, :, AdjacentIndices.x_left()], axis=-1)
+            np.sum(self.pdf[:, :, AdjacentAttributes.x_right], axis=-1)
+            - np.sum(self.pdf[:, :, AdjacentAttributes.x_left], axis=-1)
         ) / np.maximum(self.density, EPS)
 
         self._velocity[:, :, 1] = (
-            np.sum(self.pdf[:, :, AdjacentIndices.y_upper()], axis=-1)
-            - np.sum(self.pdf[:, :, AdjacentIndices.y_lower()], axis=-1)
+            np.sum(self.pdf[:, :, AdjacentAttributes.y_upper], axis=-1)
+            - np.sum(self.pdf[:, :, AdjacentAttributes.y_lower], axis=-1)
         ) / np.maximum(self.density, EPS)
 
     def update_pdf(self) -> None:
         """Update the current pdf based on the streaming operator """
-        vs = AdjacentIndices.velocity_direction_set()
+        vs = AdjacentAttributes.velocity_direction_set
 
         next_pdf = np.zeros_like(self.pdf)
         for i in range(9):
@@ -227,14 +235,14 @@ class FluidField2D():
         self._pdf = next_pdf
 
     def overwrite_pdf(self, new_pdf: np.ndarray) -> None:
-        assert self.pdf.shape == new_pdf
+        assert self.pdf.shape == new_pdf.shape
         self._pdf = new_pdf
 
     def _apply_local_equilibrium(self) -> None:
-        vs = AdjacentIndices.velocity_direction_set()
+        vs = AdjacentAttributes.velocity_direction_set
         # (X, Y, 2) @ (2, 9) -> (X, Y, 9)
         vel_dot_vs = self.velocity @ vs.T
-        W = AdjacentIndices.weights()
+        W = AdjacentAttributes.weights
         v_norm2 = np.linalg.norm(self.velocity, axis=-1) ** 2
 
         self._pdf_eq = W[np.newaxis, np.newaxis, ...] * self.density[..., np.newaxis] * (

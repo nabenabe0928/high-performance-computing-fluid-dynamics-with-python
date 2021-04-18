@@ -12,8 +12,7 @@ init_vals = Milestone2InitVals()
 
 def main(total_time_steps: int, init_density: np.ndarray, init_vel: np.ndarray) -> None:
     X, Y = lattice_grid_shape
-    field = FluidField2D(X, Y)
-    field.init_vals(init_density=init_density, init_vel=init_vel)
+    field = FluidField2D(X, Y, init_density=init_density, init_vel=init_vel)
 
     field.local_equilibrium_pdf_update()
     for _ in trange(total_time_steps):

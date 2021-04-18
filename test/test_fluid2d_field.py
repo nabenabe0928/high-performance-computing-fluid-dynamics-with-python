@@ -13,10 +13,9 @@ class TestFluidField2D(unittest.TestCase):
         self.init_vel = TestInputs.init_vel
 
     def initial_set(self, omega: float = 0.5) -> FluidField2D:
-        field = FluidField2D(*self.lattice_grid_shape, omega=omega)
-        field.init_vals(init_pdf=self.init_pdf,
-                        init_density=self.init_density,
-                        init_vel=self.init_vel)
+        field = FluidField2D(*self.lattice_grid_shape, omega=omega,
+                             init_pdf=self.init_pdf, init_density=self.init_density,
+                             init_vel=self.init_vel)
         return field
 
     def test_init_vals(self) -> None:

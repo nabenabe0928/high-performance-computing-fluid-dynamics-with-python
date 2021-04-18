@@ -15,9 +15,13 @@ def visualize_velocity_streaming(field: FluidField2D, cmap: str = DEFAULT_CMAP) 
     Visualizie the velocity field as streaming
     """
     X, Y = field.lattice_grid_shape
-    x, y = np.mgrid[:X, :Y]
+    y, x = np.mgrid[:X, :Y]
+    # since when v(t) = 0, it raises error, add the buffer
+    vel = field.velocity + 1e-12
+
     level = np.linalg.norm(field.velocity, axis=-1)
-    plt.streamplot(x, y, field.velocity[..., 0], field.velocity[..., 1],
+
+    plt.streamplot(x, y, vel[..., 0], vel[..., 1],
                    color=level, cmap='gist_rainbow')
     plt.xlim(0, X - 1)
     plt.ylim(0, Y - 1)
@@ -56,4 +60,30 @@ def visualize_quantity_vs_time(quantities: np.ndarray, quantity_name: str,
     plt.legend()
     plt.xlabel("Time")
     plt.ylabel(f"Amplitude of {quantity_name}")
+    plt.show()
+
+
+def visualize_velocity_field_of_moving_wall(field: FluidField2D, wall_vel: np.ndarray) -> None:
+    """ we assume the wall slides to x-direction. """
+    vx = field.velocity[..., 0]
+    X, Y = field.lattice_grid_shape
+    wv = wall_vel[0]
+    assert wall_vel[1] == 0
+
+    for vxy, y in zip(vx[X // 2, :], np.arange(Y)):
+        src = [0, y]
+        arrow = [vxy, 0]
+        plt.quiver(*src, *arrow, color='red', scale_units='xy', scale=1, headwidth=3, width=3e-3)
+
+    print(vx)
+    plt.plot(vx[X // 2, :], np.arange(Y), label="Simulated result", color="blue", linestyle=":", linewidth=1)
+    plt.plot(wv * (Y - np.arange(Y + 1)) / Y, np.arange(Y + 1) - 0.5, label="Theoretical value")
+
+    vmax = int(max(wv, np.ceil(vx[X // 2, :].max()))) + 1
+    plt.plot(np.arange(vmax), np.ones(vmax) * (Y - 1) + 0.5, label="Rigid wall")
+    plt.plot(np.arange(vmax), np.zeros(vmax) - 0.5, label='Moving wall')
+
+    plt.ylabel('y axis')
+    plt.xlabel('Velocity in y-axis')
+    plt.legend()
     plt.show()
