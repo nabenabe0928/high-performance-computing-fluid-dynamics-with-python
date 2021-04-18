@@ -1,6 +1,6 @@
 import unittest
 
-from src.utils.formula import FluidField2D
+from src.simulation_attributes.formula import FluidField2D
 from test.constants import TestInputs, TestOutputs
 from test.utils import abssum
 

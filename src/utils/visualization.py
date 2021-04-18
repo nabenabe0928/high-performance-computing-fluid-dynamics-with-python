@@ -3,7 +3,7 @@ import matplotlib.cm as cm
 import numpy as np
 from scipy.signal import argrelextrema
 
-from src.utils.formula import FluidField2D
+from src.simulation_attributes.formula import FluidField2D
 from src.utils.constants import EquationFuncType
 
 
@@ -43,7 +43,7 @@ def visualize_density_surface(field: FluidField2D, cmap: str = DEFAULT_CMAP) -> 
 
 def visualize_quantity_vs_time(quantities: np.ndarray, quantity_name: str,
                                total_time_steps: int, equation: EquationFuncType
-                               ) -> np.ndarray:
+                               ) -> None:
     indices = argrelextrema(quantities, np.greater)[0]
     extrema = quantities[indices]
 

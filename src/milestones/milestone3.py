@@ -1,10 +1,9 @@
 import numpy as np
 from tqdm import trange
-from typing import Callable, Tuple
 
 from src.milestones.constants import sinusoidal_density, sinusoidal_velocity
 from src.utils.visualization import visualize_density_surface, visualize_quantity_vs_time
-from src.utils.formula import FluidField2D
+from src.simulation_attributes.formula import FluidField2D
 from src.utils.attr_dict import AttrDict
 from src.utils.constants import EquationFuncType
 

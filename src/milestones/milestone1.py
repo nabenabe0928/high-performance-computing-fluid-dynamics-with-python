@@ -2,7 +2,7 @@ import numpy as np
 from tqdm import trange
 
 from src.utils.visualization import visualize_velocity_streaming
-from src.utils.formula import FluidField2D
+from src.simulation_attributes.formula import FluidField2D
 
 
 def main() -> None:

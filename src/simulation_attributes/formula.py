@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional, Tuple
+from typing import Callable, Optional, Tuple
 from copy import deepcopy
 
 
@@ -45,6 +45,10 @@ class AdjacentIndices():
                          [-1, 1], [-1, -1], [1, -1]])
 
     @staticmethod
+    def reflected_direction() -> np.ndarray:
+        return np.array([0, 3, 4, 1, 2, 7, 8, 5, 6])
+
+    @staticmethod
     def weights() -> np.ndarray:
         """ The weights for each adjacent cell """
         return np.array(
@@ -87,12 +91,17 @@ class FluidField2D():
             _omega (float):
                 relaxation term
         """
+
         self._pdf = np.zeros((X, Y, 9))
-        self._pdf_eq = np.zeros((X, Y, ))
+        self._pdf_eq = np.zeros((X, Y, 9))
         self._density = np.zeros((X, Y))
         self._velocity = np.zeros((X, Y, 2))
         self._lattice_grid_shape = (X, Y)
         self._finish_initialize = False
+
+        """ pdf for boundary handling """
+        self._pdf_pre = np.zeros((X, Y, 9))
+        self._pdf_mid = np.zeros((X, Y, 9))
 
         assert 0 < omega < 2
         self._omega = omega
@@ -104,6 +113,22 @@ class FluidField2D():
     @pdf.setter
     def pdf(self, vals: np.ndarray) -> None:
         raise NotImplementedError("pdf is not supposed to change from outside.")
+
+    @property
+    def pdf_pre(self) -> np.ndarray:
+        return self._pdf_pre
+
+    @pdf_pre.setter
+    def pdf_pre(self, vals: np.ndarray) -> None:
+        raise NotImplementedError("pdf_pre is not supposed to change from outside.")
+
+    @property
+    def pdf_mid(self) -> np.ndarray:
+        return self._pdf_pre
+
+    @pdf_mid.setter
+    def pdf_mid(self, vals: np.ndarray) -> None:
+        raise NotImplementedError("pdf_mid is not supposed to change from outside.")
 
     @property
     def pdf_eq(self) -> np.ndarray:
@@ -176,6 +201,7 @@ class FluidField2D():
 
     def update_density(self) -> None:
         assert self._finish_initialize
+        assert len(self.pdf.shape) > 1
         self._density = np.sum(self.pdf, axis=-1)
 
     def update_velocity(self) -> None:
@@ -201,36 +227,39 @@ class FluidField2D():
 
         self._pdf = next_pdf
 
+    def overwrite_pdf(self, new_pdf: np.ndarray) -> None:
+        assert self.pdf.shape == new_pdf
+        self._pdf = new_pdf
+
     def _apply_local_equilibrium(self) -> None:
         vs = AdjacentIndices.velocity_direction_set()
         # (X, Y, 2) @ (2, 9) -> (X, Y, 9)
-        dotprod = self.velocity @ vs.T
+        vel_dot_vs = self.velocity @ vs.T
         W = AdjacentIndices.weights()
         v_norm2 = np.linalg.norm(self.velocity, axis=-1) ** 2
 
         self._pdf_eq = W[np.newaxis, np.newaxis, ...] * self.density[..., np.newaxis] * (
-            1. + 3. * dotprod + 4.5 * dotprod ** 2 - 1.5 * v_norm2[..., np.newaxis]
+            1. + 3. * vel_dot_vs + 4.5 * vel_dot_vs ** 2 - 1.5 * v_norm2[..., np.newaxis]
         )
 
     def local_equilibrium_pdf_update(self) -> None:
         self._apply_local_equilibrium()
         self._pdf = deepcopy(self._pdf_eq)
 
-    def lattice_boltzmann_step(self, boundary_handling=None) -> None:
+    def lattice_boltzmann_step(
+        self,
+        boundary_handling: Optional[Callable[['FluidField2D'], None]] = None
+    ) -> None:
+
         self._apply_local_equilibrium()
 
-        pdf_pre = deepcopy(self.pdf)
-        pdf_mid = (self.pdf + (self.pdf_eq - self.pdf) * self._omega)
-        self._pdf = deepcopy(pdf_mid)
+        self._pdf_pre = deepcopy(self.pdf)
+        self._pdf_mid = (self.pdf + (self.pdf_eq - self.pdf) * self._omega)
+        self._pdf = deepcopy(self.pdf_mid)
         self.update_pdf()
 
         if boundary_handling is not None:
-            pdf_post = deepcopy(self.pdf)
-            self._pdf = boundary_handling(pdf_pre=pdf_pre,
-                                          pdf_mid=pdf_mid,
-                                          pdf_post=pdf_post,
-                                          density=self.density,
-                                          velocity=self.velocity)
+            boundary_handling(self)
 
         self.update_density()
         self.update_velocity()

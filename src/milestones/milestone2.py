@@ -3,7 +3,7 @@ from tqdm import trange
 
 from src.milestones.constants import Milestone2InitVals
 from src.utils.visualization import visualize_density_surface
-from src.utils.formula import FluidField2D
+from src.simulation_attributes.formula import FluidField2D
 
 
 lattice_grid_shape = (50, 50)
