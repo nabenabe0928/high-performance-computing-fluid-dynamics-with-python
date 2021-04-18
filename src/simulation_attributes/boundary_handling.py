@@ -121,8 +121,8 @@ class BaseBoundary():
             if np.all(init_boundary[:, -1]):
                 out_indices += [2, 5, 6]
         else:
-            vert = (np.all(init_boundary[0, :]) and np.all(init_boundary[-1, :]))
-            horiz = np.all(init_boundary[:, 0]) and np.all(init_boundary[:, -1])
+            horiz = (np.all(init_boundary[0, :]) and np.all(init_boundary[-1, :]))
+            vert = np.all(init_boundary[:, 0]) and np.all(init_boundary[:, -1])
             assert vert or horiz
             if horiz:
                 # left to right
@@ -151,7 +151,7 @@ class RigidWall(BaseBoundary, AbstractBoundaryHandling):
     def __init__(self, field: FluidField2D, init_boundary: np.ndarray):
         super().__init__(field, init_boundary)
 
-    def _precompute(self):
+    def _precompute(self) -> None:
         pass
 
     def boundary_handling(self, field: FluidField2D) -> None:
@@ -236,23 +236,36 @@ class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
     def __init__(self, field: FluidField2D, init_boundary: np.ndarray,
                  in_density_factor: float, out_density_factor: float):
 
-        self._vert = (np.all(init_boundary[0, :]) and np.all(init_boundary[-1, :]))
-        self._horiz = np.all(init_boundary[:, 0]) and np.all(init_boundary[:, -1])
-        assert self._vert or self._horiz
+        # left to right
+        horiz = (np.all(init_boundary[0, :]) and np.all(init_boundary[-1, :]))
+        # bottom to top
+        vert = np.all(init_boundary[:, 0]) and np.all(init_boundary[:, -1])
+        assert vert or horiz
+        X, Y = field.lattice_grid_shape
 
-        super().__init__(field, init_boundary)
-        self._in_density = 3 * in_density_factor
-        self._out_density = 3 * out_density_factor
+        super().__init__(field, init_boundary, pressure_variation=True)
+        boundary_shape = X if horiz else Y
+        self._in_density = 3 * in_density_factor * np.ones(boundary_shape)
+        self._out_density = 3 * out_density_factor * np.ones(boundary_shape)
 
     @property
     def in_density(self) -> float:
         return self._in_density
 
+    @in_density.setter
+    def in_density(self) -> None:
+        raise NotImplementedError("in_density is not supposed to change from outside.")
+
     @property
     def out_density(self) -> float:
         return self._out_density
 
+    @out_density.setter
+    def out_density(self) -> None:
+        raise NotImplementedError("out_density is not supposed to change from outside.")
+
     def boundary_handling(self, field: FluidField2D) -> None:
+        pdf_eq = field.pdf_eq
         pdf_post = deepcopy(field.pdf)
         pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
         field.overwrite_pdf(new_pdf=pdf_post)
@@ -261,23 +274,6 @@ class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
 """
 def periodic_with_pressure_variations(boundary: np.ndarray, p_in: float, p_out: float) \
         -> Callable[[np.ndarray, np.ndarray, np.ndarray, np.ndarray], np.ndarray]:
-    assert boundary.dtype == 'bool'
-    assert np.all(boundary[0, :] == boundary[-1, :]) or np.all(boundary[:, 0] == boundary[:, -1])
-
-    # precompute required variables s.t. they do not have to be recomputed over and over again
-    c_s = 1 / np.sqrt(3)
-    if np.all(boundary[0, :] == boundary[-1, :]):
-        density_in = np.ones_like(boundary[0, :]) * density_in
-        density_out = np.divide(p_out, c_s ** 2)
-        density_out = np.ones_like(boundary[-1, :]) * density_out
-        change_directions_1 = [1, 5, 8]  # left to right
-        change_directions_2 = [3, 6, 7]  # right to left
-    elif np.all(boundary[:, 0] == boundary[:, -1]):
-        density_in = np.ones_like(boundary[:, 0]) * density_in
-        density_out = np.divide(p_out, c_s ** 2)
-        density_out = np.ones_like(boundary[:, -1]) * density_out
-        change_directions_1 = [2, 5, 6]  # bottom to top
-        change_directions_2 = [4, 7, 8]  # top to bottom
 
     def bc(f_pre_streaming: np.ndarray, density: np.ndarray, velocity: np.ndarray) -> np.ndarray:
         assert boundary.shape == f_pre_streaming.shape[0:2]

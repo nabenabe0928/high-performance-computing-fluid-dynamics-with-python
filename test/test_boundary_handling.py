@@ -27,7 +27,7 @@ class TestBoundaryHandling(unittest.TestCase):
 
         return field, rigid_wall, moving_wall
 
-    def test_rigid_wall(self):
+    def test_rigid_wall(self) -> None:
         field, rigid_wall, _ = self.initial_set()
         field.local_equilibrium_pdf_update()
 
@@ -37,7 +37,7 @@ class TestBoundaryHandling(unittest.TestCase):
         self.assertEqual(field.pdf.shape, ans.shape)
         self.assertAlmostEqual(abssum(field.pdf, ans), 0.0, places=1)
 
-    def test_moving_wall(self):
+    def test_moving_wall(self) -> None:
         field, _, moving_wall = self.initial_set()
         field.local_equilibrium_pdf_update()
 

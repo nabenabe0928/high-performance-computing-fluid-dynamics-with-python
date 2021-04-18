@@ -6,6 +6,24 @@ from copy import deepcopy
 EPS = 1e-12
 
 
+def local_equilibrium(velocity: np.ndarray, density: np.ndarray) -> np.ndarray:
+    """ The local relaxation of the probability density function """
+
+    assert density.shape == velocity.shape[:-1]
+
+    vs = AdjacentAttributes.velocity_direction_set
+    # (X, Y, 2) @ (2, 9) -> (X, Y, 9)
+    vel_dot_vs = velocity @ vs.T
+    W = AdjacentAttributes.weights
+    v_norm2 = np.linalg.norm(velocity, axis=-1) ** 2
+
+    pdf_eq = W[np.newaxis, np.newaxis, ...] * density[..., np.newaxis] * (
+        1. + 3. * vel_dot_vs + 4.5 * vel_dot_vs ** 2 - 1.5 * v_norm2[..., np.newaxis]
+    )
+
+    return pdf_eq
+
+
 class MetaAdjacentAttributes(type):
     """
     The attributes for the adjacent cells.
@@ -239,19 +257,11 @@ class FluidField2D():
         self._pdf = new_pdf
 
     def _apply_local_equilibrium(self) -> None:
-        vs = AdjacentAttributes.velocity_direction_set
-        # (X, Y, 2) @ (2, 9) -> (X, Y, 9)
-        vel_dot_vs = self.velocity @ vs.T
-        W = AdjacentAttributes.weights
-        v_norm2 = np.linalg.norm(self.velocity, axis=-1) ** 2
-
-        self._pdf_eq = W[np.newaxis, np.newaxis, ...] * self.density[..., np.newaxis] * (
-            1. + 3. * vel_dot_vs + 4.5 * vel_dot_vs ** 2 - 1.5 * v_norm2[..., np.newaxis]
-        )
+        self._pdf_eq = local_equilibrium(velocity=self.velocity, density=self.density)
 
     def local_equilibrium_pdf_update(self) -> None:
         self._apply_local_equilibrium()
-        self._pdf = deepcopy(self._pdf_eq)
+        self._pdf = deepcopy(self._pdf_eq)    
 
     def lattice_boltzmann_step(
         self,
