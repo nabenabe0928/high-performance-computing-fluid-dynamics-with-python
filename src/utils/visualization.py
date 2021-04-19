@@ -4,6 +4,7 @@ import numpy as np
 from scipy.signal import argrelextrema
 
 from src.simulation_attributes.formula import FluidField2D
+from src.simulation_attributes.boundary_handling import PeriodicBoundaryConditions
 from src.utils.constants import EquationFuncType
 
 
@@ -84,5 +85,38 @@ def visualize_velocity_field_of_moving_wall(field: FluidField2D, wall_vel: np.nd
 
     plt.ylabel('y axis')
     plt.xlabel('Velocity in y-axis')
+    plt.legend()
+    plt.show()
+
+
+def visualize_velocity_field_of_pipe(field: FluidField2D, pbc: PeriodicBoundaryConditions) -> None:
+    """ we assume the wall slides to x-direction. """
+    vx = field.velocity[..., 0]
+    X, Y = field.lattice_grid_shape
+    viscosity = 1. / 3. * (1. / field.omega - 0.5)
+    average_density = viscosity * field.density[X // 2, :].mean()
+    out_density_factor = pbc.out_density[0] / 3.
+    in_density_factor = pbc.in_density[0] / 3.
+    deriv_density_x = (out_density_factor - in_density_factor) / X
+
+    for vxy, y in zip(vx[X // 2, :], np.arange(Y)):
+        src = [0, y]
+        arrow = [vxy, 0]
+        plt.quiver(*src, *arrow, color='red', scale_units='xy', scale=1, headwidth=3, width=3e-3)
+
+    x, y = np.arange(X - 2), np.arange(Y + 1)
+    uy = - 0.5 * deriv_density_x * y * (Y - y) / average_density
+
+    plt.plot(uy, y - 0.5, label='Analytical Solution', c='red', linestyle='--')
+    plt.ylabel('y coordinate')
+    plt.xlabel('velocity in y-direction')
+    plt.legend()
+    plt.show()
+
+    plt.plot(x, field.density[1:-1, Y // 2] / 3., label='Pressure along centerline')
+    plt.plot(x, np.ones_like(x) * out_density_factor, label='out density')
+    plt.plot(x, np.ones_like(x) * in_density_factor, label='in density')
+    plt.xlabel('x axis')
+    plt.ylabel('Density along centerline')
     plt.legend()
     plt.show()

@@ -157,14 +157,6 @@ class FluidField2D():
         raise NotImplementedError("pdf_pre is not supposed to change from outside.")
 
     @property
-    def pdf_mid(self) -> np.ndarray:
-        return self._pdf_mid
-
-    @pdf_mid.setter
-    def pdf_mid(self) -> None:
-        raise NotImplementedError("pdf_mid is not supposed to change from outside.")
-
-    @property
     def pdf_eq(self) -> np.ndarray:
         return self._pdf_eq
 
@@ -270,12 +262,12 @@ class FluidField2D():
 
         self._apply_local_equilibrium()
 
-        self._pdf_pre = deepcopy(self.pdf)
-        self._pdf_mid = (self.pdf + (self.pdf_eq - self.pdf) * self._omega)
-        self._pdf = deepcopy(self.pdf_mid)
+        self._pdf_pre = (self.pdf + (self.pdf_eq - self.pdf) * self._omega)
+        self._pdf = deepcopy(self.pdf_pre)
         self.update_pdf()
 
         if boundary_handling is not None:
+            """TODO: Be able to return pdf_post"""
             boundary_handling(self)
 
         self.update_density()

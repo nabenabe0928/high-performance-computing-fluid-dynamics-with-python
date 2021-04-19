@@ -23,9 +23,9 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
     field = FluidField2D(X, Y, omega=omega, init_vel=init_velocity, init_density=init_density)
 
     init_rigid_wall = np.zeros(lattice_grid_shape)
-    init_rigid_wall[:, -1] = np.ones(Y)
+    init_rigid_wall[:, -1] = np.ones(X)
     init_moving_wall = np.zeros(lattice_grid_shape)
-    init_moving_wall[:, 0] = np.ones(Y)
+    init_moving_wall[:, 0] = np.ones(X)
     rigid_wall = RigidWall(field, init_boundary=init_rigid_wall)
     moving_wall = MovingWall(field, init_boundary=init_moving_wall, wall_vel=wall_vel)
 
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     kwargs = ExperimentVariables(
         omega=0.5,
         total_time_steps=5000,
-        wall_vel=np.array([50, 0])
+        wall_vel=np.array([10, 0])
     )
 
     density, vel = np.ones(lattice_grid_shape), np.zeros((*lattice_grid_shape, 2))

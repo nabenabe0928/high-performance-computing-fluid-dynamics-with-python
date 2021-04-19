@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 import numpy as np
 
-from src.simulation_attributes.formula import AdjacentAttributes, FluidField2D
+from src.simulation_attributes.formula import AdjacentAttributes, FluidField2D, local_equilibrium
 
 
 class AbstractBoundaryHandling(object, metaclass=ABCMeta):
@@ -22,11 +22,6 @@ class AbstractBoundaryHandling(object, metaclass=ABCMeta):
                 The pdf after the boundary handling.
                 The shape is (X, Y, 9).
         """
-        raise NotImplementedError
-
-    @abstractmethod
-    def _precompute(self) -> None:
-        """ pre-computation if required """
         raise NotImplementedError
 
 
@@ -113,15 +108,17 @@ class BaseBoundary():
         out_indices = []
         if not pressure_variation:
             if np.all(init_boundary[0, :]):
-                out_indices += [1, 5, 8]
-            if np.all(init_boundary[-1, :]):
                 out_indices += [3, 6, 7]
+            if np.all(init_boundary[-1, :]):
+                out_indices += [1, 5, 8]
             if np.all(init_boundary[:, 0]):
                 out_indices += [4, 7, 8]
             if np.all(init_boundary[:, -1]):
                 out_indices += [2, 5, 6]
         else:
+            # left to right (the flow of particles)
             horiz = (np.all(init_boundary[0, :]) and np.all(init_boundary[-1, :]))
+            # bottom to top
             vert = np.all(init_boundary[:, 0]) and np.all(init_boundary[:, -1])
             assert vert or horiz
             if horiz:
@@ -150,9 +147,6 @@ class BaseBoundary():
 class RigidWall(BaseBoundary, AbstractBoundaryHandling):
     def __init__(self, field: FluidField2D, init_boundary: np.ndarray):
         super().__init__(field, init_boundary)
-
-    def _precompute(self) -> None:
-        pass
 
     def boundary_handling(self, field: FluidField2D) -> None:
         pdf_post = deepcopy(field.pdf)
@@ -236,20 +230,20 @@ class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
     def __init__(self, field: FluidField2D, init_boundary: np.ndarray,
                  in_density_factor: float, out_density_factor: float):
 
-        # left to right
-        horiz = (np.all(init_boundary[0, :]) and np.all(init_boundary[-1, :]))
+        # left to right (the flow of particles)
+        self.horiz = (np.all(init_boundary[0, :]) and np.all(init_boundary[-1, :]))
         # bottom to top
-        vert = np.all(init_boundary[:, 0]) and np.all(init_boundary[:, -1])
-        assert vert or horiz
+        self.vert = np.all(init_boundary[:, 0]) and np.all(init_boundary[:, -1])
+        assert self.vert or self.horiz
         X, Y = field.lattice_grid_shape
 
         super().__init__(field, init_boundary, pressure_variation=True)
-        boundary_shape = X if horiz else Y
+        boundary_shape = Y if self.horiz else X
         self._in_density = 3 * in_density_factor * np.ones(boundary_shape)
         self._out_density = 3 * out_density_factor * np.ones(boundary_shape)
 
     @property
-    def in_density(self) -> float:
+    def in_density(self) -> np.ndarray:
         return self._in_density
 
     @in_density.setter
@@ -257,7 +251,7 @@ class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
         raise NotImplementedError("in_density is not supposed to change from outside.")
 
     @property
-    def out_density(self) -> float:
+    def out_density(self) -> np.ndarray:
         return self._out_density
 
     @out_density.setter
@@ -265,29 +259,27 @@ class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
         raise NotImplementedError("out_density is not supposed to change from outside.")
 
     def boundary_handling(self, field: FluidField2D) -> None:
-        pdf_eq = field.pdf_eq
-        pdf_post = deepcopy(field.pdf)
-        pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
+        pdf_eq, pdf_post = field.pdf_eq, field.pdf
+
+        if self.horiz:
+            pdf_eq_in = local_equilibrium(velocity=field.velocity[-2], density=self.in_density).squeeze()
+            pdf_post[0][:, self.out_indices] = pdf_eq_in[:, self.out_indices] + (
+                pdf_post[-2][:, self.out_indices] - pdf_eq[-2][:, self.out_indices]
+            )
+
+            pdf_eq_out = local_equilibrium(velocity=field.velocity[1], density=self.out_density).squeeze()
+            pdf_post[-1][:, self.in_indices] = pdf_eq_out[:, self.in_indices] + (
+                pdf_post[1][:, self.in_indices] - pdf_eq[1][:, self.in_indices]
+            )
+        else:
+            pdf_eq_in = local_equilibrium(velocity=field.velocity[:, -2], density=self.in_density).squeeze()
+            pdf_post[:, 0, self.out_indices] = pdf_eq_in[:, self.out_indices] + (
+                pdf_post[:, -2, self.out_indices] - pdf_eq[:, -2, self.out_indices]
+            )
+
+            pdf_eq_out = local_equilibrium(velocity=field.velocity[:, 1], density=self.out_density).squeeze()
+            pdf_post[:, -1, self.in_indices] = pdf_eq_out[:, self.in_indices] + (
+                pdf_post[:, 1, self.in_indices] - pdf_eq[:, 1, self.in_indices]
+            )
+
         field.overwrite_pdf(new_pdf=pdf_post)
-
-
-"""
-def periodic_with_pressure_variations(boundary: np.ndarray, p_in: float, p_out: float) \
-        -> Callable[[np.ndarray, np.ndarray, np.ndarray, np.ndarray], np.ndarray]:
-
-    def bc(f_pre_streaming: np.ndarray, density: np.ndarray, velocity: np.ndarray) -> np.ndarray:
-        assert boundary.shape == f_pre_streaming.shape[0:2]
-
-        f_eq = equilibrium_distr_func(density, velocity)
-        f_eq_in = equilibrium_distr_func(density_in, velocity[-2, ...]).squeeze()
-        f_pre_streaming[0, ..., change_directions_1] = f_eq_in[..., change_directions_1].T + (
-                f_pre_streaming[-2, ..., change_directions_1] - f_eq[-2, ..., change_directions_1])
-
-        f_eq_out = equilibrium_distr_func(density_out, velocity[1, ...]).squeeze()
-        f_pre_streaming[-1, ..., change_directions_2] = f_eq_out[..., change_directions_2].T + (
-                f_pre_streaming[1, ..., change_directions_2] - f_eq[1, ..., change_directions_2])
-
-        return f_pre_streaming
-
-    return bc
-"""
