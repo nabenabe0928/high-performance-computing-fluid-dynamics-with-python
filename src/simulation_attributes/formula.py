@@ -6,6 +6,24 @@ from copy import deepcopy
 EPS = 1e-12
 
 
+def local_equilibrium(velocity: np.ndarray, density: np.ndarray) -> np.ndarray:
+    """ The local relaxation of the probability density function """
+
+    assert density.shape == velocity.shape[:-1]
+
+    vs = AdjacentAttributes.velocity_direction_set
+    # (X, Y, 2) @ (2, 9) -> (X, Y, 9)
+    vel_dot_vs = velocity @ vs.T
+    W = AdjacentAttributes.weights
+    v_norm2 = np.linalg.norm(velocity, axis=-1) ** 2
+
+    pdf_eq = W[np.newaxis, np.newaxis, ...] * density[..., np.newaxis] * (
+        1. + 3. * vel_dot_vs + 4.5 * vel_dot_vs ** 2 - 1.5 * v_norm2[..., np.newaxis]
+    )
+
+    return pdf_eq
+
+
 class MetaAdjacentAttributes(type):
     """
     The attributes for the adjacent cells.
@@ -139,14 +157,6 @@ class FluidField2D():
         raise NotImplementedError("pdf_pre is not supposed to change from outside.")
 
     @property
-    def pdf_mid(self) -> np.ndarray:
-        return self._pdf_mid
-
-    @pdf_mid.setter
-    def pdf_mid(self) -> None:
-        raise NotImplementedError("pdf_mid is not supposed to change from outside.")
-
-    @property
     def pdf_eq(self) -> np.ndarray:
         return self._pdf_eq
 
@@ -234,20 +244,8 @@ class FluidField2D():
 
         self._pdf = next_pdf
 
-    def overwrite_pdf(self, new_pdf: np.ndarray) -> None:
-        assert self.pdf.shape == new_pdf.shape
-        self._pdf = new_pdf
-
     def _apply_local_equilibrium(self) -> None:
-        vs = AdjacentAttributes.velocity_direction_set
-        # (X, Y, 2) @ (2, 9) -> (X, Y, 9)
-        vel_dot_vs = self.velocity @ vs.T
-        W = AdjacentAttributes.weights
-        v_norm2 = np.linalg.norm(self.velocity, axis=-1) ** 2
-
-        self._pdf_eq = W[np.newaxis, np.newaxis, ...] * self.density[..., np.newaxis] * (
-            1. + 3. * vel_dot_vs + 4.5 * vel_dot_vs ** 2 - 1.5 * v_norm2[..., np.newaxis]
-        )
+        self._pdf_eq = local_equilibrium(velocity=self.velocity, density=self.density)
 
     def local_equilibrium_pdf_update(self) -> None:
         self._apply_local_equilibrium()
@@ -260,9 +258,8 @@ class FluidField2D():
 
         self._apply_local_equilibrium()
 
-        self._pdf_pre = deepcopy(self.pdf)
-        self._pdf_mid = (self.pdf + (self.pdf_eq - self.pdf) * self._omega)
-        self._pdf = deepcopy(self.pdf_mid)
+        self._pdf_pre = (self.pdf + (self.pdf_eq - self.pdf) * self._omega)
+        self._pdf = deepcopy(self.pdf_pre)
         self.update_pdf()
 
         if boundary_handling is not None:
