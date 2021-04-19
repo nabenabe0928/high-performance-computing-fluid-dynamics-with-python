@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+
 from typing import Any, Dict
 
 import numpy as np
@@ -208,15 +209,6 @@ class MovingWall(BaseBoundary, AbstractBoundaryHandling):
     def boundary_handling(self, field: FluidField2D) -> None:
         if not self._finish_precompute:
             self._precompute()
-
-        pdf_post = field.pdf
-        average_density = field.density.mean()
-
-        pdf_post[self.in_boundary] = (
-            field.pdf_pre[self.out_boundary]
-            - average_density *
-            self.weighted_vel_dot_wall_vel6[self.out_boundary]
-        )
 
 
 class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
