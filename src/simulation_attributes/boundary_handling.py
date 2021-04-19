@@ -1,5 +1,4 @@
 from abc import ABCMeta, abstractmethod
-from copy import deepcopy
 from typing import Any, Dict
 
 import numpy as np
@@ -13,14 +12,11 @@ class AbstractBoundaryHandling(object, metaclass=ABCMeta):
         """
         Compute the PDF using pdf_pre, pdf_mid, pdf and density, velocity
         and return the PDF after boundary handling.
+        In order to be able to joint multiple boundary handlings,
+        the update of the PDF has to be performed inside the function. 
 
         Args:
             field (FluidField2D)
-
-        Returns:
-            pdf_post (np.ndarray):
-                The pdf after the boundary handling.
-                The shape is (X, Y, 9).
         """
         raise NotImplementedError
 
@@ -149,9 +145,8 @@ class RigidWall(BaseBoundary, AbstractBoundaryHandling):
         super().__init__(field, init_boundary)
 
     def boundary_handling(self, field: FluidField2D) -> None:
-        pdf_post = deepcopy(field.pdf)
+        pdf_post = field.pdf
         pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
-        field.overwrite_pdf(new_pdf=pdf_post)
 
 
 class MovingWall(BaseBoundary, AbstractBoundaryHandling):
@@ -214,7 +209,7 @@ class MovingWall(BaseBoundary, AbstractBoundaryHandling):
         if not self._finish_precompute:
             self._precompute()
 
-        pdf_post = deepcopy(field.pdf)
+        pdf_post = field.pdf
         average_density = field.density.mean()
 
         pdf_post[self.in_boundary] = (
@@ -222,8 +217,6 @@ class MovingWall(BaseBoundary, AbstractBoundaryHandling):
             - average_density *
             self.weighted_vel_dot_wall_vel6[self.out_boundary]
         )
-
-        field.overwrite_pdf(new_pdf=pdf_post)
 
 
 class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
@@ -281,5 +274,3 @@ class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
             pdf_post[:, -1, self.in_indices] = pdf_eq_out[:, self.in_indices] + (
                 pdf_post[:, 1, self.in_indices] - pdf_eq[:, 1, self.in_indices]
             )
-
-        field.overwrite_pdf(new_pdf=pdf_post)

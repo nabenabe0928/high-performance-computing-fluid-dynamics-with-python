@@ -244,16 +244,12 @@ class FluidField2D():
 
         self._pdf = next_pdf
 
-    def overwrite_pdf(self, new_pdf: np.ndarray) -> None:
-        assert self.pdf.shape == new_pdf.shape
-        self._pdf = new_pdf
-
     def _apply_local_equilibrium(self) -> None:
         self._pdf_eq = local_equilibrium(velocity=self.velocity, density=self.density)
 
     def local_equilibrium_pdf_update(self) -> None:
         self._apply_local_equilibrium()
-        self._pdf = deepcopy(self._pdf_eq)    
+        self._pdf = deepcopy(self._pdf_eq)
 
     def lattice_boltzmann_step(
         self,
@@ -267,7 +263,6 @@ class FluidField2D():
         self.update_pdf()
 
         if boundary_handling is not None:
-            """TODO: Be able to return pdf_post"""
             boundary_handling(self)
 
         self.update_density()
