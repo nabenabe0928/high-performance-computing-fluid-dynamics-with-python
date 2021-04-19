@@ -108,6 +108,7 @@ def visualize_velocity_field_of_pipe(field: FluidField2D, pbc: PeriodicBoundaryC
     x, y = np.arange(X - 2), np.arange(Y + 1)
     uy = - 0.5 * deriv_density_x * y * (Y - y) / average_density
 
+    plt.plot(vx[X // 2, :], np.arange(Y), label='Simulated result', linewidth=1, c='blue', linestyle=':')
     plt.plot(uy, y - 0.5, label='Analytical Solution', c='red', linestyle='--')
     plt.ylabel('y coordinate')
     plt.xlabel('velocity in y-direction')

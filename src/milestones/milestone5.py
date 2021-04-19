@@ -2,7 +2,7 @@ import numpy as np
 from tqdm import trange
 
 from src.simulation_attributes.formula import FluidField2D
-from src.simulation_attributes.boundary_handling import PeriodicBoundaryConditions, RigidWall
+from src.simulation_attributes.boundary_handling import DirectionIndicators, PeriodicBoundaryConditions, RigidWall
 from src.utils.attr_dict import AttrDict
 from src.utils.visualization import visualize_velocity_field_of_pipe
 
@@ -25,18 +25,17 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
 
     field = FluidField2D(X, Y, omega=omega, init_vel=init_velocity, init_density=init_density)
 
-    init_pbc_boundary = np.zeros((X, Y))
-    init_pbc_boundary[0, :] = np.ones(Y)
-    init_pbc_boundary[-1, :] = np.ones(Y)
+    pbc = PeriodicBoundaryConditions(
+        field=field,
+        boundary_locations=[DirectionIndicators.LEFT, DirectionIndicators.RIGHT],
+        in_density_factor=in_density_factor,
+        out_density_factor=out_density_factor
+    )
 
-    pbc = PeriodicBoundaryConditions(field=field, init_boundary=init_pbc_boundary,
-                                     in_density_factor=in_density_factor,
-                                     out_density_factor=out_density_factor)
-
-    init_rigid_boundary = np.zeros((X, Y))
-    init_rigid_boundary[:, 0] = np.ones(X)
-    init_rigid_boundary[:, -1] = np.ones(X)
-    rigid_wall = RigidWall(field, init_boundary=init_rigid_boundary)
+    rigid_wall = RigidWall(
+        field=field,
+        boundary_locations=[DirectionIndicators.TOP, DirectionIndicators.BOTTOM]
+    )
 
     def boundary_handling_func(field: FluidField2D) -> None:
         pbc.boundary_handling(field)

@@ -28,10 +28,6 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
         wall_vel=wall_vel
     )
 
-    init_rigid_wall = np.zeros(lattice_grid_shape)
-    init_rigid_wall[:, -1] = np.ones(X)
-    init_rigid_wall[0, :] = np.ones(Y)
-    init_rigid_wall[-1, :] = np.ones(Y)
     rigid_wall = RigidWall(
         field,
         boundary_locations=[
@@ -61,8 +57,6 @@ if __name__ == '__main__':
         total_time_steps=5000,
         wall_vel=np.array([0.1, 0])
     )
-
-    print(kwargs)
 
     density, vel = np.ones(lattice_grid_shape), np.zeros((*lattice_grid_shape, 2))
     main(init_density=density, init_velocity=vel, **kwargs)
