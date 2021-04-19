@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, List
 from enum import IntEnum
 
 import numpy as np
@@ -50,8 +50,9 @@ class AbstractBoundaryHandling(object, metaclass=ABCMeta):
 
 
 class BaseBoundary():
-    def __init__(self, field: FluidField2D, init_boundary: np.ndarray,
-                 pressure_variation: bool = False, **kwargs: Dict[str, Any]):
+    def __init__(self, field: FluidField2D, boundary_locations: List[DirectionIndicators],
+                 pressure_variation: bool = False, visualize_wall: bool = False,
+                 **kwargs: Dict[str, Any]):
         """
         Attributes:
             _out_boundary (np.ndarray):
@@ -74,15 +75,17 @@ class BaseBoundary():
                 The corresponding indices for the bouncing direction of _out_indices.
                 The shape is (n_direction, ).
         """
+        X, Y = field.lattice_grid_shape
         self._out_boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)
         self._out_indices = np.arange(9)
         self._in_boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)
         self._in_indices = AdjacentAttributes.reflected_direction
         self._finish_initialize = False
         self._lattice_grid_shape = field.lattice_grid_shape
-        self._directions = []
+        self._boundary_locations = boundary_locations
+        self._visualize_wall = visualize_wall
 
-        self._init_boundary(init_boundary, pressure_variation=pressure_variation)
+        self._init_boundary(pressure_variation=pressure_variation)
 
     @property
     def in_boundary(self) -> np.ndarray:
@@ -116,16 +119,20 @@ class BaseBoundary():
     def out_indices(self) -> None:
         raise NotImplementedError("out_indices is not supposed to change from outside.")
 
-    def _init_boundary_indices(self, init_boundary: np.ndarray, pressure_variation: bool) -> None:
+    @property
+    def boundary_locations(self) -> List[DirectionIndicators]:
+        return self._boundary_locations
+
+    @boundary_locations.setter
+    def boundary_locations(self) -> None:
+        raise NotImplementedError("boundary_locations is not supposed to change from outside.")
+
+    def _init_boundary_indices(self, pressure_variation: bool) -> None:
         """
         Suppose walls are not disjointed and do not have curves
         and they exist only at the edges of the field.
 
         Args:
-            init_boundary (np.ndarray):
-                The True or False array with the shape of (X, Y).
-                If True, there is a boundary.
-
             pressure_variation (bool):
                 If True, pressure variation dominates the influence from
                 the collision with the wall.
@@ -133,23 +140,21 @@ class BaseBoundary():
         assert not self._finish_initialize
         out_indices = []
         if not pressure_variation:
-            if np.all(init_boundary[0, :]):
+            if DirectionIndicators.LEFT in self.boundary_locations:
                 out_indices += [3, 6, 7]
-                self._directions.append(DirectionIndicators.LEFT)
-            if np.all(init_boundary[-1, :]):
+            if DirectionIndicators.RIGHT in self.boundary_locations:
                 out_indices += [1, 5, 8]
-                self._directions.append(DirectionIndicators.RIGHT)
-            if np.all(init_boundary[:, 0]):
+            if DirectionIndicators.BOTTOM in self.boundary_locations:
                 out_indices += [4, 7, 8]
-                self._directions.append(DirectionIndicators.BOTTOM)
-            if np.all(init_boundary[:, -1]):
+            if DirectionIndicators.TOP in self.boundary_locations:
                 out_indices += [2, 5, 6]
-                self._directions.append(DirectionIndicators.TOP)
         else:
             # left to right (the flow of particles)
-            horiz = (np.all(init_boundary[0, :]) and np.all(init_boundary[-1, :]))
+            horiz = (DirectionIndicators.LEFT in self.boundary_locations and
+                     DirectionIndicators.RIGHT in self.boundary_locations)
             # bottom to top
-            vert = np.all(init_boundary[:, 0]) and np.all(init_boundary[:, -1])
+            vert = (DirectionIndicators.TOP in self.boundary_locations and
+                    DirectionIndicators.BOTTOM in self.boundary_locations)
             assert vert or horiz
             if horiz:
                 # left to right
@@ -161,7 +166,7 @@ class BaseBoundary():
         self._out_indices = np.array(out_indices)
         self._in_indices = self.in_indices[self.out_indices]
 
-    def _allocate_boundary_conditions(self, in_idx: int, out_idx):
+    def _allocate_boundary_conditions(self, in_idx: int, out_idx: int) -> None:
         """
         Adjacent cell indices
         6 2 5
@@ -169,35 +174,45 @@ class BaseBoundary():
         7 4 8
         """
         if (
-            DirectionIndicators.LEFT in self._directions and
+            DirectionIndicators.LEFT in self.boundary_locations and
             (out_idx in [3, 6, 7] and in_idx in [1, 5, 8])  # Wall exists left
         ):
             self._out_boundary[0, :, out_idx] = True
             self._in_boundary[0, :, in_idx] = True
         if (
-            DirectionIndicators.RIGHT in self._directions and
+            DirectionIndicators.RIGHT in self.boundary_locations and
             (in_idx in [3, 6, 7] and out_idx in [1, 5, 8])  # Wall exists left
         ):
             self._out_boundary[-1, :, out_idx] = True
             self._in_boundary[-1, :, in_idx] = True
         if (
-            DirectionIndicators.TOP in self._directions and
+            DirectionIndicators.TOP in self.boundary_locations and
             out_idx in [2, 5, 6] and in_idx in [4, 7, 8]  # Wall exists top
         ):
             self._out_boundary[:, -1, out_idx] = True
             self._in_boundary[:, -1, in_idx] = True
         if (
-            DirectionIndicators.BOTTOM in self._directions and
+            DirectionIndicators.BOTTOM in self.boundary_locations and
             in_idx in [2, 5, 6] and out_idx in [4, 7, 8]  # Wall exists bottom
         ):
             self._out_boundary[:, 0, out_idx] = True
             self._in_boundary[:, 0, in_idx] = True
 
-    def _init_boundary(self, init_boundary: np.ndarray, pressure_variation: bool) -> None:
+    def _init_boundary(self, pressure_variation: bool) -> None:
         assert not self._finish_initialize
-        assert self.out_boundary.shape[:-1] == init_boundary.shape
-        init_boundary = init_boundary.astype(np.bool8)
-        self._init_boundary_indices(init_boundary, pressure_variation)
+        self._init_boundary_indices(pressure_variation)
+        X, Y = self.out_boundary.shape[:-1]
+
+        init_boundary = np.zeros((X, Y), np.bool8)
+        """ init_boundary for the pressure_variation case """
+        if DirectionIndicators.LEFT in self.boundary_locations:
+            init_boundary[0, :] = np.ones(Y)
+        if DirectionIndicators.RIGHT in self.boundary_locations:
+            init_boundary[-1, :] = np.ones(Y)
+        if DirectionIndicators.TOP in self.boundary_locations:
+            init_boundary[:, -1] = np.ones(X)
+        if DirectionIndicators.BOTTOM in self.boundary_locations:
+            init_boundary[:, 0] = np.ones(X)
 
         for out_idx, in_idx in zip(self.out_indices, self.in_indices):
             if pressure_variation:
@@ -206,7 +221,9 @@ class BaseBoundary():
             else:
                 self._allocate_boundary_conditions(in_idx=in_idx, out_idx=out_idx)
 
-        self.visualize_wall_in_cui()
+        if self._visualize_wall:
+            self.visualize_wall_in_cui()
+
         self._finish_initialize = True
 
     def visualize_wall_in_cui(self, compress: bool = True) -> None:
@@ -238,8 +255,8 @@ class BaseBoundary():
 
 
 class RigidWall(BaseBoundary, AbstractBoundaryHandling):
-    def __init__(self, field: FluidField2D, init_boundary: np.ndarray):
-        super().__init__(field, init_boundary)
+    def __init__(self, field: FluidField2D, boundary_locations: List[DirectionIndicators]):
+        super().__init__(field, boundary_locations)
 
     def boundary_handling(self, field: FluidField2D) -> None:
         pdf_post = field.pdf
@@ -247,7 +264,7 @@ class RigidWall(BaseBoundary, AbstractBoundaryHandling):
 
 
 class MovingWall(BaseBoundary, AbstractBoundaryHandling):
-    def __init__(self, field: FluidField2D, init_boundary: np.ndarray, wall_vel: np.ndarray):
+    def __init__(self, field: FluidField2D, boundary_locations: List[DirectionIndicators], wall_vel: np.ndarray):
         """
         Attributes:
             _wall_vel (np.ndarray):
@@ -263,7 +280,7 @@ class MovingWall(BaseBoundary, AbstractBoundaryHandling):
              ...
              ...
         """
-        super().__init__(field, init_boundary)
+        super().__init__(field, boundary_locations)
         self._weighted_vel_dot_wall_vel6 = np.array([])
         self._wall_vel = wall_vel  # shape (2, )
         self._finish_precompute = False
@@ -317,17 +334,20 @@ class MovingWall(BaseBoundary, AbstractBoundaryHandling):
 
 
 class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
-    def __init__(self, field: FluidField2D, init_boundary: np.ndarray,
+    def __init__(self, field: FluidField2D, boundary_locations: List[DirectionIndicators],
                  in_density_factor: float, out_density_factor: float):
 
+        super().__init__(field, boundary_locations, pressure_variation=True)
+
         # left to right (the flow of particles)
-        self.horiz = (np.all(init_boundary[0, :]) and np.all(init_boundary[-1, :]))
+        self.horiz = (DirectionIndicators.LEFT in self.boundary_locations and
+                      DirectionIndicators.RIGHT in self.boundary_locations)
         # bottom to top
-        self.vert = np.all(init_boundary[:, 0]) and np.all(init_boundary[:, -1])
+        self.vert = (DirectionIndicators.TOP in self.boundary_locations and
+                     DirectionIndicators.BOTTOM in self.boundary_locations)
+
         assert self.vert or self.horiz
         X, Y = field.lattice_grid_shape
-
-        super().__init__(field, init_boundary, pressure_variation=True)
         boundary_shape = Y if self.horiz else X
         self._in_density = 3 * in_density_factor * np.ones(boundary_shape)
         self._out_density = 3 * out_density_factor * np.ones(boundary_shape)

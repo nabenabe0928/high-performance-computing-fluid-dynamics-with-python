@@ -2,7 +2,7 @@ import numpy as np
 from tqdm import trange
 
 from src.simulation_attributes.formula import FluidField2D
-from src.simulation_attributes.boundary_handling import MovingWall, RigidWall
+from src.simulation_attributes.boundary_handling import DirectionIndicators, MovingWall, RigidWall
 from src.utils.attr_dict import AttrDict
 from src.utils.visualization import visualize_velocity_field, visualize_velocity_field_of_moving_wall
 
@@ -22,15 +22,24 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
 
     field = FluidField2D(X, Y, omega=omega, init_vel=init_velocity, init_density=init_density)
 
-    init_moving_wall = np.zeros(lattice_grid_shape)
-    init_moving_wall[:, 0] = np.ones(X)
-    moving_wall = MovingWall(field, init_boundary=init_moving_wall, wall_vel=wall_vel)
+    moving_wall = MovingWall(
+        field,
+        boundary_locations=[DirectionIndicators.BOTTOM],
+        wall_vel=wall_vel
+    )
 
     init_rigid_wall = np.zeros(lattice_grid_shape)
     init_rigid_wall[:, -1] = np.ones(X)
     init_rigid_wall[0, :] = np.ones(Y)
     init_rigid_wall[-1, :] = np.ones(Y)
-    rigid_wall = RigidWall(field, init_boundary=init_rigid_wall)
+    rigid_wall = RigidWall(
+        field,
+        boundary_locations=[
+            DirectionIndicators.TOP,
+            DirectionIndicators.LEFT,
+            DirectionIndicators.RIGHT
+        ]
+    )
 
     def boundary_handling_func(field: FluidField2D) -> None:
         rigid_wall.boundary_handling(field)
@@ -40,7 +49,7 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
     for t in trange(total_time_steps):
         field.lattice_boltzmann_step(boundary_handling=boundary_handling_func)
 
-    visualize_velocity_field(field=field)    
+    visualize_velocity_field(field=field)
     visualize_velocity_field_of_moving_wall(field=field, wall_vel=wall_vel)
 
 
