@@ -60,7 +60,7 @@ class TestBoundaryHandling(unittest.TestCase):
             field.lattice_boltzmann_step(boundary_handling=pbc.boundary_handling)
         ans = TestOutputs.pdf_pbc
         self.assertEqual(field.pdf.shape, ans.shape)
-        self.assertAlmostEqual(abssum(field.pdf, ans), 0.0, places=1)            
+        self.assertAlmostEqual(abssum(field.pdf, ans), 0.0, places=1)
 
 
 if __name__ == '__main__':

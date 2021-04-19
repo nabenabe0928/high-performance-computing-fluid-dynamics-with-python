@@ -139,6 +139,8 @@ class FluidField2D():
 
         assert 0 < omega < 2
         self._omega = omega
+        self._viscosity = 1. / 3. * (1. / omega - 0.5)
+        self._reynolds_number = 2.0 * (X * Y) / (X + Y)
 
     @property
     def pdf(self) -> np.ndarray:
@@ -187,6 +189,14 @@ class FluidField2D():
     @property
     def omega(self) -> float:
         return self._omega
+
+    @property
+    def reynolds_number(self) -> float:
+        return self._reynolds_number
+
+    @property
+    def viscosity(self) -> float:
+        return self._viscosity
 
     def _init_pdf(self, init_vals: np.ndarray) -> None:
         assert init_vals.shape == self._pdf.shape

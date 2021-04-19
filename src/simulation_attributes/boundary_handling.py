@@ -13,7 +13,7 @@ class AbstractBoundaryHandling(object, metaclass=ABCMeta):
         Compute the PDF using pdf_pre, pdf_mid, pdf and density, velocity
         and return the PDF after boundary handling.
         In order to be able to joint multiple boundary handlings,
-        the update of the PDF has to be performed inside the function. 
+        the update of the PDF has to be performed inside the function.
 
         Args:
             field (FluidField2D)

@@ -18,10 +18,9 @@ class ExperimentVariables(AttrDict):
 lattice_grid_shape = (50, 50)
 
 
-def density_equation(epsilon: float, omega: float) -> EquationFuncType:
+def density_equation(epsilon: float, viscosity: float) -> EquationFuncType:
     """ fourier equation (reference) """
     X, _ = lattice_grid_shape
-    viscosity = 1. / 3. * (1. / omega - 0.5)
 
     def _imp(t: np.ndarray) -> np.ndarray:
         return epsilon * np.exp(-viscosity * (2 * np.pi / X) ** 2 * t)
@@ -29,9 +28,8 @@ def density_equation(epsilon: float, omega: float) -> EquationFuncType:
     return _imp
 
 
-def velocity_equation(epsilon: float, omega: float) -> EquationFuncType:
+def velocity_equation(epsilon: float, viscosity: float) -> EquationFuncType:
     _, Y = lattice_grid_shape
-    viscosity = 1. / 3. * (1. / omega - 0.5)
 
     def _imp(t: np.ndarray) -> np.ndarray:
         return epsilon * np.exp(-viscosity * (2 * np.pi / Y) ** 2 * t)
@@ -56,8 +54,8 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
         vels[t] = max_vel
 
     visualize_density_surface(field)
-    for q, q_name, eq in [(densities, "density", density_equation(epsilon, omega)),
-                          (vels, "velocity", velocity_equation(epsilon, omega))]:
+    for q, q_name, eq in [(densities, "density", density_equation(epsilon, field.viscosity)),
+                          (vels, "velocity", velocity_equation(epsilon, field.viscosity))]:
         visualize_quantity_vs_time(
             quantities=q,
             quantity_name=q_name,
