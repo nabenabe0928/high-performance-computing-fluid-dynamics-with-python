@@ -14,7 +14,7 @@ class ExperimentVariables(AttrDict):
     out_density_factor: float = 1. / 3.
 
 
-lattice_grid_shape = (200, 30)
+lattice_grid_shape = (30, 30)
 
 
 def main(init_density: np.ndarray, init_velocity: np.ndarray,
@@ -33,18 +33,14 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
                                      in_density_factor=in_density_factor,
                                      out_density_factor=out_density_factor)
 
-    rigid_walls = []
     init_rigid_boundary = np.zeros((X, Y))
     init_rigid_boundary[:, 0] = np.ones(X)
-    rigid_walls.append(RigidWall(field, init_boundary=init_rigid_boundary))
-    init_rigid_boundary = np.zeros((X, Y))
     init_rigid_boundary[:, -1] = np.ones(X)
-    rigid_walls.append(RigidWall(field, init_boundary=init_rigid_boundary))
+    rigid_wall = RigidWall(field, init_boundary=init_rigid_boundary)
 
     def boundary_handling_func(field: FluidField2D) -> None:
         pbc.boundary_handling(field)
-        for rigid_wall in rigid_walls:
-            rigid_wall.boundary_handling(field)
+        rigid_wall.boundary_handling(field)
 
     field.local_equilibrium_pdf_update()
     for t in trange(total_time_steps):

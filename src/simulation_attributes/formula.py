@@ -140,6 +140,7 @@ class FluidField2D():
         assert 0 < omega < 2
         self._omega = omega
         self._viscosity = 1. / 3. * (1. / omega - 0.5)
+        """ TODO: Not correct value yet """
         self._reynolds_number = 2.0 * (X * Y) / (X + Y)
 
     @property

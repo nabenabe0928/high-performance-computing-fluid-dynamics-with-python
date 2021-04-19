@@ -92,7 +92,7 @@ def visualize_velocity_field_of_moving_wall(field: FluidField2D, wall_vel: np.nd
 def visualize_velocity_field_of_pipe(field: FluidField2D, pbc: PeriodicBoundaryConditions) -> None:
     """ we assume the wall slides to x-direction. """
     vx = field.velocity[..., 0]
-    X, Y, viscosity = field.lattice_grid_shape, field.viscosity
+    (X, Y), viscosity = field.lattice_grid_shape, field.viscosity
     average_density = viscosity * field.density[X // 2, :].mean()
     out_density_factor = pbc.out_density[0] / 3.
     in_density_factor = pbc.in_density[0] / 3.

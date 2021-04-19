@@ -1,9 +1,37 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any, Dict
+from enum import IntEnum
 
 import numpy as np
 
 from src.simulation_attributes.formula import AdjacentAttributes, FluidField2D, local_equilibrium
+
+
+class DirectionIndicators(IntEnum):
+    RIGHT: int = 0
+    LEFT: int = 1
+    TOP: int = 2
+    BOTTOM: int = 3
+
+
+def get_direction_representor(boundary: np.ndarray) -> str:
+    indices = [i for i, b in enumerate(boundary) if b]
+    """
+    Adjacent cell indices
+    6 2 5
+    3 0 1
+    7 4 8
+    """
+    if indices == [3, 6, 7]:
+        return "<"
+    if indices == [1, 5, 8]:
+        return ">"
+    if indices == [2, 5, 6]:
+        return "^"
+    if indices == [4, 7, 8]:
+        return "v"
+    else:
+        return "*"
 
 
 class AbstractBoundaryHandling(object, metaclass=ABCMeta):
@@ -51,6 +79,8 @@ class BaseBoundary():
         self._in_boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)
         self._in_indices = AdjacentAttributes.reflected_direction
         self._finish_initialize = False
+        self._lattice_grid_shape = field.lattice_grid_shape
+        self._directions = []
 
         self._init_boundary(init_boundary, pressure_variation=pressure_variation)
 
@@ -105,12 +135,16 @@ class BaseBoundary():
         if not pressure_variation:
             if np.all(init_boundary[0, :]):
                 out_indices += [3, 6, 7]
+                self._directions.append(DirectionIndicators.LEFT)
             if np.all(init_boundary[-1, :]):
                 out_indices += [1, 5, 8]
+                self._directions.append(DirectionIndicators.RIGHT)
             if np.all(init_boundary[:, 0]):
                 out_indices += [4, 7, 8]
+                self._directions.append(DirectionIndicators.BOTTOM)
             if np.all(init_boundary[:, -1]):
                 out_indices += [2, 5, 6]
+                self._directions.append(DirectionIndicators.TOP)
         else:
             # left to right (the flow of particles)
             horiz = (np.all(init_boundary[0, :]) and np.all(init_boundary[-1, :]))
@@ -127,6 +161,38 @@ class BaseBoundary():
         self._out_indices = np.array(out_indices)
         self._in_indices = self.in_indices[self.out_indices]
 
+    def _allocate_boundary_conditions(self, in_idx: int, out_idx):
+        """
+        Adjacent cell indices
+        6 2 5
+        3 0 1
+        7 4 8
+        """
+        if (
+            DirectionIndicators.LEFT in self._directions and
+            (out_idx in [3, 6, 7] and in_idx in [1, 5, 8])  # Wall exists left
+        ):
+            self._out_boundary[0, :, out_idx] = True
+            self._in_boundary[0, :, in_idx] = True
+        if (
+            DirectionIndicators.RIGHT in self._directions and
+            (in_idx in [3, 6, 7] and out_idx in [1, 5, 8])  # Wall exists left
+        ):
+            self._out_boundary[-1, :, out_idx] = True
+            self._in_boundary[-1, :, in_idx] = True
+        if (
+            DirectionIndicators.TOP in self._directions and
+            out_idx in [2, 5, 6] and in_idx in [4, 7, 8]  # Wall exists top
+        ):
+            self._out_boundary[:, -1, out_idx] = True
+            self._in_boundary[:, -1, in_idx] = True
+        if (
+            DirectionIndicators.BOTTOM in self._directions and
+            in_idx in [2, 5, 6] and out_idx in [4, 7, 8]  # Wall exists bottom
+        ):
+            self._out_boundary[:, 0, out_idx] = True
+            self._in_boundary[:, 0, in_idx] = True
+
     def _init_boundary(self, init_boundary: np.ndarray, pressure_variation: bool) -> None:
         assert not self._finish_initialize
         assert self.out_boundary.shape[:-1] == init_boundary.shape
@@ -134,10 +200,41 @@ class BaseBoundary():
         self._init_boundary_indices(init_boundary, pressure_variation)
 
         for out_idx, in_idx in zip(self.out_indices, self.in_indices):
-            self._out_boundary[:, :, out_idx] = init_boundary
-            self._in_boundary[:, :, in_idx] = init_boundary
+            if pressure_variation:
+                self._out_boundary[:, :, out_idx] = init_boundary
+                self._in_boundary[:, :, in_idx] = init_boundary
+            else:
+                self._allocate_boundary_conditions(in_idx=in_idx, out_idx=out_idx)
 
+        self.visualize_wall_in_cui()
         self._finish_initialize = True
+
+    def visualize_wall_in_cui(self, compress: bool = True) -> None:
+        """ Wall visualizer for debugging """
+        X, Y = self.out_boundary.shape[:-1]
+        assert X >= 5 and Y >= 5
+        y_itr = [Y - 1, Y - 2, Y // 2, 1, 0] if compress else range(Y - 1, -1, -1)
+        x_itr = [0, 1, X // 2, X - 2, X - 1] if compress else range(X)
+
+        child_cls = set([obj.__name__ for obj in self.__class__.__mro__])
+        child_cls -= set(['BaseBoundary', 'AbstractBoundaryHandling', 'object'])
+        boundary_name = list(child_cls)[0]
+
+        print(f"### {boundary_name} Out boundary ###")
+        for y in y_itr:
+            display = ""
+            for x in x_itr:
+                display += get_direction_representor(boundary=self.out_boundary[x][y])
+            print(display)
+
+        print(f"\n### {boundary_name} In boundary ###")
+        for y in y_itr:
+            display = ""
+            for x in x_itr:
+                display += get_direction_representor(boundary=self.in_boundary[x][y])
+            print(display)
+
+        print("")
 
 
 class RigidWall(BaseBoundary, AbstractBoundaryHandling):

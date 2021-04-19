@@ -45,9 +45,9 @@ class AttrDict(dict):
         self.__dict__ = self
 
     def __repr__(self) -> str:
-        super_cls = set([obj.__name__ for obj in self.__class__.__mro__])
-        super_cls -= set(['AttrDict', 'dict', 'object'])
-        dict_name = list(super_cls)[0]
+        child_cls = set([obj.__name__ for obj in self.__class__.__mro__])
+        child_cls -= set(['AttrDict', 'dict', 'object'])
+        dict_name = list(child_cls)[0]
 
         seg = [f"AttrDict('{dict_name}', ", "{"]
         seg += [f"'{key}': {value}, " for key, value in self.items()]
