@@ -4,7 +4,7 @@ from tqdm import trange
 from src.simulation_attributes.formula import FluidField2D
 from src.simulation_attributes.boundary_handling import MovingWall, RigidWall
 from src.utils.attr_dict import AttrDict
-from src.utils.visualization import visualize_velocity_field
+from src.utils.visualization import visualize_velocity_field, visualize_velocity_field_of_moving_wall
 
 
 class ExperimentVariables(AttrDict):
@@ -13,7 +13,7 @@ class ExperimentVariables(AttrDict):
     wall_vel: np.ndarray = np.array([10, 0])
 
 
-lattice_grid_shape = (300, 300)
+lattice_grid_shape = (30, 30)
 
 
 def main(init_density: np.ndarray, init_velocity: np.ndarray,
@@ -23,11 +23,11 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
     field = FluidField2D(X, Y, omega=omega, init_vel=init_velocity, init_density=init_density)
 
     init_moving_wall = np.zeros(lattice_grid_shape)
-    init_moving_wall[:, -1] = np.ones(X)
+    init_moving_wall[:, 0] = np.ones(X)
     moving_wall = MovingWall(field, init_boundary=init_moving_wall, wall_vel=wall_vel)
 
     init_rigid_wall = np.zeros(lattice_grid_shape)
-    init_rigid_wall[:, 0] = np.ones(X)
+    init_rigid_wall[:, -1] = np.ones(X)
     init_rigid_wall[0, :] = np.ones(Y)
     init_rigid_wall[-1, :] = np.ones(Y)
     rigid_wall = RigidWall(field, init_boundary=init_rigid_wall)
@@ -40,7 +40,8 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
     for t in trange(total_time_steps):
         field.lattice_boltzmann_step(boundary_handling=boundary_handling_func)
 
-    visualize_velocity_field(field=field)
+    visualize_velocity_field(field=field)    
+    visualize_velocity_field_of_moving_wall(field=field, wall_vel=wall_vel)
 
 
 if __name__ == '__main__':
@@ -48,7 +49,7 @@ if __name__ == '__main__':
     viscosity = 1. / 3.
     kwargs = ExperimentVariables(
         omega=1. / (3. * viscosity + 0.5),
-        total_time_steps=100,
+        total_time_steps=5000,
         wall_vel=np.array([0.1, 0])
     )
 

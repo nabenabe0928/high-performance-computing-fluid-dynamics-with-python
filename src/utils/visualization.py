@@ -13,19 +13,21 @@ DEFAULT_CMAP = 'gist_rainbow'
 
 def visualize_velocity_field(field: FluidField2D, cmap: str = DEFAULT_CMAP) -> None:
     """
-    Visualizie the velocity field as streaming
+    Visualize the velocity field as streaming
     """
     X, Y = field.lattice_grid_shape
-    y, x = np.mgrid[:X, :Y]
+    y, x = np.mgrid[:Y, :X]
     # since when v(t) = 0, it raises error, add the buffer
     vel = field.velocity + 1e-12
 
-    level = np.linalg.norm(field.velocity, axis=-1)
+    level = np.linalg.norm(field.velocity.transpose(1, 0, 2), axis=-1)
 
-    plt.streamplot(x, y, vel[..., 0], vel[..., 1],
+    plt.streamplot(x, y, vel[..., 0].T, vel[..., 1].T,
                    color=level, cmap='seismic')
     plt.xlim(0, X - 1)
     plt.ylim(0, Y - 1)
+    plt.xlabel("x axis")
+    plt.ylabel("y axis")
     plt.colorbar()
     plt.show()
 
