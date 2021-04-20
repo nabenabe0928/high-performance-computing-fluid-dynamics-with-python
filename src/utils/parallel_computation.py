@@ -7,12 +7,12 @@ TODO:
     * TODO1
     * TODO2
 """
-from typing import Tuple
+from typing import List, Tuple
 
 import numpy as np
 from mpi4py import MPI
 
-from src.utils.constants import DirectionIndicators
+from src.utils.constants import DirectionIndicators, DIRECTION2VEC
 
 
 def ChunkedGridManager():
@@ -28,7 +28,9 @@ def ChunkedGridManager():
         )
         self.rank_loc = self.rank_grid.Get_coords(self.rank)
         self._local_grid_size = self._compute_local_grid_size(X, Y)
+        self._global_grid_size = (X, Y)
         self._x_local_range, self._y_local_range = self._compute_local_range(X, Y)
+        self._neighbor_proc_locations = self._compute_neighbor_proc_locations()
 
     def _compute_rank_grid_size(self) -> Tuple[int, int]:
         lower, upper = 1, self.size
@@ -76,6 +78,30 @@ def ChunkedGridManager():
 
         return (x_local_lower, x_local_upper), (y_local_lower, y_local_upper)
 
+    def _compute_neighbor_proc_locations(self) -> List[DirectionIndicators]:
+        X, Y = self.global_grid_size
+        neighbor_proc_locations = []
+        if not self.x_in_process(0):
+            neighbor_proc_locations.append(DirectionIndicators.LEFT)
+        if not self.x_in_process(X - 1):
+            neighbor_proc_locations.append(DirectionIndicators.RIGHT)
+        if not self.y_in_process(0):
+            neighbor_proc_locations.append(DirectionIndicators.BOTTOM)
+        if not self.y_in_process(Y - 1):
+            neighbor_proc_locations.append(DirectionIndicators.TOP)
+
+        return neighbor_proc_locations
+
+    def communicate_with_neighbors(self) -> None:
+        x_rank, y_rank = self.rank_loc
+        # top_src, top_dst = comm.Shift(direction=1, disp=1)
+        for dir in self.neighbor_proc_locations:
+            dx, dy = DIRECTION2VEC[dir]
+            x_rank + dx, y_rank + dy
+            # recvbuf = array.copy()
+            # comm.Sendrecv(array.copy(), destination, recvbuf=recvbuf, source=source)
+            # array = recvbuf
+
     @property
     def rank_grid_size(self) -> Tuple[int, int]:
         return self._rank_grid_size
@@ -85,6 +111,10 @@ def ChunkedGridManager():
         return self._local_grid_size
 
     @property
+    def global_grid_size(self) -> Tuple[int, int]:
+        return self._global_grid_size
+
+    @property
     def x_local_range(self) -> Tuple[int, int]:
         return self._x_local_range
 
@@ -92,13 +122,18 @@ def ChunkedGridManager():
     def y_local_range(self) -> Tuple[int, int]:
         return self._y_local_range
 
-    def location_in_process(self, x_global: int, y_global: int) -> bool:
-        if self.x_local_range[0] > x_global or x_global > self.x_local_range[1]:
-            return False
-        if self.y_local_range[0] > y_global or y_global > self.y_local_range[1]:
-            return False
+    @property
+    def neighbor_proc_locations(self) -> List[DirectionIndicators]:
+        return self._neighbor_proc_locations
 
-        return True
+    def x_in_process(self, x_global: int) -> bool:
+        return self.x_local_range[0] <= x_global <= self.x_local_range[1]
+
+    def y_in_process(self, y_global: int) -> bool:
+        return self.y_local_range[0] <= y_global <= self.y_local_range[1]
+
+    def location_in_process(self, x_global: int, y_global: int) -> bool:
+        return self.x_in_process(x_global) and self.y_in_process(y_global)
 
     def global_to_local(self, x_global: int, y_global: int) -> Tuple[int, int]:
         assert location_in_process(x_global, y_global)
