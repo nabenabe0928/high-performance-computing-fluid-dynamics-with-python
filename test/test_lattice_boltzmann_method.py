@@ -1,21 +1,21 @@
 import unittest
 
-from src.simulation_attributes.formula import FluidField2D
+from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from test.constants import TestInputs, TestOutputs
 from test.utils import abssum
 
 
-class TestFluidField2D(unittest.TestCase):
+class TestLatticeBoltzmannMethod(unittest.TestCase):
     def setUp(self) -> None:
         self.lattice_grid_shape = (3, 3)
         self.init_density = TestInputs.init_density
         self.init_pdf = TestInputs.init_pdf
         self.init_vel = TestInputs.init_vel
 
-    def initial_set(self, omega: float = 0.5) -> FluidField2D:
-        field = FluidField2D(*self.lattice_grid_shape, omega=omega,
-                             init_pdf=self.init_pdf, init_density=self.init_density,
-                             init_vel=self.init_vel)
+    def initial_set(self, omega: float = 0.5) -> LatticeBoltzmannMethod:
+        field = LatticeBoltzmannMethod(*self.lattice_grid_shape, omega=omega,
+                                       init_pdf=self.init_pdf, init_density=self.init_density,
+                                       init_vel=self.init_vel)
         return field
 
     def test_init_vals(self) -> None:

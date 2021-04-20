@@ -85,7 +85,7 @@ class AdjacentAttributes(metaclass=MetaAdjacentAttributes):
     pass
 
 
-class FluidField2D():
+class LatticeBoltzmannMethod():
     def __init__(self, X: int, Y: int, omega: float = 0.5,
                  init_pdf: Optional[np.ndarray] = None,
                  init_density: Optional[np.ndarray] = None,
@@ -139,6 +139,9 @@ class FluidField2D():
 
         assert 0 < omega < 2
         self._omega = omega
+        self._viscosity = 1. / 3. * (1. / omega - 0.5)
+        """ TODO: Not correct value yet """
+        self._reynolds_number = 2.0 * (X * Y) / (X + Y) / self._viscosity
 
     @property
     def pdf(self) -> np.ndarray:
@@ -187,6 +190,14 @@ class FluidField2D():
     @property
     def omega(self) -> float:
         return self._omega
+
+    @property
+    def reynolds_number(self) -> float:
+        return self._reynolds_number
+
+    @property
+    def viscosity(self) -> float:
+        return self._viscosity
 
     def _init_pdf(self, init_vals: np.ndarray) -> None:
         assert init_vals.shape == self._pdf.shape
@@ -253,7 +264,7 @@ class FluidField2D():
 
     def lattice_boltzmann_step(
         self,
-        boundary_handling: Optional[Callable[['FluidField2D'], None]] = None
+        boundary_handling: Optional[Callable[['LatticeBoltzmannMethod'], None]] = None
     ) -> None:
 
         self._apply_local_equilibrium()

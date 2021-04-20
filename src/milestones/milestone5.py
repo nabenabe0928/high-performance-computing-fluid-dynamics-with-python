@@ -1,8 +1,8 @@
 import numpy as np
 from tqdm import trange
 
-from src.simulation_attributes.formula import FluidField2D
-from src.simulation_attributes.boundary_handling import PeriodicBoundaryConditions, RigidWall
+from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
+from src.simulation_attributes.boundary_handling import DirectionIndicators, PeriodicBoundaryConditions, RigidWall
 from src.utils.attr_dict import AttrDict
 from src.utils.visualization import visualize_velocity_field_of_pipe
 
@@ -14,7 +14,7 @@ class ExperimentVariables(AttrDict):
     out_density_factor: float = 1. / 3.
 
 
-lattice_grid_shape = (200, 30)
+lattice_grid_shape = (30, 30)
 
 
 def main(init_density: np.ndarray, init_velocity: np.ndarray,
@@ -23,28 +23,23 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
 
     X, Y = lattice_grid_shape
 
-    field = FluidField2D(X, Y, omega=omega, init_vel=init_velocity, init_density=init_density)
+    field = LatticeBoltzmannMethod(X, Y, omega=omega, init_vel=init_velocity, init_density=init_density)
 
-    init_pbc_boundary = np.zeros((X, Y))
-    init_pbc_boundary[0, :] = np.ones(Y)
-    init_pbc_boundary[-1, :] = np.ones(Y)
+    pbc = PeriodicBoundaryConditions(
+        field=field,
+        boundary_locations=[DirectionIndicators.LEFT, DirectionIndicators.RIGHT],
+        in_density_factor=in_density_factor,
+        out_density_factor=out_density_factor
+    )
 
-    pbc = PeriodicBoundaryConditions(field=field, init_boundary=init_pbc_boundary,
-                                     in_density_factor=in_density_factor,
-                                     out_density_factor=out_density_factor)
+    rigid_wall = RigidWall(
+        field=field,
+        boundary_locations=[DirectionIndicators.TOP, DirectionIndicators.BOTTOM]
+    )
 
-    rigid_walls = []
-    init_rigid_boundary = np.zeros((X, Y))
-    init_rigid_boundary[:, 0] = np.ones(X)
-    rigid_walls.append(RigidWall(field, init_boundary=init_rigid_boundary))
-    init_rigid_boundary = np.zeros((X, Y))
-    init_rigid_boundary[:, -1] = np.ones(X)
-    rigid_walls.append(RigidWall(field, init_boundary=init_rigid_boundary))
-
-    def boundary_handling_func(field: FluidField2D) -> None:
+    def boundary_handling_func(field: LatticeBoltzmannMethod) -> None:
         pbc.boundary_handling(field)
-        for rigid_wall in rigid_walls:
-            rigid_wall.boundary_handling(field)
+        rigid_wall.boundary_handling(field)
 
     field.local_equilibrium_pdf_update()
     for t in trange(total_time_steps):
