@@ -52,6 +52,16 @@ class AbstractBoundaryHandling(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def parallel_boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
+        """
+        TODO
+
+        Args:
+            field (LatticeBoltzmannMethod)
+        """
+        raise NotImplementedError
+
 
 class BaseBoundary():
     def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators],
@@ -266,6 +276,9 @@ class RigidWall(BaseBoundary, AbstractBoundaryHandling):
         pdf_post = field.pdf
         pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
 
+    def parallel_boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
+        pass
+
 
 class MovingWall(BaseBoundary, AbstractBoundaryHandling):
     def __init__(self, field: LatticeBoltzmannMethod,
@@ -329,6 +342,7 @@ class MovingWall(BaseBoundary, AbstractBoundaryHandling):
             self._precompute()
 
         pdf_post = field.pdf
+        """TODO: make it an attribute for LBM class"""
         average_density = field.density.mean()
 
         pdf_post[self.in_boundary] = (
@@ -336,6 +350,9 @@ class MovingWall(BaseBoundary, AbstractBoundaryHandling):
             - average_density *
             self.weighted_vel_dot_wall_vel6[self.out_boundary]
         )
+
+    def parallel_boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
+        pass
 
 
 class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
@@ -396,3 +413,6 @@ class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
             pdf_post[:, -1, self.in_indices] = pdf_eq_out[:, self.in_indices] + (
                 pdf_post[:, 1, self.in_indices] - pdf_eq[:, 1, self.in_indices]
             )
+
+    def parallel_boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
+        pass

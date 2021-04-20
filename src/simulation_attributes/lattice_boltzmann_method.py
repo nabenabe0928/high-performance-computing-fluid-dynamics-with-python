@@ -89,7 +89,8 @@ class LatticeBoltzmannMethod():
     def __init__(self, X: int, Y: int, omega: float = 0.5,
                  init_pdf: Optional[np.ndarray] = None,
                  init_density: Optional[np.ndarray] = None,
-                 init_vel: Optional[np.ndarray] = None):
+                 init_vel: Optional[np.ndarray] = None,
+                 is_parallel: bool = False):
         """
         This class computes and stores
         the density and velocity field
@@ -128,6 +129,7 @@ class LatticeBoltzmannMethod():
         self._velocity = np.zeros((X, Y, 2))
         self._lattice_grid_shape = (X, Y)
         self._finish_initialize = False
+        self._is_parallel = is_parallel
 
         self._init_vals(init_pdf=init_pdf,
                         init_density=init_density,
@@ -135,7 +137,6 @@ class LatticeBoltzmannMethod():
 
         """ pdf for boundary handling """
         self._pdf_pre = np.zeros_like(self.pdf)
-        self._pdf_mid = np.zeros_like(self.pdf)
 
         assert 0 < omega < 2
         self._omega = omega
@@ -199,6 +200,10 @@ class LatticeBoltzmannMethod():
     def viscosity(self) -> float:
         return self._viscosity
 
+    @property
+    def is_parallel(self) -> bool:
+        return self._is_parallel
+
     def _init_pdf(self, init_vals: np.ndarray) -> None:
         assert init_vals.shape == self._pdf.shape
         assert not self._finish_initialize
@@ -247,6 +252,8 @@ class LatticeBoltzmannMethod():
 
     def update_pdf(self) -> None:
         """Update the current pdf based on the streaming operator """
+        assert self._finish_initialize
+
         vs = AdjacentAttributes.velocity_direction_set
 
         next_pdf = np.zeros_like(self.pdf)
@@ -264,17 +271,29 @@ class LatticeBoltzmannMethod():
 
     def lattice_boltzmann_step(
         self,
-        boundary_handling: Optional[Callable[['LatticeBoltzmannMethod'], None]] = None
+        boundary_handling: Optional[Callable[['LatticeBoltzmannMethod'], None]] = None,
+        density_communicate_func: Optional[Callable[[np.ndarray], np.ndarray]] = None
     ) -> None:
 
         self._apply_local_equilibrium()
 
         self._pdf_pre = (self.pdf + (self.pdf_eq - self.pdf) * self._omega)
-        self._pdf = deepcopy(self.pdf_pre)
-        self.update_pdf()
 
-        if boundary_handling is not None:
-            boundary_handling(self)
+        if self.is_parallel:
+            self._pdf_pre = density_communicate_func(self._pdf_pre)
+            self._pdf = deepcopy(self.pdf_pre)
+            # Only this update requires communication
+            self.update_pdf()
+
+            if boundary_handling is not None:
+                boundary_handling(self)
+        else:
+            self._pdf = deepcopy(self.pdf_pre)
+            self.update_pdf()
+
+            if boundary_handling is not None:
+                """ use pdf, pdf_pre, density, pdf_eq, velocity inside """
+                boundary_handling(self)
 
         self.update_density()
         self.update_velocity()
