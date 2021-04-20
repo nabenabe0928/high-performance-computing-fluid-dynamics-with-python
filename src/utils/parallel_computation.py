@@ -12,6 +12,8 @@ from typing import Tuple
 import numpy as np
 from mpi4py import MPI
 
+from src.utils.constants import DirectionIndicators
+
 
 def ChunkedGridManager():
     def __init__(self, X: int, Y: int):

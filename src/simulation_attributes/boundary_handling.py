@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any, Dict, List
-from enum import IntEnum
 
 import numpy as np
 
@@ -9,13 +8,7 @@ from src.simulation_attributes.lattice_boltzmann_method import (
     LatticeBoltzmannMethod,
     local_equilibrium
 )
-
-
-class DirectionIndicators(IntEnum):
-    RIGHT: int = 0
-    LEFT: int = 1
-    TOP: int = 2
-    BOTTOM: int = 3
+from src.utils.constants import DirectionIndicators
 
 
 def get_direction_representor(boundary: np.ndarray) -> str:

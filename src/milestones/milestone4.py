@@ -2,8 +2,9 @@ import numpy as np
 from tqdm import trange
 
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
-from src.simulation_attributes.boundary_handling import DirectionIndicators, MovingWall, RigidWall
+from src.simulation_attributes.boundary_handling import MovingWall, RigidWall
 from src.utils.attr_dict import AttrDict
+from src.utils.constants import DirectionIndicators
 from src.utils.visualization import visualize_velocity_field_of_moving_wall
 
 
