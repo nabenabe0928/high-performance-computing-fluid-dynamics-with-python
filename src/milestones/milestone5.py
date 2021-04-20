@@ -1,7 +1,7 @@
 import numpy as np
 from tqdm import trange
 
-from src.simulation_attributes.formula import FluidField2D
+from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from src.simulation_attributes.boundary_handling import DirectionIndicators, PeriodicBoundaryConditions, RigidWall
 from src.utils.attr_dict import AttrDict
 from src.utils.visualization import visualize_velocity_field_of_pipe
@@ -23,7 +23,7 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
 
     X, Y = lattice_grid_shape
 
-    field = FluidField2D(X, Y, omega=omega, init_vel=init_velocity, init_density=init_density)
+    field = LatticeBoltzmannMethod(X, Y, omega=omega, init_vel=init_velocity, init_density=init_density)
 
     pbc = PeriodicBoundaryConditions(
         field=field,
@@ -37,7 +37,7 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
         boundary_locations=[DirectionIndicators.TOP, DirectionIndicators.BOTTOM]
     )
 
-    def boundary_handling_func(field: FluidField2D) -> None:
+    def boundary_handling_func(field: LatticeBoltzmannMethod) -> None:
         pbc.boundary_handling(field)
         rigid_wall.boundary_handling(field)
 

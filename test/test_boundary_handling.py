@@ -1,7 +1,7 @@
 import numpy as np
 import unittest
 
-from src.simulation_attributes.formula import FluidField2D
+from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from src.simulation_attributes.boundary_handling import (
     DirectionIndicators,
     RigidWall,
@@ -31,9 +31,9 @@ class TestBoundaryHandling(unittest.TestCase):
         self.wall_vel = np.array([50, 0])
         self.init_pbc_boundary = np.zeros((X, Y))
 
-    def initial_set(self, omega: float = 0.5) -> FluidField2D:
-        field = FluidField2D(*self.lattice_grid_shape, omega=omega,
-                             init_vel=self.init_vel, init_density=self.init_density)
+    def initial_set(self, omega: float = 0.5) -> LatticeBoltzmannMethod:
+        field = LatticeBoltzmannMethod(*self.lattice_grid_shape, omega=omega,
+                                       init_vel=self.init_vel, init_density=self.init_density)
         rigid_wall = RigidWall(field, boundary_locations=self.rigid_boundary_locations)
         moving_wall = MovingWall(field, boundary_locations=self.moving_boundary_locations, wall_vel=self.wall_vel)
         pbc = PeriodicBoundaryConditions(field, boundary_locations=self.pbc_boundary_locations,

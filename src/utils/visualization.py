@@ -3,7 +3,7 @@ import matplotlib.cm as cm
 import numpy as np
 from scipy.signal import argrelextrema
 
-from src.simulation_attributes.formula import FluidField2D
+from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from src.simulation_attributes.boundary_handling import PeriodicBoundaryConditions
 from src.utils.constants import EquationFuncType
 
@@ -11,7 +11,7 @@ from src.utils.constants import EquationFuncType
 DEFAULT_CMAP = 'gist_rainbow'
 
 
-def visualize_velocity_field(field: FluidField2D, cmap: str = DEFAULT_CMAP) -> None:
+def visualize_velocity_field(field: LatticeBoltzmannMethod, cmap: str = DEFAULT_CMAP) -> None:
     """
     Visualize the velocity field as streaming
     """
@@ -32,7 +32,7 @@ def visualize_velocity_field(field: FluidField2D, cmap: str = DEFAULT_CMAP) -> N
     plt.show()
 
 
-def visualize_density_surface(field: FluidField2D, cmap: str = DEFAULT_CMAP) -> None:
+def visualize_density_surface(field: LatticeBoltzmannMethod, cmap: str = DEFAULT_CMAP) -> None:
     X, Y = field.lattice_grid_shape
     x, y = np.mgrid[:X, :Y]
 
@@ -66,7 +66,7 @@ def visualize_quantity_vs_time(quantities: np.ndarray, quantity_name: str,
     plt.show()
 
 
-def visualize_velocity_field_of_moving_wall(field: FluidField2D, wall_vel: np.ndarray) -> None:
+def visualize_velocity_field_of_moving_wall(field: LatticeBoltzmannMethod, wall_vel: np.ndarray) -> None:
     """ we assume the wall slides to x-direction. """
     vx = field.velocity[..., 0]
     X, Y = field.lattice_grid_shape
@@ -91,7 +91,7 @@ def visualize_velocity_field_of_moving_wall(field: FluidField2D, wall_vel: np.nd
     plt.show()
 
 
-def visualize_velocity_field_of_pipe(field: FluidField2D, pbc: PeriodicBoundaryConditions) -> None:
+def visualize_velocity_field_of_pipe(field: LatticeBoltzmannMethod, pbc: PeriodicBoundaryConditions) -> None:
     """ we assume the wall slides to x-direction. """
     vx = field.velocity[..., 0]
     (X, Y), viscosity = field.lattice_grid_shape, field.viscosity

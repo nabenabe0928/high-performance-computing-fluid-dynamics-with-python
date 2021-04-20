@@ -1,7 +1,7 @@
 import numpy as np
 from tqdm import trange
 
-from src.simulation_attributes.formula import FluidField2D
+from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from src.simulation_attributes.boundary_handling import DirectionIndicators, MovingWall, RigidWall
 from src.utils.attr_dict import AttrDict
 from src.utils.visualization import visualize_velocity_field_of_moving_wall
@@ -20,7 +20,7 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
          total_time_steps: int, omega: float, wall_vel: np.ndarray) -> None:
     X, Y = lattice_grid_shape
 
-    field = FluidField2D(X, Y, omega=omega, init_vel=init_velocity, init_density=init_density)
+    field = LatticeBoltzmannMethod(X, Y, omega=omega, init_vel=init_velocity, init_density=init_density)
 
     rigid_wall = RigidWall(
         field=field,
@@ -32,7 +32,7 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
         wall_vel=wall_vel
     )
 
-    def boundary_handling_func(field: FluidField2D) -> None:
+    def boundary_handling_func(field: LatticeBoltzmannMethod) -> None:
         rigid_wall.boundary_handling(field)
         moving_wall.boundary_handling(field)
 

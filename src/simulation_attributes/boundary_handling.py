@@ -4,7 +4,11 @@ from enum import IntEnum
 
 import numpy as np
 
-from src.simulation_attributes.formula import AdjacentAttributes, FluidField2D, local_equilibrium
+from src.simulation_attributes.lattice_boltzmann_method import (
+    AdjacentAttributes,
+    LatticeBoltzmannMethod,
+    local_equilibrium
+)
 
 
 class DirectionIndicators(IntEnum):
@@ -36,7 +40,7 @@ def get_direction_representor(boundary: np.ndarray) -> str:
 
 class AbstractBoundaryHandling(object, metaclass=ABCMeta):
     @abstractmethod
-    def boundary_handling(self, field: FluidField2D) -> None:
+    def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
         """
         Compute the PDF using pdf_pre, pdf_mid, pdf and density, velocity
         and return the PDF after boundary handling.
@@ -44,13 +48,13 @@ class AbstractBoundaryHandling(object, metaclass=ABCMeta):
         the update of the PDF has to be performed inside the function.
 
         Args:
-            field (FluidField2D)
+            field (LatticeBoltzmannMethod)
         """
         raise NotImplementedError
 
 
 class BaseBoundary():
-    def __init__(self, field: FluidField2D, boundary_locations: List[DirectionIndicators],
+    def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators],
                  pressure_variation: bool = False, visualize_wall: bool = False,
                  **kwargs: Dict[str, Any]):
         """
@@ -255,16 +259,17 @@ class BaseBoundary():
 
 
 class RigidWall(BaseBoundary, AbstractBoundaryHandling):
-    def __init__(self, field: FluidField2D, boundary_locations: List[DirectionIndicators]):
+    def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators]):
         super().__init__(field, boundary_locations)
 
-    def boundary_handling(self, field: FluidField2D) -> None:
+    def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
         pdf_post = field.pdf
         pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
 
 
 class MovingWall(BaseBoundary, AbstractBoundaryHandling):
-    def __init__(self, field: FluidField2D, boundary_locations: List[DirectionIndicators], wall_vel: np.ndarray):
+    def __init__(self, field: LatticeBoltzmannMethod,
+                 boundary_locations: List[DirectionIndicators], wall_vel: np.ndarray):
         """
         Attributes:
             _wall_vel (np.ndarray):
@@ -319,7 +324,7 @@ class MovingWall(BaseBoundary, AbstractBoundaryHandling):
 
         self._finish_precompute = True
 
-    def boundary_handling(self, field: FluidField2D) -> None:
+    def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
         if not self._finish_precompute:
             self._precompute()
 
@@ -334,7 +339,7 @@ class MovingWall(BaseBoundary, AbstractBoundaryHandling):
 
 
 class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
-    def __init__(self, field: FluidField2D, boundary_locations: List[DirectionIndicators],
+    def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators],
                  in_density_factor: float, out_density_factor: float):
 
         super().__init__(field, boundary_locations, pressure_variation=True)
@@ -368,7 +373,7 @@ class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
     def out_density(self) -> None:
         raise NotImplementedError("out_density is not supposed to change from outside.")
 
-    def boundary_handling(self, field: FluidField2D) -> None:
+    def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
         pdf_eq, pdf_post = field.pdf_eq, field.pdf
 
         if self.horiz:

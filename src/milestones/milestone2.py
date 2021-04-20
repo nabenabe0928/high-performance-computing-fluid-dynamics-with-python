@@ -3,7 +3,7 @@ from tqdm import trange
 
 from src.milestones.constants import Milestone2InitVals
 from src.utils.visualization import visualize_density_surface
-from src.simulation_attributes.formula import FluidField2D
+from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 
 
 lattice_grid_shape = (50, 50)
@@ -12,7 +12,7 @@ init_vals = Milestone2InitVals()
 
 def main(total_time_steps: int, init_density: np.ndarray, init_vel: np.ndarray) -> None:
     X, Y = lattice_grid_shape
-    field = FluidField2D(X, Y, init_density=init_density, init_vel=init_vel)
+    field = LatticeBoltzmannMethod(X, Y, init_density=init_density, init_vel=init_vel)
 
     field.local_equilibrium_pdf_update()
     for _ in trange(total_time_steps):

@@ -2,7 +2,7 @@ import numpy as np
 from tqdm import trange
 
 from src.utils.visualization import visualize_velocity_field
-from src.simulation_attributes.formula import FluidField2D
+from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 
 
 def main() -> None:
@@ -11,7 +11,7 @@ def main() -> None:
 
     pdf = np.zeros((X, Y, 9))
     pdf[:X // 2, :Y // 2, 5] = np.ones((X // 2, Y // 2))
-    field = FluidField2D(X, Y, init_pdf=pdf)
+    field = LatticeBoltzmannMethod(X, Y, init_pdf=pdf)
 
     for t in trange(total_time_steps):
         field.update_density()
