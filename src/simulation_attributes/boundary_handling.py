@@ -335,7 +335,6 @@ class MovingWall(BaseBoundary, AbstractBoundaryHandling):
             self._precompute()
 
         pdf_post = field.pdf
-        """TODO: make it an attribute for LBM class"""
         average_density = field.density.mean()
 
         pdf_post[self.in_boundary] = (

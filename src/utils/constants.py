@@ -17,10 +17,4 @@ class DirectionIndicators(IntEnum):
     BOTTOM: int = 3
 
 
-DIRECTION2VEC = np.array(
-    [1, 0],
-    [-1, 0],
-    [0, 1],
-    [0, -1],
-    dtype=np.int32
-)
+DIRECTION2VEC = np.array([[1, 0], [-1, 0], [0, 1], [0, -1]], dtype=np.int32)

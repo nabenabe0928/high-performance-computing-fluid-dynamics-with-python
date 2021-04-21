@@ -15,6 +15,71 @@ from mpi4py import MPI
 from src.utils.constants import DirectionIndicators, DIRECTION2VEC
 
 
+def Shift(rank_grid: MPI.Cartcomm, direction: int, disp: int) -> Tuple[int, int]:
+    """
+    Return a tuple (src, dest) of process ranks
+    for data shifting with Comm.Sendrecv()
+
+    Args:
+        rank_grid (MPI.Cartcomm):
+
+        direction (int):
+
+        disp (int):
+
+    Returns:
+        src, dest (Tuple[int, int]):
+        src (int):
+            The rank of the source process of the information that this process receives.
+        dest (int):
+            The rank of the destination process of the information that this process sends.
+
+    Note:
+        This is a documentation for the MPI.Cartcomm.Shift
+        and it is not used in the project.
+    """
+
+    return rank_grid.Shift(direction=direction,
+                           disp=disp)
+
+
+def Sendrecv(rank_grid: MPI.Cartcomm) -> None:
+    """
+    Send and receive a message
+
+    Args:
+        rank_grid (MPI.Cartcomm):
+        sendbuf (Any):
+            The buffer element for send the information.
+        dest (int):
+            The rank of the destination process.
+        recvtag (int):
+            The tag for receiving information.
+        recvbuf (Any):
+            The buffer element for send the information.
+        source (int):
+            The rank of the source process.
+        sendtag (int):
+            The tag for sending information.
+        status (Optional[Status]):
+            status.
+
+    Caution:
+        This function is guaranteed not to deadlock in
+        situations where pairs of blocking sends and receives may
+        deadlock.
+        A common mistake when using this function is to
+        mismatch the tags with the source and destination ranks,
+        which can result in deadlock.
+
+    Note:
+        This is a documentation for the MPI.Cartcomm.Shift
+        and it is not used in the project.
+    """
+
+    rank_grid.Sendrecv()
+
+
 def ChunkedGridManager():
     def __init__(self, X: int, Y: int):
         self.size = MPI.COMM_WORLD.Get_size()
@@ -94,12 +159,13 @@ def ChunkedGridManager():
 
     def communicate_with_neighbors(self) -> None:
         x_rank, y_rank = self.rank_loc
-        # top_src, top_dst = comm.Shift(direction=1, disp=1)
+
         for dir in self.neighbor_proc_locations:
             dx, dy = DIRECTION2VEC[dir]
+            src, dst = self.rank_loc.Shift(direction=int(dx == 0), disp=(dy if dx == 0 else dy))
             x_rank + dx, y_rank + dy
-            # recvbuf = array.copy()
-            # comm.Sendrecv(array.copy(), destination, recvbuf=recvbuf, source=source)
+            recvbuf = """"""
+            self.rank_loc.Sendrecv("""""", dst, recvbuf=recvbuf, source=src)
             # array = recvbuf
 
     @property
