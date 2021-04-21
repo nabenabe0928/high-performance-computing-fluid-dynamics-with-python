@@ -45,16 +45,6 @@ class AbstractBoundaryHandling(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def parallel_boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
-        """
-        TODO
-
-        Args:
-            field (LatticeBoltzmannMethod)
-        """
-        raise NotImplementedError
-
 
 class BaseBoundary():
     def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators],
@@ -335,6 +325,11 @@ class MovingWall(BaseBoundary, AbstractBoundaryHandling):
             self._precompute()
 
         pdf_post = field.pdf
+        """
+        If we store the rank set as a binary tree,
+        we can compute it by O(log N)
+        where N is the number of processes
+        """
         average_density = field.density.mean()
 
         pdf_post[self.in_boundary] = (
@@ -405,6 +400,3 @@ class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
             pdf_post[:, -1, self.in_indices] = pdf_eq_out[:, self.in_indices] + (
                 pdf_post[:, 1, self.in_indices] - pdf_eq[:, 1, self.in_indices]
             )
-
-    def parallel_boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
-        pass

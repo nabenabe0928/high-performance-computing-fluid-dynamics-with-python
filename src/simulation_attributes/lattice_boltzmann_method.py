@@ -2,6 +2,9 @@ import numpy as np
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from copy import deepcopy
 
+from src.utils.parallel_computation import ChunkedGridManager
+from src.utils.constants import DirectionIndicators, DIRECTION2VEC
+
 
 EPS = 1e-12
 
@@ -90,7 +93,8 @@ class LatticeBoltzmannMethod():
                  init_pdf: Optional[np.ndarray] = None,
                  init_density: Optional[np.ndarray] = None,
                  init_vel: Optional[np.ndarray] = None,
-                 is_parallel: bool = False):
+                 repr_vel: Optional[float] = None,
+                 grid_manager: Optional[ChunkedGridManager] = None):
         """
         This class computes and stores
         the density and velocity field
@@ -122,6 +126,8 @@ class LatticeBoltzmannMethod():
             _omega (float):
                 relaxation term
         """
+        if grid_manager is not None:  # add ghost cells
+            X, Y = grid_manager.buffer_grid_size
 
         self._pdf = np.zeros((X, Y, 9))
         self._pdf_eq = np.zeros((X, Y, 9))
@@ -129,7 +135,7 @@ class LatticeBoltzmannMethod():
         self._velocity = np.zeros((X, Y, 2))
         self._lattice_grid_shape = (X, Y)
         self._finish_initialize = False
-        self._is_parallel = is_parallel
+        self.grid_manager = grid_manager
 
         self._init_vals(init_pdf=init_pdf,
                         init_density=init_density,
@@ -141,8 +147,6 @@ class LatticeBoltzmannMethod():
         assert 0 < omega < 2
         self._omega = omega
         self._viscosity = 1. / 3. * (1. / omega - 0.5)
-        """ TODO: Not correct value yet """
-        self._reynolds_number = 2.0 * (X * Y) / (X + Y) / self._viscosity
 
     @property
     def pdf(self) -> np.ndarray:
@@ -193,16 +197,11 @@ class LatticeBoltzmannMethod():
         return self._omega
 
     @property
-    def reynolds_number(self) -> float:
-        return self._reynolds_number
-
-    @property
     def viscosity(self) -> float:
         return self._viscosity
 
-    @property
     def is_parallel(self) -> bool:
-        return self._is_parallel
+        return self.grid_manager is not None
 
     def _init_pdf(self, init_vals: np.ndarray) -> None:
         assert init_vals.shape == self._pdf.shape
@@ -279,9 +278,11 @@ class LatticeBoltzmannMethod():
 
         self._pdf_pre = (self.pdf + (self.pdf_eq - self.pdf) * self._omega)
 
-        if self.is_parallel:
+        if self.is_parallel():
             self._pdf_pre = density_communicate_func(self._pdf_pre)
             self._pdf = deepcopy(self.pdf_pre)
+
+            self.communicate_with_neighbors()
             # Only this update requires communication
             self.update_pdf()
 
@@ -297,3 +298,17 @@ class LatticeBoltzmannMethod():
 
         self.update_density()
         self.update_velocity()
+
+    def communicate_with_neighbors(self) -> None:
+        for dir in DirectionIndicators:
+            dx, dy = DIRECTION2VEC[dir]
+            sendidx = self._step_to_idx(dx, True) if dx != 0 else self._step_to_idx(dy, True)
+            recvidx = self._step_to_idx(dx, False) if dx != 0 else self._step_to_idx(dy, False)
+            src, dest = self.rank_loc.Shift(direction=int(dx == 0), disp=(dy if dx == 0 else dy))
+            sendbuf = self.pdf[sendidx, ...].copy() if dx != 0 else self.pdf[:, sendidx, ...].copy()
+
+            if self.exist_recvbufer[dir]:  # TODO: Change settings inside PBC
+                recvbuf = self.pdf[recvidx, ...].copy() if dx != 0 else self.pdf[:, recvidx, ...].copy()
+                self.rank_loc.Sendrecv(sendbuf=sendbuf, dest=dest, recvbuf=recvbuf, source=src)
+            else:
+                self.rank_loc.Sendrecv(sendbuf=sendbuf, dest=dest)

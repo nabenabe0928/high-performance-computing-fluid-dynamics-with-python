@@ -4,15 +4,15 @@
 ref: https://research.computing.yale.edu/sites/default/files/files/mpi4py.pdf
 
 TODO:
-    * TODO1
-    * TODO2
+    * test for each func
+    * check the behavior and if it works properly
 """
-from typing import List, Tuple
+from typing import Any, Tuple
 
 import numpy as np
 from mpi4py import MPI
 
-from src.utils.constants import DirectionIndicators, DIRECTION2VEC
+from src.utils.constants import DirectionIndicators
 
 
 def Shift(rank_grid: MPI.Cartcomm, direction: int, disp: int) -> Tuple[int, int]:
@@ -43,7 +43,8 @@ def Shift(rank_grid: MPI.Cartcomm, direction: int, disp: int) -> Tuple[int, int]
                            disp=disp)
 
 
-def Sendrecv(rank_grid: MPI.Cartcomm) -> None:
+def Sendrecv(rank_grid: MPI.Cartcomm, sendbuf: Any, dest: int, sendtag: int,
+             recvbuf: Any, source: int, recvtag: int) -> None:
     """
     Send and receive a message
 
@@ -53,16 +54,14 @@ def Sendrecv(rank_grid: MPI.Cartcomm) -> None:
             The buffer element for send the information.
         dest (int):
             The rank of the destination process.
-        recvtag (int):
-            The tag for receiving information.
+        sendtag (int):
+            The tag for sending information.
         recvbuf (Any):
             The buffer element for send the information.
         source (int):
             The rank of the source process.
-        sendtag (int):
-            The tag for sending information.
-        status (Optional[Status]):
-            status.
+        recvtag (int):
+            The tag for receiving information.
 
     Caution:
         This function is guaranteed not to deadlock in
@@ -77,7 +76,8 @@ def Sendrecv(rank_grid: MPI.Cartcomm) -> None:
         and it is not used in the project.
     """
 
-    rank_grid.Sendrecv()
+    rank_grid.Sendrecv(sendbuf=sendbuf, dest=dest, sendtag=sendtag,
+                       recvbuf=recvbuf, source=source, recvtag=recvtag)
 
 
 def ChunkedGridManager():
@@ -95,7 +95,32 @@ def ChunkedGridManager():
         self._local_grid_size = self._compute_local_grid_size(X, Y)
         self._global_grid_size = (X, Y)
         self._x_local_range, self._y_local_range = self._compute_local_range(X, Y)
-        self._neighbor_proc_locations = self._compute_neighbor_proc_locations()
+        self._buffer_grid_size = self._compute_buffer_grid_size()
+        self.exist_recvbufer = {}
+
+    @property
+    def rank_grid_size(self) -> Tuple[int, int]:
+        return self._rank_grid_size
+
+    @property
+    def local_grid_size(self) -> Tuple[int, int]:
+        return self._local_grid_size
+
+    @property
+    def buffer_grid_size(self) -> Tuple[int, int]:
+        return self._buffer_grid_size
+
+    @property
+    def global_grid_size(self) -> Tuple[int, int]:
+        return self._global_grid_size
+
+    @property
+    def x_local_range(self) -> Tuple[int, int]:
+        return self._x_local_range
+
+    @property
+    def y_local_range(self) -> Tuple[int, int]:
+        return self._y_local_range
 
     def _compute_rank_grid_size(self) -> Tuple[int, int]:
         lower, upper = 1, self.size
@@ -141,56 +166,28 @@ def ChunkedGridManager():
             y_local_lower = ry * Y_large + (y_rank - ry) * Y_small
             y_local_upper = y_local_lower + Y_small - 1
 
+        """TODO: use it for the sizing of grid size LBM."""
+        self.exist_recvbufer[DirectionIndicators.LEFT] = bool(x_local_lower == 0)
+        self.exist_recvbufer[DirectionIndicators.RIGHT] = bool(x_local_upper == X_global - 1)
+        self.exist_recvbufer[DirectionIndicators.BOTTOM] = bool(y_local_lower == 0)
+        self.exist_recvbufer[DirectionIndicators.TOP] = bool(y_local_upper == Y_global - 1)
+
         return (x_local_lower, x_local_upper), (y_local_lower, y_local_upper)
 
-    def _compute_neighbor_proc_locations(self) -> List[DirectionIndicators]:
-        X, Y = self.global_grid_size
-        neighbor_proc_locations = []
-        if not self.x_in_process(0):
-            neighbor_proc_locations.append(DirectionIndicators.LEFT)
-        if not self.x_in_process(X - 1):
-            neighbor_proc_locations.append(DirectionIndicators.RIGHT)
-        if not self.y_in_process(0):
-            neighbor_proc_locations.append(DirectionIndicators.BOTTOM)
-        if not self.y_in_process(Y - 1):
-            neighbor_proc_locations.append(DirectionIndicators.TOP)
+    def _compute_buffer_grid_size(self) -> Tuple[int, int]:
+        gx, gy = self.local_grid_size[0]
+        gx += self.exist_recvbufer[DirectionIndicators.LEFT]
+        gx += self.exist_recvbufer[DirectionIndicators.RIGHT]
+        gy += self.exist_recvbufer[DirectionIndicators.TOP]
+        gy += self.exist_recvbufer[DirectionIndicators.BOTTOM]
+        return gx, gy
 
-        return neighbor_proc_locations
-
-    def communicate_with_neighbors(self) -> None:
-        x_rank, y_rank = self.rank_loc
-
-        for dir in self.neighbor_proc_locations:
-            dx, dy = DIRECTION2VEC[dir]
-            src, dst = self.rank_loc.Shift(direction=int(dx == 0), disp=(dy if dx == 0 else dy))
-            x_rank + dx, y_rank + dy
-            recvbuf = """"""
-            self.rank_loc.Sendrecv("""""", dst, recvbuf=recvbuf, source=src)
-            # array = recvbuf
-
-    @property
-    def rank_grid_size(self) -> Tuple[int, int]:
-        return self._rank_grid_size
-
-    @property
-    def local_grid_size(self) -> Tuple[int, int]:
-        return self._local_grid_size
-
-    @property
-    def global_grid_size(self) -> Tuple[int, int]:
-        return self._global_grid_size
-
-    @property
-    def x_local_range(self) -> Tuple[int, int]:
-        return self._x_local_range
-
-    @property
-    def y_local_range(self) -> Tuple[int, int]:
-        return self._y_local_range
-
-    @property
-    def neighbor_proc_locations(self) -> List[DirectionIndicators]:
-        return self._neighbor_proc_locations
+    def _step_to_idx(self, step: int, send: bool):
+        assert step == 1 or step == -1
+        if send:
+            return -2 if step == 1 else 1
+        else:  # recv
+            return -1 if step == 1 else 0
 
     def x_in_process(self, x_global: int) -> bool:
         return self.x_local_range[0] <= x_global <= self.x_local_range[1]
@@ -204,3 +201,16 @@ def ChunkedGridManager():
     def global_to_local(self, x_global: int, y_global: int) -> Tuple[int, int]:
         assert location_in_process(x_global, y_global)
         return x_global - self.x_local_range[0], y_global - self.y_local_range[0]
+
+    def is_boundary(self, dir: DirectionIndicators) -> bool:
+        if not isinstance(dir, DirectionIndicators):
+            raise ValueError(f"Args `dir` must be DirectionIndicators type, but got {type(dir)}.")
+
+        if DirectionIndicators.LEFT:
+            return self.x_in_process(0)
+        if DirectionIndicators.RIGHT:
+            return self.x_in_process(self.global_grid_size[0] - 1)
+        if DirectionIndicators.BOTTOM:
+            return self.y_in_process(0)
+        if DirectionIndicators.TOP:
+            return self.y_in_process(self.global_grid_size[1] - 1)
