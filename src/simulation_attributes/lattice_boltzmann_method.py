@@ -257,7 +257,8 @@ class LatticeBoltzmannMethod():
 
         next_pdf = np.zeros_like(self.pdf)
         for i in range(9):
-            next_pdf[..., i] = np.roll(self.pdf[..., i], vs[i], axis=(0, 1))
+            """ for axis j, shift vs[i][j] """
+            next_pdf[..., i] = np.roll(self.pdf[..., i], shift=vs[i], axis=(0, 1))
 
         self._pdf = next_pdf
 
