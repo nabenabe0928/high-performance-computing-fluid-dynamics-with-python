@@ -280,7 +280,7 @@ class LatticeBoltzmannMethod():
         self._pdf_pre = (self.pdf + (self.pdf_eq - self.pdf) * self._omega)
 
         if self.is_parallel():
-            self._pdf_pre = density_communicate_func(self._pdf_pre)
+            self.communicate_with_neighbors()
             self._pdf = deepcopy(self.pdf_pre)
 
             self.communicate_with_neighbors()
@@ -301,15 +301,16 @@ class LatticeBoltzmannMethod():
         self.update_velocity()
 
     def communicate_with_neighbors(self) -> None:
+        step_to_idx = self.grid_manager._step_to_idx
         for dir in DirectionIndicators:
             dx, dy = DIRECTION2VEC[dir]
-            sendidx = self._step_to_idx(dx, True) if dx != 0 else self._step_to_idx(dy, True)
-            recvidx = self._step_to_idx(dx, False) if dx != 0 else self._step_to_idx(dy, False)
-            src, dest = self.rank_loc.Shift(direction=int(dx == 0), disp=(dy if dx == 0 else dy))
+            sendidx = step_to_idx(dx, True) if dx != 0 else step_to_idx(dy, True)
+            recvidx = step_to_idx(dx, False) if dx != 0 else step_to_idx(dy, False)
+            src, dest = self.grid_manager.rank_loc.Shift(direction=int(dx == 0), disp=(dy if dx == 0 else dy))
             sendbuf = self.pdf[sendidx, ...].copy() if dx != 0 else self.pdf[:, sendidx, ...].copy()
 
-            if self.exist_recvbufer[dir]:  # TODO: Change settings inside PBC
+            if self.grid_manager.exist_recvbufer[dir]:  # TODO: Change settings inside PBC
                 recvbuf = self.pdf[recvidx, ...].copy() if dx != 0 else self.pdf[:, recvidx, ...].copy()
-                self.rank_loc.Sendrecv(sendbuf=sendbuf, dest=dest, recvbuf=recvbuf, source=src)
+                self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=dest, recvbuf=recvbuf, source=src)
             else:
-                self.rank_loc.Sendrecv(sendbuf=sendbuf, dest=dest)
+                self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=dest)

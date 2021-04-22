@@ -7,7 +7,7 @@ TODO:
     * test for each func
     * check the behavior and if it works properly
 """
-from typing import Any, Tuple
+from typing import Any, Dict, Tuple
 
 import numpy as np
 from mpi4py import MPI
@@ -80,7 +80,7 @@ def Sendrecv(rank_grid: MPI.Cartcomm, sendbuf: Any, dest: int, sendtag: int,
                        recvbuf=recvbuf, source=source, recvtag=recvtag)
 
 
-def ChunkedGridManager():
+class ChunkedGridManager():
     def __init__(self, X: int, Y: int):
         self.size = MPI.COMM_WORLD.Get_size()
         self.rank = MPI.COMM_WORLD.Get_rank()
@@ -96,7 +96,7 @@ def ChunkedGridManager():
         self._global_grid_size = (X, Y)
         self._x_local_range, self._y_local_range = self._compute_local_range(X, Y)
         self._buffer_grid_size = self._compute_buffer_grid_size()
-        self.exist_recvbufer = {}
+        self.exist_recvbufer: Dict[str, DirectionIndicators] = {}
 
         # tree structure info
         self.root = bool(self.rank == 0)
@@ -151,7 +151,7 @@ def ChunkedGridManager():
         """ TODO: Test code """
         (X_rank, Y_rank) = self.rank_grid_size
         (x_rank, y_rank) = self.rank_loc
-        (X_local, Y_local) = self._local_grid_size()
+        (X_local, Y_local) = self._local_grid_size
         X_small, X_large = X_global // X_rank, (X_global + X_rank - 1) // X_rank
         Y_small, Y_large = Y_global // Y_rank, (Y_global + Y_rank - 1) // Y_rank
         rx, ry = X_global % X_rank, Y_global % Y_rank
@@ -179,7 +179,7 @@ def ChunkedGridManager():
         return (x_local_lower, x_local_upper), (y_local_lower, y_local_upper)
 
     def _compute_buffer_grid_size(self) -> Tuple[int, int]:
-        gx, gy = self.local_grid_size[0]
+        gx, gy = self.local_grid_size
         gx += self.exist_recvbufer[DirectionIndicators.LEFT]
         gx += self.exist_recvbufer[DirectionIndicators.RIGHT]
         gy += self.exist_recvbufer[DirectionIndicators.TOP]
@@ -225,7 +225,7 @@ def ChunkedGridManager():
         return self.x_in_process(x_global) and self.y_in_process(y_global)
 
     def global_to_local(self, x_global: int, y_global: int) -> Tuple[int, int]:
-        assert location_in_process(x_global, y_global)
+        assert self.location_in_process(x_global, y_global)
         return x_global - self.x_local_range[0], y_global - self.y_local_range[0]
 
     def is_boundary(self, dir: DirectionIndicators) -> bool:
@@ -240,3 +240,5 @@ def ChunkedGridManager():
             return self.y_in_process(0)
         if DirectionIndicators.TOP:
             return self.y_in_process(self.global_grid_size[1] - 1)
+        else:
+            raise ValueError("dir must be either {TOP, BOTTOM, LEFT, RIGHT}.")
