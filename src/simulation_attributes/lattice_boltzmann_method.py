@@ -1,9 +1,14 @@
 import numpy as np
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Callable, Optional, Tuple
 from copy import deepcopy
 
+# from src.utils.boundary_handling import BaseBoundary
+from src.utils.constants import (
+    AdjacentAttributes,
+    DirectionIndicators,
+    DIRECTION2VEC
+)
 from src.utils.parallel_computation import ChunkedGridManager
-from src.utils.constants import DirectionIndicators, DIRECTION2VEC
 
 
 EPS = 1e-12
@@ -27,73 +32,11 @@ def local_equilibrium(velocity: np.ndarray, density: np.ndarray) -> np.ndarray:
     return pdf_eq
 
 
-class MetaAdjacentAttributes(type):
-    """
-    The attributes for the adjacent cells.
-    such as the following indices are:
-    y_upper  -> 6 2 5
-    y_center -> 3 0 1
-    y_lower  -> 7 4 8
-    """
-    def __init__(cls, *args: List[Any], **kwargs: Dict[str, Any]):
-        pass
-
-    @property
-    def x_left(cls) -> np.ndarray:
-        return np.array([3, 6, 7])
-
-    @property
-    def x_center(cls) -> np.ndarray:
-        return np.array([0, 2, 4])
-
-    @property
-    def x_right(cls) -> np.ndarray:
-        return np.array([1, 5, 8])
-
-    @property
-    def y_upper(cls) -> np.ndarray:
-        return np.array([2, 5, 6])
-
-    @property
-    def y_center(cls) -> np.ndarray:
-        return np.array([0, 1, 3])
-
-    @property
-    def y_lower(cls) -> np.ndarray:
-        return np.array([4, 7, 8])
-
-    @property
-    def velocity_direction_set(cls) -> np.ndarray:
-        """ Note: Those do not have identical norms. """
-        return np.array([[0, 0], [1, 0], [0, 1],
-                         [-1, 0], [0, -1], [1, 1],
-                         [-1, 1], [-1, -1], [1, -1]])
-
-    @property
-    def reflected_direction(cls) -> np.ndarray:
-        return np.array([0, 3, 4, 1, 2, 7, 8, 5, 6])
-
-    @property
-    def weights(cls) -> np.ndarray:
-        """ The weights for each adjacent cell """
-        return np.array(
-            [4. / 9.]
-            + [1. / 9.] * 4
-            + [1. / 36.] * 4
-        )
-
-
-class AdjacentAttributes(metaclass=MetaAdjacentAttributes):
-    """ From this class, you can call properties above """
-    pass
-
-
 class LatticeBoltzmannMethod():
     def __init__(self, X: int, Y: int, omega: float = 0.5,
                  init_pdf: Optional[np.ndarray] = None,
                  init_density: Optional[np.ndarray] = None,
                  init_vel: Optional[np.ndarray] = None,
-                 repr_vel: Optional[float] = None,
                  grid_manager: Optional[ChunkedGridManager] = None):
         """
         This class computes and stores
@@ -274,8 +217,7 @@ class LatticeBoltzmannMethod():
 
     def lattice_boltzmann_step(
         self,
-        boundary_handling: Optional[Callable[['LatticeBoltzmannMethod'], None]] = None,
-        density_communicate_func: Optional[Callable[[np.ndarray], np.ndarray]] = None
+        boundary_handling: Optional[Callable[['LatticeBoltzmannMethod'], None]] = None
     ) -> None:
 
         self._apply_local_equilibrium()
@@ -283,37 +225,32 @@ class LatticeBoltzmannMethod():
         self._pdf_pre = (self.pdf + (self.pdf_eq - self.pdf) * self._omega)
 
         if self.is_parallel():
+            # TODO: average density computation
             self.communicate_with_neighbors()
-            self._pdf = deepcopy(self.pdf_pre)
 
-            self.communicate_with_neighbors()
-            # Only this update requires communication
-            self.update_pdf()
+        self._pdf = deepcopy(self.pdf_pre)
+        self.update_pdf()
 
-            if boundary_handling is not None:
-                boundary_handling(self)
-        else:
-            self._pdf = deepcopy(self.pdf_pre)
-            self.update_pdf()
-
-            if boundary_handling is not None:
-                """ use pdf, pdf_pre, density, pdf_eq, velocity inside """
-                boundary_handling(self)
+        if boundary_handling is not None:
+            """ use pdf, pdf_pre, density, pdf_eq, velocity inside """
+            boundary_handling(self)
 
         self.update_density()
         self.update_velocity()
 
     def communicate_with_neighbors(self) -> None:
+        """TODO: pdf_pre and check corner points"""
         step_to_idx = self.grid_manager._step_to_idx
         for dir in DirectionIndicators:
             dx, dy = DIRECTION2VEC[dir]
             sendidx = step_to_idx(dx, True) if dx != 0 else step_to_idx(dy, True)
             recvidx = step_to_idx(dx, False) if dx != 0 else step_to_idx(dy, False)
-            src, dest = self.grid_manager.rank_loc.Shift(direction=int(dx == 0), disp=(dy if dx == 0 else dy))
-            sendbuf = self.pdf[sendidx, ...].copy() if dx != 0 else self.pdf[:, sendidx, ...].copy()
+            src, dest = self.grid_manager.rank_grid.Shift(direction=int(dx == 0), disp=(dy if dx == 0 else dy))
+            sendbuf = self.pdf_pre[sendidx, ...].copy() if dx != 0 else self.pdf_pre[:, sendidx, ...].copy()
 
-            if self.grid_manager.exist_recvbufer[dir]:  # TODO: Change settings inside PBC
-                recvbuf = self.pdf[recvidx, ...].copy() if dx != 0 else self.pdf[:, recvidx, ...].copy()
+            if self.grid_manager.is_boundary(dir):  # TODO: Change settings inside PBC
+                recvbuf = self.pdf_pre[recvidx, ...].copy() if dx != 0 else self.pdf_pre[:, recvidx, ...].copy()
                 self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=dest, recvbuf=recvbuf, source=src)
             else:
-                self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=dest)
+                _ = np.empty_like(sendbuf)
+                self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=dest, recvbuf=_, source=src)

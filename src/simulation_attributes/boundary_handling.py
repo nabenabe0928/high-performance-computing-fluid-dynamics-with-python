@@ -4,11 +4,10 @@ from typing import Any, Dict, List
 import numpy as np
 
 from src.simulation_attributes.lattice_boltzmann_method import (
-    AdjacentAttributes,
     LatticeBoltzmannMethod,
     local_equilibrium
 )
-from src.utils.constants import DirectionIndicators
+from src.utils.constants import AdjacentAttributes, DirectionIndicators
 
 
 def get_direction_representor(boundary: np.ndarray) -> str:

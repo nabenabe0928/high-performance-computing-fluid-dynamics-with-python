@@ -7,7 +7,7 @@ TODO:
     * test for each func
     * check the behavior and if it works properly
 """
-from typing import Any, Dict, Tuple
+from typing import Any, Tuple
 
 import numpy as np
 from mpi4py import MPI
@@ -85,7 +85,7 @@ class ChunkedGridManager():
         self.size = MPI.COMM_WORLD.Get_size()
         self.rank = MPI.COMM_WORLD.Get_rank()
         self.comm = MPI.COMM_WORLD
-        self._rank_grid_size = self._compute_rank_grid_size()
+        self._rank_grid_size = self._compute_rank_grid_size(X, Y)
         self.rank_grid = self.comm.Create_cart(
             dims=[*self.rank_grid_size],
             periods=[True, True],
@@ -96,7 +96,6 @@ class ChunkedGridManager():
         self._global_grid_size = (X, Y)
         self._x_local_range, self._y_local_range = self._compute_local_range(X, Y)
         self._buffer_grid_size = self._compute_buffer_grid_size()
-        self.exist_recvbufer: Dict[str, DirectionIndicators] = {}
 
         # tree structure info
         self.root = bool(self.rank == 0)
@@ -126,13 +125,13 @@ class ChunkedGridManager():
     def y_local_range(self) -> Tuple[int, int]:
         return self._y_local_range
 
-    def _compute_rank_grid_size(self) -> Tuple[int, int]:
+    def _compute_rank_grid_size(self, X_global: int, Y_global: int) -> Tuple[int, int]:
         lower, upper = 1, self.size
         for i in range(2, int(np.sqrt(self.size)) + 1):
             if self.size % i == 0:
-                lower, upper = self.size // i
+                lower, upper = i, self.size // i
 
-        return (lower, upper)
+        return (lower, upper) if X_global <= Y_global else (upper, lower)
 
     def _compute_local_grid_size(self, X_global: int, Y_global: int) -> Tuple[int, int]:
         (X_rank, Y_rank) = self.rank_grid_size
@@ -170,21 +169,15 @@ class ChunkedGridManager():
             y_local_lower = ry * Y_large + (y_rank - ry) * Y_small
             y_local_upper = y_local_lower + Y_small - 1
 
-        """TODO: use it for the sizing of grid size LBM."""
-        self.exist_recvbufer[DirectionIndicators.LEFT] = bool(x_local_lower == 0)
-        self.exist_recvbufer[DirectionIndicators.RIGHT] = bool(x_local_upper == X_global - 1)
-        self.exist_recvbufer[DirectionIndicators.BOTTOM] = bool(y_local_lower == 0)
-        self.exist_recvbufer[DirectionIndicators.TOP] = bool(y_local_upper == Y_global - 1)
-
         return (x_local_lower, x_local_upper), (y_local_lower, y_local_upper)
 
     def _compute_buffer_grid_size(self) -> Tuple[int, int]:
         gx, gy = self.local_grid_size
-        gx += self.exist_recvbufer[DirectionIndicators.LEFT]
-        gx += self.exist_recvbufer[DirectionIndicators.RIGHT]
-        gy += self.exist_recvbufer[DirectionIndicators.TOP]
-        gy += self.exist_recvbufer[DirectionIndicators.BOTTOM]
-        return gx, gy
+        gx += self.is_boundary(DirectionIndicators.LEFT)
+        gx += self.is_boundary(DirectionIndicators.RIGHT)
+        gy += self.is_boundary(DirectionIndicators.TOP)
+        gy += self.is_boundary(DirectionIndicators.BOTTOM)
+        return (gx, gy)
 
     def _compute_tree_structure(self) -> None:
         """TODO: test"""
@@ -232,13 +225,13 @@ class ChunkedGridManager():
         if not isinstance(dir, DirectionIndicators):
             raise ValueError(f"Args `dir` must be DirectionIndicators type, but got {type(dir)}.")
 
-        if DirectionIndicators.LEFT:
+        if dir == DirectionIndicators.LEFT:
             return self.x_in_process(0)
-        if DirectionIndicators.RIGHT:
+        elif dir == DirectionIndicators.RIGHT:
             return self.x_in_process(self.global_grid_size[0] - 1)
-        if DirectionIndicators.BOTTOM:
+        elif dir == DirectionIndicators.BOTTOM:
             return self.y_in_process(0)
-        if DirectionIndicators.TOP:
+        elif dir == DirectionIndicators.TOP:
             return self.y_in_process(self.global_grid_size[1] - 1)
         else:
             raise ValueError("dir must be either {TOP, BOTTOM, LEFT, RIGHT}.")
