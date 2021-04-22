@@ -72,6 +72,8 @@ class BaseBoundary():
                 The corresponding indices for the bouncing direction of _out_indices.
                 The shape is (n_direction, ).
         """
+
+        """TODO: make it possible to instantiate from LBM instance """
         X, Y = field.lattice_grid_shape
         self._out_boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)
         self._out_indices = np.arange(9)

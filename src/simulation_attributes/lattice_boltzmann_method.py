@@ -147,6 +147,9 @@ class LatticeBoltzmannMethod():
         assert 0 < omega < 2
         self._omega = omega
         self._viscosity = 1. / 3. * (1. / omega - 0.5)
+        """ TODO: make the function for them """
+        self._local_density_sum = 0.0
+        self._global_density_average = 0.0
 
     @property
     def pdf(self) -> np.ndarray:

@@ -100,7 +100,7 @@ class ChunkedGridManager():
 
         # tree structure info
         self.root = bool(self.rank == 0)
-        self._compute_tree_structure()                
+        self._compute_tree_structure()
 
     @property
     def rank_grid_size(self) -> Tuple[int, int]:
