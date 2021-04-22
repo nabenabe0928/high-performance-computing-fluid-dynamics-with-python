@@ -91,8 +91,8 @@ class LatticeBoltzmannMethod():
         self._omega = omega
         self._viscosity = 1. / 3. * (1. / omega - 0.5)
         """ TODO: make the function for them """
-        self._local_density_sum = 0.0
-        self._global_density_average = 0.0
+        self.local_density_sum = 0.0
+        self.global_density_average = 0.0
 
     @property
     def pdf(self) -> np.ndarray:
@@ -227,6 +227,8 @@ class LatticeBoltzmannMethod():
         if self.is_parallel():
             # TODO: average density computation
             self.communicate_with_neighbors()
+        else:
+            self.global_density_average = self.density.mean()
 
         self._pdf = deepcopy(self.pdf_pre)
         self.update_pdf()
@@ -248,9 +250,13 @@ class LatticeBoltzmannMethod():
             src, dest = self.grid_manager.rank_grid.Shift(direction=int(dx == 0), disp=(dy if dx == 0 else dy))
             sendbuf = self.pdf_pre[sendidx, ...].copy() if dx != 0 else self.pdf_pre[:, sendidx, ...].copy()
 
-            if self.grid_manager.is_boundary(dir):  # TODO: Change settings inside PBC
+            if self.grid_manager.is_boundary(dir):
                 recvbuf = self.pdf_pre[recvidx, ...].copy() if dx != 0 else self.pdf_pre[:, recvidx, ...].copy()
                 self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=dest, recvbuf=recvbuf, source=src)
             else:
                 _ = np.empty_like(sendbuf)
                 self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=dest, recvbuf=_, source=src)
+
+    def communicate_through_tree(self) -> None:
+        self.local_density_sum = self.density.sum()
+        self.global_density_average = 0.0

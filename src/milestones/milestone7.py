@@ -15,7 +15,7 @@ class ExperimentVariables(AttrDict):
     wall_vel: np.ndarray = np.array([10, 0])
 
 
-lattice_grid_shape = (30, 30)
+lattice_grid_shape = (90, 90)
 
 
 def main(init_density: np.ndarray, init_velocity: np.ndarray, grid_manager: ChunkedGridManager,
@@ -54,7 +54,7 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, grid_manager: Chun
     for t in trange(total_time_steps):
         field.lattice_boltzmann_step(boundary_handling=boundary_handling_func)
 
-    # visualize_velocity_field(field=field)
+    visualize_velocity_field(field=field)
 
 
 if __name__ == '__main__':

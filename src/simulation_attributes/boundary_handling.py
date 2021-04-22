@@ -72,7 +72,6 @@ class BaseBoundary():
                 The shape is (n_direction, ).
         """
 
-        """TODO: make it possible to instantiate from LBM instance """
         X, Y = field.lattice_grid_shape
         self._out_boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)
         self._out_indices = np.arange(9)
@@ -260,9 +259,6 @@ class RigidWall(BaseBoundary, AbstractBoundaryHandling):
         pdf_post = field.pdf
         pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
 
-    def parallel_boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
-        pass
-
 
 class MovingWall(BaseBoundary, AbstractBoundaryHandling):
     def __init__(self, field: LatticeBoltzmannMethod,
@@ -326,21 +322,13 @@ class MovingWall(BaseBoundary, AbstractBoundaryHandling):
             self._precompute()
 
         pdf_post = field.pdf
-        """
-        If we store the rank set as a binary tree,
-        we can compute it by O(log N)
-        where N is the number of processes
-        """
-        average_density = field.density.mean()
+        average_density = field.global_density_average
 
         pdf_post[self.in_boundary] = (
             field.pdf_pre[self.out_boundary]
             - average_density *
             self.weighted_vel_dot_wall_vel6[self.out_boundary]
         )
-
-    def parallel_boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
-        pass
 
 
 class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):

@@ -4,8 +4,7 @@
 ref: https://research.computing.yale.edu/sites/default/files/files/mpi4py.pdf
 
 TODO:
-    * test for each func
-    * check the behavior and if it works properly
+    * None
 """
 from typing import Any, Tuple
 
@@ -167,7 +166,7 @@ class ChunkedGridManager():
 
     def _compute_local_range(self, X_global: int, Y_global: int
                              ) -> Tuple[Tuple[int, int], Tuple[int, int]]:
-        """ TODO: Test code """
+
         (X_rank, Y_rank) = self.rank_grid_size
         (x_rank, y_rank) = self.rank_loc
         (X_local, Y_local) = self.local_grid_size
@@ -200,7 +199,6 @@ class ChunkedGridManager():
         return (gx, gy)
 
     def _compute_tree_structure(self) -> None:
-        """TODO: test"""
         depth = 0
         for d in range(1, 40):
             if self.rank + 2 <= 1 << d:
