@@ -3,11 +3,12 @@ import unittest
 
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from src.simulation_attributes.boundary_handling import (
-    DirectionIndicators,
     RigidWall,
     MovingWall,
     PeriodicBoundaryConditions
 )
+from src.utils.constants import DirectionIndicators
+
 from test.constants import TestOutputs
 from test.utils import abssum
 

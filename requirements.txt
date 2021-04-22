@@ -1,7 +1,16 @@
+# Python 3.6.5
+
+# Requirements
+numpy==1.14.3
+scipy==1.1.0
+matplotlib==2.2.3
+mpi4py==3.0.1
+
+# Optional
 pycodestyle
-numpy
-scipy
-matplotlib
 tqdm
 pillow
 flake8
+pytest
+ipython
+mypy

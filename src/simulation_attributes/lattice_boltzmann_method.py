@@ -2,6 +2,9 @@ import numpy as np
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from copy import deepcopy
 
+from src.utils.parallel_computation import ChunkedGridManager
+from src.utils.constants import DirectionIndicators, DIRECTION2VEC
+
 
 EPS = 1e-12
 
@@ -89,7 +92,9 @@ class LatticeBoltzmannMethod():
     def __init__(self, X: int, Y: int, omega: float = 0.5,
                  init_pdf: Optional[np.ndarray] = None,
                  init_density: Optional[np.ndarray] = None,
-                 init_vel: Optional[np.ndarray] = None):
+                 init_vel: Optional[np.ndarray] = None,
+                 repr_vel: Optional[float] = None,
+                 grid_manager: Optional[ChunkedGridManager] = None):
         """
         This class computes and stores
         the density and velocity field
@@ -121,6 +126,8 @@ class LatticeBoltzmannMethod():
             _omega (float):
                 relaxation term
         """
+        if grid_manager is not None:  # add ghost cells
+            X, Y = grid_manager.buffer_grid_size
 
         self._pdf = np.zeros((X, Y, 9))
         self._pdf_eq = np.zeros((X, Y, 9))
@@ -128,6 +135,7 @@ class LatticeBoltzmannMethod():
         self._velocity = np.zeros((X, Y, 2))
         self._lattice_grid_shape = (X, Y)
         self._finish_initialize = False
+        self.grid_manager = grid_manager
 
         self._init_vals(init_pdf=init_pdf,
                         init_density=init_density,
@@ -135,13 +143,13 @@ class LatticeBoltzmannMethod():
 
         """ pdf for boundary handling """
         self._pdf_pre = np.zeros_like(self.pdf)
-        self._pdf_mid = np.zeros_like(self.pdf)
 
         assert 0 < omega < 2
         self._omega = omega
         self._viscosity = 1. / 3. * (1. / omega - 0.5)
-        """ TODO: Not correct value yet """
-        self._reynolds_number = 2.0 * (X * Y) / (X + Y) / self._viscosity
+        """ TODO: make the function for them """
+        self._local_density_sum = 0.0
+        self._global_density_average = 0.0
 
     @property
     def pdf(self) -> np.ndarray:
@@ -192,12 +200,11 @@ class LatticeBoltzmannMethod():
         return self._omega
 
     @property
-    def reynolds_number(self) -> float:
-        return self._reynolds_number
-
-    @property
     def viscosity(self) -> float:
         return self._viscosity
+
+    def is_parallel(self) -> bool:
+        return self.grid_manager is not None
 
     def _init_pdf(self, init_vals: np.ndarray) -> None:
         assert init_vals.shape == self._pdf.shape
@@ -247,11 +254,14 @@ class LatticeBoltzmannMethod():
 
     def update_pdf(self) -> None:
         """Update the current pdf based on the streaming operator """
+        assert self._finish_initialize
+
         vs = AdjacentAttributes.velocity_direction_set
 
         next_pdf = np.zeros_like(self.pdf)
         for i in range(9):
-            next_pdf[..., i] = np.roll(self.pdf[..., i], vs[i], axis=(0, 1))
+            """ for axis j, shift vs[i][j] """
+            next_pdf[..., i] = np.roll(self.pdf[..., i], shift=vs[i], axis=(0, 1))
 
         self._pdf = next_pdf
 
@@ -264,17 +274,46 @@ class LatticeBoltzmannMethod():
 
     def lattice_boltzmann_step(
         self,
-        boundary_handling: Optional[Callable[['LatticeBoltzmannMethod'], None]] = None
+        boundary_handling: Optional[Callable[['LatticeBoltzmannMethod'], None]] = None,
+        density_communicate_func: Optional[Callable[[np.ndarray], np.ndarray]] = None
     ) -> None:
 
         self._apply_local_equilibrium()
 
         self._pdf_pre = (self.pdf + (self.pdf_eq - self.pdf) * self._omega)
-        self._pdf = deepcopy(self.pdf_pre)
-        self.update_pdf()
 
-        if boundary_handling is not None:
-            boundary_handling(self)
+        if self.is_parallel():
+            self.communicate_with_neighbors()
+            self._pdf = deepcopy(self.pdf_pre)
+
+            self.communicate_with_neighbors()
+            # Only this update requires communication
+            self.update_pdf()
+
+            if boundary_handling is not None:
+                boundary_handling(self)
+        else:
+            self._pdf = deepcopy(self.pdf_pre)
+            self.update_pdf()
+
+            if boundary_handling is not None:
+                """ use pdf, pdf_pre, density, pdf_eq, velocity inside """
+                boundary_handling(self)
 
         self.update_density()
         self.update_velocity()
+
+    def communicate_with_neighbors(self) -> None:
+        step_to_idx = self.grid_manager._step_to_idx
+        for dir in DirectionIndicators:
+            dx, dy = DIRECTION2VEC[dir]
+            sendidx = step_to_idx(dx, True) if dx != 0 else step_to_idx(dy, True)
+            recvidx = step_to_idx(dx, False) if dx != 0 else step_to_idx(dy, False)
+            src, dest = self.grid_manager.rank_loc.Shift(direction=int(dx == 0), disp=(dy if dx == 0 else dy))
+            sendbuf = self.pdf[sendidx, ...].copy() if dx != 0 else self.pdf[:, sendidx, ...].copy()
+
+            if self.grid_manager.exist_recvbufer[dir]:  # TODO: Change settings inside PBC
+                recvbuf = self.pdf[recvidx, ...].copy() if dx != 0 else self.pdf[:, recvidx, ...].copy()
+                self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=dest, recvbuf=recvbuf, source=src)
+            else:
+                self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=dest)
