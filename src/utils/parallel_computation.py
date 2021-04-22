@@ -98,6 +98,10 @@ def ChunkedGridManager():
         self._buffer_grid_size = self._compute_buffer_grid_size()
         self.exist_recvbufer = {}
 
+        # tree structure info
+        self.root = bool(self.rank == 0)
+        self._compute_tree_structure()                
+
     @property
     def rank_grid_size(self) -> Tuple[int, int]:
         return self._rank_grid_size
@@ -182,7 +186,29 @@ def ChunkedGridManager():
         gy += self.exist_recvbufer[DirectionIndicators.BOTTOM]
         return gx, gy
 
-    def _step_to_idx(self, step: int, send: bool):
+    def _compute_tree_structure(self) -> None:
+        """TODO: test"""
+        depth = 0
+        for d in range(1, 40):
+            if self.rank + 2 <= 1 << d:
+                depth = d
+                break
+
+        n_nodes_prev_depth = 0 if depth == 1 else 1 << (depth - 2)
+        n_nodes_cur_depth = 1 << (depth - 1)
+        n_nodes_next_depth = 1 << depth
+
+        # the index in the current depth
+        idx = self.rank - (n_nodes_cur_depth - 1)
+        parent = n_nodes_prev_depth - 1 + (idx >> 1)
+        self.parent = parent if parent >= 0 else None
+        self.children = [
+            n_nodes_next_depth - 1 + (idx << 1) + i
+            for i in range(2)
+            if n_nodes_next_depth - 1 + (idx << 1) + i < self.size
+        ]
+
+    def _step_to_idx(self, step: int, send: bool) -> int:
         assert step == 1 or step == -1
         if send:
             return -2 if step == 1 else 1
