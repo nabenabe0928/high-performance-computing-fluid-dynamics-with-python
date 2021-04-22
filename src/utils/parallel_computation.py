@@ -82,16 +82,16 @@ def Sendrecv(rank_grid: MPI.Cartcomm, sendbuf: Any, dest: int, sendtag: int,
 
 class ChunkedGridManager():
     def __init__(self, X: int, Y: int):
-        self.size = MPI.COMM_WORLD.Get_size()
-        self.rank = MPI.COMM_WORLD.Get_rank()
-        self.comm = MPI.COMM_WORLD
+        self._size = MPI.COMM_WORLD.Get_size()
+        self._rank = MPI.COMM_WORLD.Get_rank()
+        self._comm = MPI.COMM_WORLD
         self._rank_grid_size = self._compute_rank_grid_size(X, Y)
-        self.rank_grid = self.comm.Create_cart(
+        self._rank_grid = self.comm.Create_cart(
             dims=[*self.rank_grid_size],
             periods=[True, True],
             reorder=False
         )
-        self.rank_loc = self.rank_grid.Get_coords(self.rank)
+        self._rank_loc = self.rank_grid.Get_coords(self.rank)
         self._local_grid_size = self._compute_local_grid_size(X, Y)
         self._global_grid_size = (X, Y)
         self._x_local_range, self._y_local_range = self._compute_local_range(X, Y)
@@ -104,6 +104,26 @@ class ChunkedGridManager():
     @property
     def rank_grid_size(self) -> Tuple[int, int]:
         return self._rank_grid_size
+
+    @property
+    def rank_loc(self) -> Tuple[int, int]:
+        return self._rank_loc
+
+    @property
+    def rank_grid(self) -> MPI.Cartcomm:
+        return self._rank_grid
+
+    @property
+    def size(self) -> int:
+        return self._size
+
+    @property
+    def rank(self) -> int:
+        return self._rank
+
+    @property
+    def comm(self) -> MPI.Intracomm:
+        return self._comm
 
     @property
     def local_grid_size(self) -> Tuple[int, int]:
@@ -150,7 +170,7 @@ class ChunkedGridManager():
         """ TODO: Test code """
         (X_rank, Y_rank) = self.rank_grid_size
         (x_rank, y_rank) = self.rank_loc
-        (X_local, Y_local) = self._local_grid_size
+        (X_local, Y_local) = self.local_grid_size
         X_small, X_large = X_global // X_rank, (X_global + X_rank - 1) // X_rank
         Y_small, Y_large = Y_global // Y_rank, (Y_global + Y_rank - 1) // Y_rank
         rx, ry = X_global % X_rank, Y_global % Y_rank
