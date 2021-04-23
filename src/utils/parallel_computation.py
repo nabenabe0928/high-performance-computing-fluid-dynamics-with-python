@@ -100,50 +100,117 @@ class ChunkedGridManager():
 
     @property
     def rank_grid_size(self) -> Tuple[int, int]:
+        """
+        Returns:
+            _rank_grid_size (Tuple[int, int]):
+                The size of the grid which this process is responsible for.
+                The first element is the size in the x-direction
+                and the second one is that in the y-direction.
+        """
         return self._rank_grid_size
 
     @property
     def rank_loc(self) -> Tuple[int, int]:
+        """
+        Returns:
+            _rank_loc (Tuple[int, int]):
+                The position of the process in the 2D space.
+                The order of the whole processes is the following:
+                2 5 8
+                1 4 7
+                0 3 6
+        """
         return self._rank_loc
 
     @property
     def rank_grid(self) -> MPI.Cartcomm:
+        """
+        Returns:
+            _rank_grid (MPI.Cartcomm)
+        """
         return self._rank_grid
 
     @property
     def size(self) -> int:
+        """
+        Returns:
+            _size (int):
+                The total number of processes.
+        """
         return self._size
 
     @property
     def rank(self) -> int:
+        """
+        Returns:
+            _rank (int):
+                The index for this process.
+        """
         return self._rank
 
     @property
     def comm(self) -> MPI.Intracomm:
+        """
+        Returns:
+            _comm (MPI.Intracomm)
+        """
         return self._comm
 
     @property
     def local_grid_size(self) -> Tuple[int, int]:
+        """
+        Returns:
+            _local_grid_size (Tuple[int, int]):
+                The grid size of the physical space
+                which this process is responsible for.
+        """
         return self._local_grid_size
 
     @property
     def buffer_grid_size(self) -> Tuple[int, int]:
+        """
+        Returns:
+            _buffer_grid_size (Tuple[int, int]):
+                The size of the physical space including buffer.
+        """
         return self._buffer_grid_size
 
     @property
     def global_grid_size(self) -> Tuple[int, int]:
+        """
+        Returns:
+            _global_grid_size (Tuple[int, int]):
+                The grid size of the overall physical space.
+        """
         return self._global_grid_size
 
     @property
     def x_local_range(self) -> Tuple[int, int]:
+        """
+        Returns:
+            _x_local_range (Tuple[int, int]):
+                The interval of x in the global coordinate system
+                which this process is responsible for.
+        """
         return self._x_local_range
 
     @property
     def y_local_range(self) -> Tuple[int, int]:
+        """
+        Returns:
+            _y_local_range (Tuple[int, int]):
+                The interval of y in the global coordinate system
+                which this process is responsible for.
+        """
         return self._y_local_range
 
     @property
     def neighbor_directions(self) -> List[DirectionIndicators]:
+        """
+        Returns:
+            _neighbor_directions (List[DirectionIndicators]):
+                The directions where the neighbors exist.
+        """
         return self._neighbor_directions
 
     def _compute_rank_grid_size(self, X_global: int, Y_global: int) -> Tuple[int, int]:
@@ -217,11 +284,24 @@ class ChunkedGridManager():
         return (gx, gy)
 
     def _step_to_idx(self, dx: int, dy: int, send: bool) -> Union[Tuple[int, int], int]:
+        """
+        Function to compute the slice for the given step direction
+        and the objective of the communication.
+
+        Args:
+            dx (int): the step size for x direction (-1, 0, 1)
+            dy (int): the step size for y direction (-1, 0, 1)
+            send (bool): The objective of the communication. Either send or receive.
+        
+        Returns:
+            (x_nxt, y_nxt) or x_nxt or y_nxt:
+                The slice for the given input.
+        """
         assert dx != 0 or dy != 0
-        if send:
+        if send:  # Use the edge excluding buffer zone
             x_nxt = -2 if dx == 1 else 1
             y_nxt = -2 if dy == 1 else 1
-        else:
+        else:  # Use the buffer zone
             x_nxt = -1 if dx == 1 else 0
             y_nxt = -1 if dy == 1 else 0
 
@@ -244,6 +324,10 @@ class ChunkedGridManager():
         return x_global - self.x_local_range[0], y_global - self.y_local_range[0]
 
     def is_boundary(self, dir: DirectionIndicators) -> bool:
+        """
+        If the given direction for this process is boundary or not.
+        Note that boundary means there exists no process in that direction.
+        """
         if not isinstance(dir, DirectionIndicators):
             raise ValueError(f"Args `dir` must be DirectionIndicators type, but got {type(dir)}.")
 
@@ -280,6 +364,7 @@ class ChunkedGridManager():
                              "RIGHTTOP, LEFTTOP, RIGHTBOTTOM, LEFTBOTTOM}.")
 
     def get_neighbor_rank(self, dir: DirectionIndicators) -> int:
+        """ Get the rank of the process that exists in the given direction. """
         assert self.exist_neighbor(dir)
         dx, dy = DIRECTION2VEC[dir]
         rX, rY = self.rank_grid_size
