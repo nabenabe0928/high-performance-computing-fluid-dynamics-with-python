@@ -6,7 +6,7 @@ from src.simulation_attributes.boundary_handling import MovingWall, RigidWall
 from src.utils.attr_dict import AttrDict
 from src.utils.constants import DirectionIndicators
 from src.utils.parallel_computation import ChunkedGridManager
-from src.utils.visualization import visualize_velocity_field
+from src.utils.visualization import visualize_velocity_field_mpi
 
 
 class ExperimentVariables(AttrDict):
@@ -54,7 +54,12 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, grid_manager: Chun
     for t in trange(total_time_steps):
         field.lattice_boltzmann_step(boundary_handling=boundary_handling_func)
 
-    visualize_velocity_field(field=field)
+    x_file, y_file = 'ux.npy', 'uy.npy'
+    field.grid_manager.save_mpiio(x_file, field.velocity[..., 0])
+    field.grid_manager.save_mpiio(y_file, field.velocity[..., 1])
+
+    if field.grid_manager.rank == 0:
+        visualize_velocity_field_mpi(x_file, y_file)
 
 
 if __name__ == '__main__':
@@ -62,13 +67,14 @@ if __name__ == '__main__':
     viscosity = 1. / 3.
     kwargs = ExperimentVariables(
         omega=1. / (3. * viscosity + 0.5),
-        total_time_steps=5000,
+        total_time_steps=100,
         wall_vel=np.array([.1, 0])
     )
     grid_manager = ChunkedGridManager(*lattice_grid_shape)
 
     buffer_grid_shape = grid_manager.buffer_grid_size
-    print(f"{grid_manager.rank} / {grid_manager.size}: {buffer_grid_shape}")
+    local_grid_size = grid_manager.local_grid_size
+    print(f"{grid_manager.rank} / {grid_manager.size}: {local_grid_size}")
 
     density, vel = np.ones(buffer_grid_shape), np.zeros((*buffer_grid_shape, 2))
     main(init_density=density, init_velocity=vel, grid_manager=grid_manager, **kwargs)

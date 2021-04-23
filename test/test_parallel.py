@@ -49,22 +49,7 @@ class TestChunkedGridManager(unittest.TestCase):
         cgm = ChunkedGridManager(self.X, self.Y)
         dx, dy = cgm.local_grid_size
         val = cgm._compute_buffer_grid_size()
-        assert val == (dx + 2, dy + 2)
-
-    def test_compute_tree_structure(self) -> None:
-        cgm = ChunkedGridManager(self.X, self.Y)
-        cgm._rank = 4
-        cgm._size = 20
-        childrens = [[9, 10], [15, 16], [1, 2],
-                     [19], []]
-        parents = [1, 3, None, 4, 4]
-        ranks = [4, 7, 0, 9, 10]
-
-        for c, p, r in zip(childrens, parents, ranks):
-            cgm._rank = r
-            cgm._compute_tree_structure()
-            assert cgm.parent == p
-            assert cgm.children == c
+        assert val == (dx, dy)
 
     def test_global_to_local(self) -> None:
         cgm = ChunkedGridManager(self.X, self.Y)

@@ -32,6 +32,29 @@ def visualize_velocity_field(field: LatticeBoltzmannMethod, cmap: str = DEFAULT_
     plt.show()
 
 
+def visualize_velocity_field_mpi(x_file: str, y_file: str, cmap: str = DEFAULT_CMAP) -> None:
+    """
+    Visualize the velocity field as streaming
+    """
+    vx, vy = np.load(x_file), np.load(y_file)
+
+    X, Y = vx.shape
+    y, x = np.mgrid[:Y, :X]
+    # since when v(t) = 0, it raises error, add the buffer
+    vx += 1e-12
+    vy += 1e-12
+
+    level = np.linalg.norm(np.dstack([vx, vy]).transpose(1, 0, 2), axis=-1)
+
+    plt.streamplot(x, y, vx.T, vy.T, color=level, cmap='seismic')
+    plt.xlim(0, X - 1)
+    plt.ylim(0, Y - 1)
+    plt.xlabel("x axis")
+    plt.ylabel("y axis")
+    plt.colorbar()
+    plt.show()
+
+
 def visualize_density_surface(field: LatticeBoltzmannMethod, cmap: str = DEFAULT_CMAP) -> None:
     X, Y = field.lattice_grid_shape
     x, y = np.mgrid[:X, :Y]

@@ -226,7 +226,9 @@ class LatticeBoltzmannMethod():
 
         if self.is_parallel():
             # TODO: average density computation
-            self.communicate_with_neighbors()
+            self._communicate_for_pdf()
+            self._communicate_for_density()
+            self.grid_manager.comm.Barrier()
         else:
             self.global_density_average = self.density.mean()
 
@@ -240,23 +242,58 @@ class LatticeBoltzmannMethod():
         self.update_density()
         self.update_velocity()
 
-    def communicate_with_neighbors(self) -> None:
+    def _communicate_for_pdf(self) -> None:
         """TODO: pdf_pre and check corner points"""
         step_to_idx = self.grid_manager._step_to_idx
         for dir in DirectionIndicators:
             dx, dy = DIRECTION2VEC[dir]
-            sendidx = step_to_idx(dx, True) if dx != 0 else step_to_idx(dy, True)
-            recvidx = step_to_idx(dx, False) if dx != 0 else step_to_idx(dy, False)
-            src, dest = self.grid_manager.rank_grid.Shift(direction=int(dx == 0), disp=(dy if dx == 0 else dy))
-            sendbuf = self.pdf_pre[sendidx, ...].copy() if dx != 0 else self.pdf_pre[:, sendidx, ...].copy()
+            sendidx, recvidx = step_to_idx(dx, dy, True), step_to_idx(dx, dy, False)
 
-            if self.grid_manager.is_boundary(dir):
-                recvbuf = self.pdf_pre[recvidx, ...].copy() if dx != 0 else self.pdf_pre[:, recvidx, ...].copy()
-                self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=dest, recvbuf=recvbuf, source=src)
-            else:
-                _ = np.empty_like(sendbuf)
-                self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=dest, recvbuf=_, source=src)
+            if self.grid_manager.exist_neighbor(dir):
+                neighbor = self.grid_manager.get_neighbor_rank(dir)
 
-    def communicate_through_tree(self) -> None:
-        self.local_density_sum = self.density.sum()
+                if dx == 0:
+                    sendbuf = self.pdf_pre[:, sendidx, ...].copy()
+                    recvbuf = np.zeros_like(self.pdf_pre[:, recvidx, ...])
+                    self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,
+                                                         recvbuf=recvbuf, source=neighbor)
+                    self.pdf_pre[:, recvidx, ...] = recvbuf
+                elif dy == 0:
+                    sendbuf = self.pdf_pre[sendidx, ...].copy()
+                    recvbuf = np.zeros_like(self.pdf_pre[recvidx, ...])
+                    self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,
+                                                         recvbuf=recvbuf, source=neighbor)
+                    self.pdf_pre[recvidx, ...] = recvbuf
+                else:
+                    sendbuf = self.pdf_pre[sendidx[0], sendidx[1], ...].copy()
+                    recvbuf = np.zeros_like(self.pdf_pre[recvidx[0], recvidx[1], ...])
+                    self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,
+                                                         recvbuf=recvbuf, source=neighbor)
+                    self.pdf_pre[recvidx[0], recvidx[1], ...] = recvbuf
+
+    def _communicate_for_density(self) -> None:
+        x_start, x_end = self.grid_manager.x_local_slice
+        y_start, y_end = self.grid_manager.y_local_slice
+
+        self.local_density_sum = self.density[x_start:x_end, y_start:y_end].sum()
         self.global_density_average = 0.0
+
+        sendbuf = np.ones(1, dtype=np.float64) * self.local_density_sum
+        recvbuf = None
+        if self.grid_manager.rank == 0:
+            recvbuf = np.empty([self.grid_manager.size, 1], dtype=np.float64)
+
+        self.grid_manager.comm.Gather(sendbuf, recvbuf, root=0)
+
+        sendbuf = None
+        n_grids = self.grid_manager.global_grid_size[0] * self.grid_manager.global_grid_size[1]
+
+        if self.grid_manager.rank == 0:
+            assert recvbuf is not None
+            self.global_density_average = recvbuf.sum() / n_grids
+            sendbuf = np.ones([self.grid_manager.size, 1], dtype=np.float64) * self.global_density_average
+
+        recvbuf = np.empty(1, dtype=np.float64)
+        self.grid_manager.comm.Scatter(sendbuf, recvbuf, root=0)
+
+        self.global_density_average = recvbuf[0]

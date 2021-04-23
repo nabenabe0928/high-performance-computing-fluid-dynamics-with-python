@@ -12,9 +12,16 @@ class DirectionIndicators(IntEnum):
     LEFT: int = 1
     TOP: int = 2
     BOTTOM: int = 3
+    RIGHTTOP: int = 4
+    LEFTTOP: int = 5
+    RIGHTBOTTOM: int = 6
+    LEFTBOTTOM: int = 7
 
 
-DIRECTION2VEC = np.array([[1, 0], [-1, 0], [0, 1], [0, -1]], dtype=np.int32)
+DIRECTION2VEC = np.array([
+    [1, 0], [-1, 0], [0, 1], [0, -1],
+    [1, 1], [-1, 1], [1, -1], [-1, -1]
+    ], dtype=np.int32)
 
 
 class MetaAdjacentAttributes(type):

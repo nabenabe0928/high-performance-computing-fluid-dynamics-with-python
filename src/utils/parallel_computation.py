@@ -6,12 +6,13 @@ ref: https://research.computing.yale.edu/sites/default/files/files/mpi4py.pdf
 TODO:
     * None
 """
-from typing import Any, Tuple
+from typing import Any, Tuple, Union
 
 import numpy as np
+from numpy.lib.format import dtype_to_descr, magic
 from mpi4py import MPI
 
-from src.utils.constants import DirectionIndicators
+from src.utils.constants import DirectionIndicators, DIRECTION2VEC
 
 
 def Shift(rank_grid: MPI.Cartcomm, direction: int, disp: int) -> Tuple[int, int]:
@@ -95,10 +96,6 @@ class ChunkedGridManager():
         self._global_grid_size = (X, Y)
         self._x_local_range, self._y_local_range = self._compute_local_range(X, Y)
         self._buffer_grid_size = self._compute_buffer_grid_size()
-
-        # tree structure info
-        self.root = bool(self.rank == 0)
-        self._compute_tree_structure()
 
     @property
     def rank_grid_size(self) -> Tuple[int, int]:
@@ -192,39 +189,38 @@ class ChunkedGridManager():
 
     def _compute_buffer_grid_size(self) -> Tuple[int, int]:
         gx, gy = self.local_grid_size
-        gx += self.is_boundary(DirectionIndicators.LEFT)
-        gx += self.is_boundary(DirectionIndicators.RIGHT)
-        gy += self.is_boundary(DirectionIndicators.TOP)
-        gy += self.is_boundary(DirectionIndicators.BOTTOM)
+        x_start, x_end = self.x_local_range
+        y_start, y_end = self.y_local_range
+        if not self.is_boundary(DirectionIndicators.LEFT):
+            gx += 1
+            x_start += 1
+            x_end += 1
+        if not self.is_boundary(DirectionIndicators.RIGHT):
+            gx += 1
+        if not self.is_boundary(DirectionIndicators.BOTTOM):
+            gy += 1
+            y_start += 1
+            y_end += 1
+        if not self.is_boundary(DirectionIndicators.TOP):
+            gy += 1
+
+        self.x_local_slice = (x_start, x_end + 1)
+        self.y_local_slice = (y_start, y_end + 1)
         return (gx, gy)
 
-    def _compute_tree_structure(self) -> None:
-        depth = 0
-        for d in range(1, 40):
-            if self.rank + 2 <= 1 << d:
-                depth = d
-                break
-
-        n_nodes_prev_depth = 0 if depth == 1 else 1 << (depth - 2)
-        n_nodes_cur_depth = 1 << (depth - 1)
-        n_nodes_next_depth = 1 << depth
-
-        # the index in the current depth
-        idx = self.rank - (n_nodes_cur_depth - 1)
-        parent = n_nodes_prev_depth - 1 + (idx >> 1)
-        self.parent = parent if parent >= 0 else None
-        self.children = [
-            n_nodes_next_depth - 1 + (idx << 1) + i
-            for i in range(2)
-            if n_nodes_next_depth - 1 + (idx << 1) + i < self.size
-        ]
-
-    def _step_to_idx(self, step: int, send: bool) -> int:
-        assert step == 1 or step == -1
+    def _step_to_idx(self, dx: int, dy: int, send: bool) -> Union[Tuple[int, int], int]:
+        assert dx != 0 or dy != 0
         if send:
-            return -2 if step == 1 else 1
-        else:  # recv
-            return -1 if step == 1 else 0
+            x_nxt = -2 if dx == 1 else 1
+            y_nxt = -2 if dy == 1 else 1
+        else:
+            x_nxt = -1 if dx == 1 else 0
+            y_nxt = -1 if dy == 1 else 0
+
+        if dx == 0 or dy == 0:
+            return x_nxt if dx != 0 else y_nxt
+        else:
+            return (x_nxt, y_nxt)
 
     def x_in_process(self, x_global: int) -> bool:
         return self.x_local_range[0] <= x_global <= self.x_local_range[1]
@@ -243,13 +239,97 @@ class ChunkedGridManager():
         if not isinstance(dir, DirectionIndicators):
             raise ValueError(f"Args `dir` must be DirectionIndicators type, but got {type(dir)}.")
 
+        X_global, Y_global = self.global_grid_size
+
         if dir == DirectionIndicators.LEFT:
             return self.x_in_process(0)
         elif dir == DirectionIndicators.RIGHT:
-            return self.x_in_process(self.global_grid_size[0] - 1)
+            return self.x_in_process(X_global - 1)
         elif dir == DirectionIndicators.BOTTOM:
             return self.y_in_process(0)
         elif dir == DirectionIndicators.TOP:
-            return self.y_in_process(self.global_grid_size[1] - 1)
+            return self.y_in_process(Y_global - 1)
         else:
             raise ValueError("dir must be either {TOP, BOTTOM, LEFT, RIGHT}.")
+
+    def exist_neighbor(self, dir: DirectionIndicators) -> bool:
+        if not isinstance(dir, DirectionIndicators):
+            raise ValueError(f"Args `dir` must be DirectionIndicators type, but got {type(dir)}.")
+
+        X_global, Y_global = self.global_grid_size
+        if dir in [getattr(DirectionIndicators, s_dir) for s_dir in ['TOP', 'BOTTOM', 'LEFT', 'RIGHT']]:
+            return not self.is_boundary(dir)
+        elif dir == DirectionIndicators.RIGHTTOP:
+            return not self.is_boundary(DirectionIndicators.RIGHT) and not self.is_boundary(DirectionIndicators.TOP)
+        elif dir == DirectionIndicators.LEFTTOP:
+            return not self.is_boundary(DirectionIndicators.LEFT) and not self.is_boundary(DirectionIndicators.TOP)
+        elif dir == DirectionIndicators.RIGHTBOTTOM:
+            return not self.is_boundary(DirectionIndicators.RIGHT) and not self.is_boundary(DirectionIndicators.BOTTOM)
+        elif dir == DirectionIndicators.LEFTBOTTOM:
+            return not self.is_boundary(DirectionIndicators.LEFT) and not self.is_boundary(DirectionIndicators.BOTTOM)
+        else:
+            raise ValueError("dir must be either {TOP, BOTTOM, LEFT, RIGHT, "
+                             "RIGHTTOP, LEFTTOP, RIGHTBOTTOM, LEFTBOTTOM}.")
+
+    def get_neighbor_rank(self, dir: DirectionIndicators) -> int:
+        assert self.exist_neighbor(dir)
+        dx, dy = DIRECTION2VEC[dir]
+        rX, rY = self.rank_grid_size
+        rx, ry = self.rank_loc
+        rx, ry = (rx + dx + rX) % rX, (ry + dy + rY) % rY
+        return rx * rY + ry
+
+    def save_mpiio(self, file_name: str, vec: np.ndarray) -> None:
+        """
+        Write a global two-dimensional array to a single file in the npy format
+        using MPI I/O: https://docs.scipy.org/doc/numpy/neps/npy-format.html
+
+        Arrays written with this function can be read with numpy.load.
+
+        Parameters
+        ----------
+        comm
+            MPI communicator.
+        fn : str
+            File name.
+        g_kl : array_like
+            Portion of the array on this MPI processes. This needs to be a
+            two-dimensional array.
+        """
+        magic_str = magic(1, 0)
+        x_size, y_size = vec.shape
+
+        vx, vy = np.empty_like(x_size), np.empty_like(y_size)
+
+        commx = self.rank_grid.Sub((True, False))
+        commy = self.rank_grid.Sub((False, True))
+        commx.Allreduce(np.asarray(x_size), vx)
+        commy.Allreduce(np.asarray(y_size), vy)
+
+        arr_dict_str = str({'descr': dtype_to_descr(vec.dtype),
+                            'fortran_order': False,
+                            'shape': (np.asscalar(vx), np.asscalar(vy))})
+
+        while (len(arr_dict_str) + len(magic_str) + 2) % 16 != 15:
+            arr_dict_str += ' '
+        arr_dict_str += '\n'
+        header_len = len(arr_dict_str) + len(magic_str) + 2
+
+        x_offset = np.zeros_like(x_size)
+        commx.Exscan(np.asarray(vy * x_size), x_offset)
+        y_offset = np.zeros_like(y_size)
+        commy.Exscan(np.asarray(y_size), y_offset)
+
+        file = MPI.File.Open(self.rank_grid, file_name, MPI.MODE_CREATE | MPI.MODE_WRONLY)
+        if self.rank == 0:
+            file.Write(magic_str)
+            file.Write(np.int16(len(arr_dict_str)))
+            file.Write(arr_dict_str.encode('latin-1'))
+        mpitype = MPI._typedict[vec.dtype.char]
+        filetype = mpitype.Create_vector(x_size, y_size, vy)
+        filetype.Commit()
+        file.Set_view(header_len + (y_offset + x_offset) * mpitype.Get_size(),
+                      filetype=filetype)
+        file.Write_all(vec.copy())
+        filetype.Free()
+        file.Close()

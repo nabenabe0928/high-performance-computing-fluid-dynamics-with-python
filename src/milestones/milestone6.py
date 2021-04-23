@@ -14,7 +14,7 @@ class ExperimentVariables(AttrDict):
     wall_vel: np.ndarray = np.array([10, 0])
 
 
-lattice_grid_shape = (30, 30)
+lattice_grid_shape = (90, 90)
 
 
 def main(init_density: np.ndarray, init_velocity: np.ndarray,
@@ -55,8 +55,8 @@ if __name__ == '__main__':
     viscosity = 1. / 3.
     kwargs = ExperimentVariables(
         omega=1. / (3. * viscosity + 0.5),
-        total_time_steps=5000,
-        wall_vel=np.array([.7, 0])
+        total_time_steps=100,
+        wall_vel=np.array([.1, 0])
     )
 
     density, vel = np.ones(lattice_grid_shape), np.zeros((*lattice_grid_shape, 2))
