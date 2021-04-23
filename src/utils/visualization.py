@@ -7,6 +7,9 @@ from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannM
 from src.simulation_attributes.boundary_handling import PeriodicBoundaryConditions
 from src.utils.constants import EquationFuncType
 
+# This import is for the 3D plot (if you remove, you will yield an error.)
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+
 
 DEFAULT_CMAP = 'gist_rainbow'
 

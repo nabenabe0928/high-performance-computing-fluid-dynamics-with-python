@@ -13,7 +13,7 @@ from src.utils.parallel_computation import ChunkedGridManager
 EPS = 1e-12
 
 
-def make_directory(dir_name):
+def make_directory(dir_name: str) -> None:
     if not os.path.exists(dir_name):
         try:
             os.mkdir(dir_name)
