@@ -3,6 +3,10 @@ __pycache__/
 */__pycache__/
 */*/__pycache__/
 */*/*/__pycache__/
+*.npy
+*/*.npy
+*/*/*.npy
+*/*/*/*.npy
 
 private/*
-*.npy
+log_velocity_fields/

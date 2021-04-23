@@ -1,5 +1,6 @@
 import numpy as np
 from tqdm import trange
+from typing import Tuple
 
 from src.milestones.constants import sinusoidal_density, sinusoidal_velocity
 from src.utils.visualization import visualize_density_surface, visualize_quantity_vs_time
@@ -13,12 +14,11 @@ class ExperimentVariables(AttrDict):
     rho0: float = 0.5
     omega: float = 0.5
     total_time_steps: int = 1000
+    lattice_grid_shape: Tuple[int, int] = (50, 50)
 
 
-lattice_grid_shape = (50, 50)
-
-
-def density_equation(epsilon: float, viscosity: float) -> EquationFuncType:
+def density_equation(epsilon: float, viscosity: float, lattice_grid_shape: Tuple[int, int]
+                     ) -> EquationFuncType:
     """ fourier equation (reference) """
     X, _ = lattice_grid_shape
 
@@ -28,7 +28,8 @@ def density_equation(epsilon: float, viscosity: float) -> EquationFuncType:
     return _imp
 
 
-def velocity_equation(epsilon: float, viscosity: float) -> EquationFuncType:
+def velocity_equation(epsilon: float, viscosity: float, lattice_grid_shape: Tuple[int, int]
+                      ) -> EquationFuncType:
     _, Y = lattice_grid_shape
 
     def _imp(t: np.ndarray) -> np.ndarray:
@@ -37,8 +38,9 @@ def velocity_equation(epsilon: float, viscosity: float) -> EquationFuncType:
     return _imp
 
 
-def main(init_density: np.ndarray, init_velocity: np.ndarray,
+def main(init_density: np.ndarray, init_velocity: np.ndarray, lattice_grid_shape: Tuple[int, int],
          total_time_steps: int, omega: float, rho0: float, epsilon: float) -> None:
+
     X, Y = lattice_grid_shape
     field = LatticeBoltzmannMethod(X, Y, omega=omega, init_vel=init_velocity, init_density=init_density)
 
@@ -54,8 +56,8 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
         vels[t] = max_vel
 
     visualize_density_surface(field)
-    for q, q_name, eq in [(densities, "density", density_equation(epsilon, field.viscosity)),
-                          (vels, "velocity", velocity_equation(epsilon, field.viscosity))]:
+    for q, q_name, eq in [(densities, "density", density_equation(epsilon, field.viscosity, lattice_grid_shape)),
+                          (vels, "velocity", velocity_equation(epsilon, field.viscosity, lattice_grid_shape))]:
         visualize_quantity_vs_time(
             quantities=q,
             quantity_name=q_name,
@@ -69,13 +71,14 @@ if __name__ == '__main__':
         epsilon=0.01,
         rho0=0.5,
         omega=1.95,
-        total_time_steps=2000
+        total_time_steps=2000,
+        lattice_grid_shape=(50, 50)
     )
-    density, vel = sinusoidal_density(lattice_grid_shape,
+    density, vel = sinusoidal_density(kwargs.lattice_grid_shape,
                                       epsilon=kwargs.epsilon,
                                       rho0=kwargs.rho0)
     main(init_density=density, init_velocity=vel, **kwargs)
 
-    density, vel = sinusoidal_velocity(lattice_grid_shape,
+    density, vel = sinusoidal_velocity(kwargs.lattice_grid_shape,
                                        epsilon=kwargs.epsilon)
     main(init_density=density, init_velocity=vel, **kwargs)

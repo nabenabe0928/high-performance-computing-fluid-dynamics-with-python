@@ -6,7 +6,7 @@ ref: https://research.computing.yale.edu/sites/default/files/files/mpi4py.pdf
 TODO:
     * None
 """
-from typing import Any, Tuple, Union
+from typing import Any, List, Tuple, Union
 
 import numpy as np
 from numpy.lib.format import dtype_to_descr, magic
@@ -96,6 +96,7 @@ class ChunkedGridManager():
         self._global_grid_size = (X, Y)
         self._x_local_range, self._y_local_range = self._compute_local_range(X, Y)
         self._buffer_grid_size = self._compute_buffer_grid_size()
+        self._neighbor_directions = self._compute_neighbor_directions()
 
     @property
     def rank_grid_size(self) -> Tuple[int, int]:
@@ -140,6 +141,10 @@ class ChunkedGridManager():
     @property
     def y_local_range(self) -> Tuple[int, int]:
         return self._y_local_range
+
+    @property
+    def neighbor_directions(self) -> List[DirectionIndicators]:
+        return self._neighbor_directions
 
     def _compute_rank_grid_size(self, X_global: int, Y_global: int) -> Tuple[int, int]:
         lower, upper = 1, self.size
@@ -187,10 +192,13 @@ class ChunkedGridManager():
 
         return (x_local_lower, x_local_upper), (y_local_lower, y_local_upper)
 
+    def _compute_neighbor_directions(self) -> List[DirectionIndicators]:
+        return [dir for dir in DirectionIndicators if self.exist_neighbor(dir)]
+
     def _compute_buffer_grid_size(self) -> Tuple[int, int]:
         gx, gy = self.local_grid_size
-        x_start, x_end = self.x_local_range
-        y_start, y_end = self.y_local_range
+        x_start, y_start = 0, 0
+        x_end, y_end = self.local_grid_size
         if not self.is_boundary(DirectionIndicators.LEFT):
             gx += 1
             x_start += 1
@@ -204,8 +212,8 @@ class ChunkedGridManager():
         if not self.is_boundary(DirectionIndicators.TOP):
             gy += 1
 
-        self.x_local_slice = (x_start, x_end + 1)
-        self.y_local_slice = (y_start, y_end + 1)
+        self.x_valid_slice = (x_start, x_end)
+        self.y_valid_slice = (y_start, y_end)
         return (gx, gy)
 
     def _step_to_idx(self, dx: int, dy: int, send: bool) -> Union[Tuple[int, int], int]:
@@ -282,20 +290,17 @@ class ChunkedGridManager():
     def save_mpiio(self, file_name: str, vec: np.ndarray) -> None:
         """
         Write a global two-dimensional array to a single file in the npy format
-        using MPI I/O: https://docs.scipy.org/doc/numpy/neps/npy-format.html
+        using MPI I/O.
 
         Arrays written with this function can be read with numpy.load.
 
-        Parameters
-        ----------
-        comm
-            MPI communicator.
-        fn : str
-            File name.
-        g_kl : array_like
+        Args:
+            file_name (str): File name.
+            vec (np.ndarray):
             Portion of the array on this MPI processes. This needs to be a
             two-dimensional array.
         """
+
         magic_str = magic(1, 0)
         x_size, y_size = vec.shape
 

@@ -49,28 +49,6 @@ class BaseBoundary():
     def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators],
                  pressure_variation: bool = False, visualize_wall: bool = False,
                  **kwargs: Dict[str, Any]):
-        """
-        Attributes:
-            _out_boundary (np.ndarray):
-                Direction to come out.
-                In other words, if there are walls (or boundary) or not
-                or the outlet of pipes.
-                Each element is True or False with the shape is (X, Y, 9).
-
-            _in_boundary (np.ndarray):
-                Direction to come in.
-                In other words, if the reflected direction of _out_boundary
-                or the inlet of pipes.
-                Each element is True or False with the shape is (X, Y, 9).
-
-            _out_indices (np.ndarray):
-                It stands for which directions (from 9 adjacent cells) can have the out-boundary.
-                The shape is (n_direction, ) where n_direction is smaller than 9.
-
-            _in_indices (np.ndarray):
-                The corresponding indices for the bouncing direction of _out_indices.
-                The shape is (n_direction, ).
-        """
 
         X, Y = field.lattice_grid_shape
         self._out_boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)
@@ -86,6 +64,14 @@ class BaseBoundary():
 
     @property
     def in_boundary(self) -> np.ndarray:
+        """
+        Returns:
+            _in_boundary (np.ndarray):
+                Direction to come in.
+                In other words, if the reflected direction of _out_boundary
+                or the inlet of pipes.
+                Each element is True or False with the shape is (X, Y, 9).
+        """
         return self._in_boundary
 
     @in_boundary.setter
@@ -94,6 +80,14 @@ class BaseBoundary():
 
     @property
     def out_boundary(self) -> np.ndarray:
+        """
+        Returns:
+            _out_boundary (np.ndarray):
+                Direction to come out.
+                In other words, if there are walls (or boundary) or not
+                or the outlet of pipes.
+                Each element is True or False with the shape is (X, Y, 9).
+        """
         return self._out_boundary
 
     @out_boundary.setter
@@ -102,6 +96,12 @@ class BaseBoundary():
 
     @property
     def in_indices(self) -> np.ndarray:
+        """
+        Returns:
+            _in_indices (np.ndarray):
+                The corresponding indices for the bouncing direction of _out_indices.
+                The shape is (n_direction, ).
+        """
         return self._in_indices
 
     @in_indices.setter
@@ -110,6 +110,12 @@ class BaseBoundary():
 
     @property
     def out_indices(self) -> np.ndarray:
+        """
+        Returns:
+            _out_indices (np.ndarray):
+                It stands for which directions (from 9 adjacent cells) can have the out-boundary.
+                The shape is (n_direction, ) where n_direction is smaller than 9.
+        """
         return self._out_indices
 
     @out_indices.setter
@@ -118,6 +124,11 @@ class BaseBoundary():
 
     @property
     def boundary_locations(self) -> List[DirectionIndicators]:
+        """
+        Returns:
+            _boundary_locations (List[DirectionIndicators]):
+                Which direction we have the walls.
+        """
         return self._boundary_locations
 
     @boundary_locations.setter
@@ -165,10 +176,17 @@ class BaseBoundary():
 
     def _allocate_boundary_conditions(self, in_idx: int, out_idx: int) -> None:
         """
-        Adjacent cell indices
+        Based on the indices of the adjacent cell indices:
         6 2 5
         3 0 1
-        7 4 8
+        7 4 8,
+        we give True or False to each grid (x, y) if (x, y) has the boundary.
+
+        Args:
+            in_idx (int):
+                The direction to come in from the outside.
+            out_idx (int):
+                The direction to come out from the inside.
         """
         if (
             DirectionIndicators.LEFT in self.boundary_locations and
@@ -196,6 +214,15 @@ class BaseBoundary():
             self._in_boundary[:, 0, in_idx] = True
 
     def _init_boundary(self, pressure_variation: bool) -> None:
+        """
+        Initialize the boundary of the shape (X, Y)
+        based on the feeded boundary locations.
+
+        Args:
+            pressure_variation (bool):
+                if the simulation is based on pressure variation.
+                If True, the initialization is slightly different.
+        """
         assert not self._finish_initialize
         self._init_boundary_indices(pressure_variation)
         X, Y = self.out_boundary.shape[:-1]

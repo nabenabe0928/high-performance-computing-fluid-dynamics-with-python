@@ -72,7 +72,9 @@ class TestChunkedGridManager(unittest.TestCase):
         cgm = ChunkedGridManager(self.X, self.Y)
         cgm._x_local_range = (0, 2)
         cgm._y_local_range = (0, 3)
-        for dir in DirectionIndicators:
+        s_dirs = ['LEFT', 'RIGHT', 'TOP', 'BOTTOM']
+        for s_dir in s_dirs:
+            dir = getattr(DirectionIndicators, s_dir)
             ans = (DirectionIndicators.LEFT == dir
                    or DirectionIndicators.BOTTOM == dir)
             val = cgm.is_boundary(dir)

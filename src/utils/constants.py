@@ -1,10 +1,10 @@
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List
 from enum import IntEnum
 
 import numpy as np
 
 
-EquationFuncType = Callable[[Tuple[np.ndarray, np.ndarray]], np.ndarray]
+EquationFuncType = Callable[[np.ndarray], np.ndarray]
 
 
 class DirectionIndicators(IntEnum):
