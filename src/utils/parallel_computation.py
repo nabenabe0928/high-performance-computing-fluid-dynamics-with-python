@@ -1,11 +1,3 @@
-"""The title of the module description
-* The parallel computation utility module
-
-ref: https://research.computing.yale.edu/sites/default/files/files/mpi4py.pdf
-
-TODO:
-    * None
-"""
 from typing import Any, List, Tuple, Union
 
 import numpy as np
@@ -47,6 +39,8 @@ def Sendrecv(rank_grid: MPI.Cartcomm, sendbuf: Any, dest: int, sendtag: int,
              recvbuf: Any, source: int, recvtag: int) -> None:
     """
     Send and receive a message
+    https://research.computing.yale.edu/sites/default/files/files/mpi4py.pdf
+    https://github.com/mpi4py/mpi4py/blob/master/src/mpi4py/MPI/Comm.pyx#L306
 
     Args:
         rank_grid (MPI.Cartcomm):
@@ -292,7 +286,7 @@ class ChunkedGridManager():
             dx (int): the step size for x direction (-1, 0, 1)
             dy (int): the step size for y direction (-1, 0, 1)
             send (bool): The objective of the communication. Either send or receive.
-        
+
         Returns:
             (x_nxt, y_nxt) or x_nxt or y_nxt:
                 The slice for the given input.
