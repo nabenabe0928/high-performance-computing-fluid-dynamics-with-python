@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
 from scipy.signal import argrelextrema
+from typing import Optional
 
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from src.simulation_attributes.boundary_handling import PeriodicBoundaryConditions
@@ -75,17 +76,19 @@ def visualize_density_surface(field: LatticeBoltzmannMethod, cmap: str = DEFAULT
 
 
 def visualize_quantity_vs_time(quantities: np.ndarray, quantity_name: str,
-                               total_time_steps: int, equation: EquationFuncType
+                               total_time_steps: int,
+                               equation: Optional[EquationFuncType] = None
                                ) -> None:
     indices = argrelextrema(quantities, np.greater)[0]
     extrema = quantities[indices]
 
     t = np.arange(total_time_steps)
-    analytical_vals = equation(t)
+    if equation is not None:
+        analytical_vals = equation(t)
+        plt.plot(t, analytical_vals, label=f"Analytical {quantity_name}")
 
     plt.plot(indices, extrema, label=f"Simulated cumulated max {quantity_name}")
     plt.plot(t, quantities, label=f"Simulated {quantity_name}")
-    plt.plot(t, analytical_vals, label=f"Analytical {quantity_name}")
     plt.legend()
     plt.xlabel("Time")
     plt.ylabel(f"Amplitude of {quantity_name}")

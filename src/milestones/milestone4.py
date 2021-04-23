@@ -1,5 +1,6 @@
 import numpy as np
 from tqdm import trange
+from typing import Tuple
 
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from src.simulation_attributes.boundary_handling import MovingWall, RigidWall
@@ -12,12 +13,10 @@ class ExperimentVariables(AttrDict):
     omega: float = 0.5
     total_time_steps: int = 1000
     wall_vel: np.ndarray = np.array([10, 0])
+    lattice_grid_shape: Tuple[int, int] = (50, 50)
 
 
-lattice_grid_shape = (50, 50)
-
-
-def main(init_density: np.ndarray, init_velocity: np.ndarray,
+def main(init_density: np.ndarray, init_velocity: np.ndarray, lattice_grid_shape: Tuple[int, int],
          total_time_steps: int, omega: float, wall_vel: np.ndarray) -> None:
     X, Y = lattice_grid_shape
 
@@ -48,8 +47,9 @@ if __name__ == '__main__':
     kwargs = ExperimentVariables(
         omega=0.5,
         total_time_steps=5000,
-        wall_vel=np.array([10, 0])
+        wall_vel=np.array([10, 0]),
+        lattice_grid_shape=(30, 30)
     )
 
-    density, vel = np.ones(lattice_grid_shape), np.zeros((*lattice_grid_shape, 2))
+    density, vel = np.ones(kwargs.lattice_grid_shape), np.zeros((*kwargs.lattice_grid_shape, 2))
     main(init_density=density, init_velocity=vel, **kwargs)

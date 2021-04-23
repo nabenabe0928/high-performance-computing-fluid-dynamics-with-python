@@ -283,7 +283,7 @@ class LatticeBoltzmannMethod():
             self._communicate_for_density()
             self.grid_manager.comm.Barrier()
         else:
-            self.global_density_average = self.density.mean()
+            self.global_density_average = float(self.density.mean())
 
         self._pdf = deepcopy(self.pdf_pre)
         self.update_pdf()
@@ -369,12 +369,15 @@ class LatticeBoltzmannMethod():
 
         x_start, x_end = self.grid_manager.x_valid_slice
         y_start, y_end = self.grid_manager.y_valid_slice
-        base_dir_name = 'log_velocity_fields'
 
+        base_dir_name = 'log'
         make_directory(base_dir_name)
-        make_directory(f'{base_dir_name}/{dir_name}')
+        base_dir_name += '/log_velocity_fields'
+        make_directory(base_dir_name)
+        base_dir_name += f'/{dir_name}'
+        make_directory(base_dir_name)
 
-        path = f'{base_dir_name}/{dir_name}/{file_name}_'
+        path = f'{base_dir_name}/{file_name}_'
         file_suffix = f'{index:0>6}.npy'
 
         if abs:

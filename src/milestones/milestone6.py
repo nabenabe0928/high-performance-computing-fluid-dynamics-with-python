@@ -45,6 +45,13 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, lattice_grid_shape
     for t in trange(total_time_steps):
         field.lattice_boltzmann_step(boundary_handling=boundary_handling_func)
 
+    file_name = "log/log_velocity_fields/test_run/v_x000100.npy"
+    vx = np.load(file_name)
+    file_name = "log/log_velocity_fields/test_run/v_y000100.npy"
+    vy = np.load(file_name)
+
+    print(np.abs(vx - field.velocity[..., 0]).sum())
+    print(np.abs(vy - field.velocity[..., 1]).sum())
     visualize_velocity_field(field=field)
     visualize_velocity_field_of_moving_wall(field=field, wall_vel=wall_vel)
 
@@ -54,9 +61,9 @@ if __name__ == '__main__':
     viscosity = 1. / 30.
     kwargs = ExperimentVariables(
         omega=1. / (3. * viscosity + 0.5),
-        total_time_steps=2000,
-        wall_vel=np.array([.1, 0]),
-        lattice_grid_shape=(30, 30)
+        total_time_steps=100,
+        wall_vel=np.array([.3, 0]),
+        lattice_grid_shape=(100, 100)
     )
 
     density, vel = np.ones(kwargs.lattice_grid_shape), np.zeros((*kwargs.lattice_grid_shape, 2))

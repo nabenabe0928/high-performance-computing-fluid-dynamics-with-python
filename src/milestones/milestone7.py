@@ -70,7 +70,7 @@ if __name__ == '__main__':
     viscosity = 1. / 30.
     kwargs = ExperimentVariables(
         omega=1. / (3. * viscosity + 0.5),
-        total_time_steps=1000,
+        total_time_steps=100,
         wall_vel=np.array([.3, 0]),
         lattice_grid_shape=(100, 100)
     )

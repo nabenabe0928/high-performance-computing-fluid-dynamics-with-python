@@ -2,11 +2,15 @@ import numpy as np
 from tqdm import trange
 from typing import Tuple
 
-from src.milestones.constants import sinusoidal_density, sinusoidal_velocity
 from src.utils.visualization import visualize_density_surface, visualize_quantity_vs_time
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from src.utils.attr_dict import AttrDict
-from src.utils.constants import EquationFuncType
+from src.utils.constants import (
+    density_equation,
+    sinusoidal_density,
+    sinusoidal_velocity,
+    velocity_equation
+)
 
 
 class ExperimentVariables(AttrDict):
@@ -15,27 +19,6 @@ class ExperimentVariables(AttrDict):
     omega: float = 0.5
     total_time_steps: int = 1000
     lattice_grid_shape: Tuple[int, int] = (50, 50)
-
-
-def density_equation(epsilon: float, viscosity: float, lattice_grid_shape: Tuple[int, int]
-                     ) -> EquationFuncType:
-    """ fourier equation (reference) """
-    X, _ = lattice_grid_shape
-
-    def _imp(t: np.ndarray) -> np.ndarray:
-        return epsilon * np.exp(-viscosity * (2 * np.pi / X) ** 2 * t)
-
-    return _imp
-
-
-def velocity_equation(epsilon: float, viscosity: float, lattice_grid_shape: Tuple[int, int]
-                      ) -> EquationFuncType:
-    _, Y = lattice_grid_shape
-
-    def _imp(t: np.ndarray) -> np.ndarray:
-        return epsilon * np.exp(-viscosity * (2 * np.pi / Y) ** 2 * t)
-
-    return _imp
 
 
 def main(init_density: np.ndarray, init_velocity: np.ndarray, lattice_grid_shape: Tuple[int, int],

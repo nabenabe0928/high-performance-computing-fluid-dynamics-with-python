@@ -9,4 +9,4 @@ __pycache__/
 */*/*/*.npy
 
 private/*
-log_velocity_fields/
+log/
