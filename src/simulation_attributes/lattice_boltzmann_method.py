@@ -1,6 +1,6 @@
 import numpy as np
-import os
-from typing import Callable, Optional, Tuple, Union
+from tqdm import trange
+from typing import Callable, Optional, Tuple
 from copy import deepcopy
 
 from src.utils.constants import (
@@ -8,17 +8,12 @@ from src.utils.constants import (
     DIRECTION2VEC
 )
 from src.utils.parallel_computation import ChunkedGridManager
+from src.utils.utils import make_directories_to_path
 
 
 EPS = 1e-12
-
-
-def make_directory(dir_name: str) -> None:
-    if not os.path.exists(dir_name):
-        try:
-            os.mkdir(dir_name)
-        except FileExistsError:
-            pass
+BoundaryHandlingFuncType = Callable[['LatticeBoltzmannMethod'], None]
+ProcessFuncType = Callable[['LatticeBoltzmannMethod', int], None]
 
 
 def local_equilibrium(velocity: np.ndarray, density: np.ndarray) -> np.ndarray:
@@ -44,6 +39,7 @@ class LatticeBoltzmannMethod():
                  init_pdf: Optional[np.ndarray] = None,
                  init_density: Optional[np.ndarray] = None,
                  init_vel: Optional[np.ndarray] = None,
+                 repr_vel: Optional[float] = None,
                  grid_manager: Optional[ChunkedGridManager] = None):
         """
         This class computes and stores the density and velocity field
@@ -93,6 +89,7 @@ class LatticeBoltzmannMethod():
 
         assert 0 < omega < 2
         self._omega = omega
+        self._repr_vel = 0.0
         self._viscosity = 1. / 3. * (1. / omega - 0.5)
         self.local_density_sum = 0.0
         self.global_density_average = 0.0
@@ -101,6 +98,19 @@ class LatticeBoltzmannMethod():
             np.zeros_like(self.pdf_pre[0, ...]),
             np.zeros_like(self.pdf_pre[0, 0, ...])
         ]
+
+    def __call__(
+        self,
+        total_time_steps: int,
+        proc: Optional[ProcessFuncType] = None,
+        boundary_handling: Optional[BoundaryHandlingFuncType] = None
+    ) -> None:
+
+        self.local_equilibrium_pdf_update()
+        for t in trange(total_time_steps + 1):
+            self.lattice_boltzmann_step(boundary_handling=boundary_handling)
+            if proc is not None:
+                proc(self, t)
 
     @property
     def pdf(self) -> np.ndarray:
@@ -191,6 +201,10 @@ class LatticeBoltzmannMethod():
             _omega (float): relaxation term.
         """
         return self._omega
+
+    @property
+    def repr_vel(self) -> float:
+        return self._repr_vel
 
     @property
     def viscosity(self) -> float:
@@ -348,47 +362,27 @@ class LatticeBoltzmannMethod():
 
         self.global_density_average = recvbuf[0]
 
-    def save_velocity_field(self, dir_name: str, file_name: str, index: int, abs: bool = False
-                            ) -> Union[str, Tuple[str, str]]:
+    def save_velocity_field(self, t: int) -> None:
         """
-        Args:
-            dir_name (str): The name of directory to store the files.
-            file_name (str): The prefix of the name of the files.
-            index (str): The index for the files.
-            abs (str): If True, save the velocity norm.
+        The numpy array save for MPI settings.
 
-        Returns:
-            x_file_name, y_file_name (Tuple[str, str]):
-                The file names for the velocity tensor
-                for x and y directions.
-            abs_name (str):
-                The file names for the velocity norm tensor.
-                It is returned when abs == True
+        Args:
+            t (int): the current time step.
         """
         assert self.grid_manager is not None
 
         x_start, x_end = self.grid_manager.x_valid_slice
         y_start, y_end = self.grid_manager.y_valid_slice
 
-        base_dir_name = 'log'
-        make_directory(base_dir_name)
-        base_dir_name += '/log_velocity_fields'
-        make_directory(base_dir_name)
-        base_dir_name += f'/{dir_name}'
-        make_directory(base_dir_name)
+        path = 'log/sliding_lid/npy/'
+        make_directories_to_path(path)
+        abs_file_name = f'{path}v_abs{t:0>6}.npy'
+        x_file_name = f'{path}v_x{t:0>6}.npy'
+        y_file_name = f'{path}v_y{t:0>6}.npy'
 
-        path = f'{base_dir_name}/{file_name}_'
-        file_suffix = f'{index:0>6}.npy'
-
-        if abs:
-            abs_file_name = f'{path}abs{file_suffix}'
-            self.grid_manager.save_mpiio(
-                abs_file_name,
-                np.linalg.norm(self.velocity[x_start:x_end, y_start:y_end], axis=-1)
-            )
-            return abs_file_name
-        else:
-            x_file_name, y_file_name = f'{path}x{file_suffix}', f'{path}y{file_suffix}'
-            self.grid_manager.save_mpiio(x_file_name, self.velocity[x_start:x_end, y_start:y_end, 0])
-            self.grid_manager.save_mpiio(y_file_name, self.velocity[x_start:x_end, y_start:y_end, 1])
-            return x_file_name, y_file_name
+        self.grid_manager.save_mpiio(
+            abs_file_name,
+            np.linalg.norm(self.velocity[x_start:x_end, y_start:y_end], axis=-1)
+        )
+        self.grid_manager.save_mpiio(x_file_name, self.velocity[x_start:x_end, y_start:y_end, 0])
+        self.grid_manager.save_mpiio(y_file_name, self.velocity[x_start:x_end, y_start:y_end, 1])

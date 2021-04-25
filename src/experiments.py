@@ -24,31 +24,27 @@ NOTE: one lattice == one point
 import csv
 import numpy as np
 import time
-from tqdm import trange
-from typing import Callable, Optional, Tuple
+from typing import Optional, Tuple
 
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from src.simulation_attributes.boundary_handling import (
     MovingWall,
     PeriodicBoundaryConditions,
-    RigidWall
+    RigidWall,
+    sequential_boundary_handlings
 )
-from src.utils.attr_dict import AttrDict
-from src.utils.constants import (
-    DirectionIndicators,
-    density_equation,
-    sinusoidal_density,
-    sinusoidal_velocity,
-    velocity_equation
-)
+from src.utils.utils import AttrDict, make_directories_to_path
+from src.utils.constants import DirectionIndicators
 from src.utils.parallel_computation import ChunkedGridManager
+from src.utils.utils import omega2viscosity, viscosity2omega
 from src.utils.visualization import (
-    visualize_density_surface,
-    visualize_quantity_vs_time,
-    visualize_velocity_field_of_moving_wall,
-    visualize_velocity_field_of_pipe,
+    PoiseuilleFlowHyperparams,
+    visualize_couette_flow,
+    visualize_density_countour,
+    visualize_poiseuille_flow,
+    visualize_velocity_countour,
     visualize_velocity_field,
-    visualize_velocity_field_mpi
+    visualize_vel_rot_countour
 )
 
 
@@ -65,65 +61,49 @@ class ExperimentVariables(AttrDict):
     wall_vel: Optional[np.ndarray]
 
 
-BoundaryHandlingFuncType = Callable[[LatticeBoltzmannMethod], None]
-ProcessFuncType = Callable[[LatticeBoltzmannMethod, int], None]
+def velocity0_density1(experiment_vars: ExperimentVariables, shape: Tuple[int, int]) -> None:
+    experiment_vars.init_velocity = np.zeros((*shape, 2))
+    experiment_vars.init_density = np.ones(shape)
 
 
-def get_field(experiment_vars: ExperimentVariables) -> LatticeBoltzmannMethod:
-    X, Y = experiment_vars.lattice_grid_shape
+def get_field(experiment_vars: ExperimentVariables, grid_manager: Optional[ChunkedGridManager] = None
+              ) -> LatticeBoltzmannMethod:
     field = LatticeBoltzmannMethod(
-        X, Y,
+        *experiment_vars.lattice_grid_shape,
         omega=experiment_vars.omega,
         init_vel=experiment_vars.init_velocity,
-        init_density=experiment_vars.init_density
+        init_density=experiment_vars.init_density,
+        grid_manager=grid_manager
     )
 
     return field
 
 
-def run_experiment(field: LatticeBoltzmannMethod,
-                   experiment_vars: ExperimentVariables,
-                   proc: Optional[ProcessFuncType] = None,
-                   boundary_handling: Optional[BoundaryHandlingFuncType] = None
-                   ) -> None:
-
-    field.local_equilibrium_pdf_update()
-    for t in trange(experiment_vars.total_time_steps):
-        field.lattice_boltzmann_step(boundary_handling=boundary_handling)
-        if proc is not None:
-            proc(field, t)
-
-
 def density_and_velocity_evolution(experiment_vars: ExperimentVariables) -> None:
-    lattice_grid_shape = experiment_vars.lattice_grid_shape
+    # Initialization
     total_time_steps = experiment_vars.total_time_steps
-
-    densities, vels = np.zeros(total_time_steps), np.zeros(total_time_steps)
+    subj = 'sinusoidal'
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        densities[t] = np.abs(field.density).max() - experiment_vars.rho0
-        vels[t] = np.abs(field.velocity).max()
+        if t == 0 or (t + 1) % 100 == 0:
+            make_directories_to_path(f'log/{subj}/npy/')
+            np.save(f'log/{subj}/npy/density{t + 1 if t else 0:0>6}.npy', field.density)
+            np.save(f'log/{subj}/npy/v_x{t + 1 if t else 0:0>6}.npy', field.velocity)
+            np.save(f'log/{subj}/npy/v_y{t + 1 if t else 0:0>6}.npy', field.velocity)
 
     field = get_field(experiment_vars)
-    run_experiment(field, experiment_vars, proc)
-
-    visualize_density_surface(field)
-    eps, visc = experiment_vars.epsilon, field.viscosity
-    for q, q_name, eq in [(densities, "density", density_equation(eps, visc, lattice_grid_shape)),
-                          (vels, "velocity", velocity_equation(eps, visc, lattice_grid_shape))]:
-        visualize_quantity_vs_time(
-            quantities=q,
-            quantity_name=q_name,
-            equation=eq,
-            total_time_steps=total_time_steps
-        )
+    # run LBM
+    field(total_time_steps, proc=proc)
+    visualize_velocity_countour(subj, save=True, end=total_time_steps)
+    visualize_density_countour(subj, save=True, end=total_time_steps)
 
 
 def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> None:
-    experiment_vars.init_velocity = np.zeros((*experiment_vars.lattice_grid_shape, 2))
-    experiment_vars.init_density = np.ones(experiment_vars.lattice_grid_shape)
+
+    # Initialization
+    velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
     field = get_field(experiment_vars)
-    wall_vel = experiment_vars.wall_vel
+    total_time_steps = experiment_vars.total_time_steps
     rigid_wall = RigidWall(
         field=field,
         boundary_locations=[DirectionIndicators.TOP]
@@ -131,24 +111,24 @@ def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> Non
     moving_wall = MovingWall(
         field=field,
         boundary_locations=[DirectionIndicators.BOTTOM],
-        wall_vel=wall_vel
+        wall_vel=experiment_vars.wall_vel
     )
 
-    def boundary_handling(field: LatticeBoltzmannMethod) -> None:
-        rigid_wall.boundary_handling(field)
-        moving_wall.boundary_handling(field)
-
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if (t + 1) % 100 == 0:
-            visualize_velocity_field_of_moving_wall(field=field, wall_vel=wall_vel)
+        if t == 0 or (t + 1) % 100 == 0:
+            make_directories_to_path('log/couette_flow/npy/')
+            np.save(f'log/couette_flow/npy/v_x{t + 1 if t else 0 :0>6}.npy', field.velocity[..., 0])
 
-    run_experiment(field, experiment_vars, proc, boundary_handling)
+    # run LBM
+    field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
+    visualize_couette_flow(wall_vel=experiment_vars.wall_vel, save=True, end=total_time_steps)
 
 
 def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> None:
-    experiment_vars.init_velocity = np.zeros((*experiment_vars.lattice_grid_shape, 2))
-    experiment_vars.init_density = np.ones(experiment_vars.lattice_grid_shape)
+    # Initialization
+    velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
     field = get_field(experiment_vars)
+    total_time_steps = experiment_vars.total_time_steps
 
     pbc = PeriodicBoundaryConditions(
         field=field,
@@ -162,21 +142,27 @@ def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> 
         boundary_locations=[DirectionIndicators.TOP, DirectionIndicators.BOTTOM]
     )
 
-    def boundary_handling(field: LatticeBoltzmannMethod) -> None:
-        pbc.boundary_handling(field)
-        rigid_wall.boundary_handling(field)
-
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if (t + 1) % 100 == 0:
-            visualize_velocity_field_of_pipe(field=field, pbc=pbc)
+        if t == 0 or (t + 1) % 100 == 0:
+            make_directories_to_path('log/poiseuille_flow/npy/')
+            np.save(f'log/poiseuille_flow/npy/v_x{t + 1 if t else 0:0>6}.npy', field.velocity[..., 0])
+            np.save(f'log/poiseuille_flow/npy/density{t + 1 if t else 0:0>6}.npy', field.density)
 
-    run_experiment(field, experiment_vars, proc, boundary_handling)
+    # run LBM
+    field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, pbc))
+    params = PoiseuilleFlowHyperparams(
+        viscosity=omega2viscosity(experiment_vars.omega),
+        out_density_factor=experiment_vars.out_density_factor,
+        in_density_factor=experiment_vars.in_density_factor
+    )
+    visualize_poiseuille_flow(params, save=True, end=total_time_steps)
 
 
-def sliding_lid_velocity_evolution_seq(experiment_vars: ExperimentVariables) -> None:
-    experiment_vars.init_velocity = np.zeros((*experiment_vars.lattice_grid_shape, 2))
-    experiment_vars.init_density = np.ones(experiment_vars.lattice_grid_shape)
+def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
+    # Initialization
+    velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
     field = get_field(experiment_vars)
+    total_time_steps = experiment_vars.total_time_steps
 
     moving_wall = MovingWall(
         field,
@@ -193,27 +179,28 @@ def sliding_lid_velocity_evolution_seq(experiment_vars: ExperimentVariables) -> 
         ]
     )
 
-    def boundary_handling(field: LatticeBoltzmannMethod) -> None:
-        rigid_wall.boundary_handling(field)
-        moving_wall.boundary_handling(field)
-
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if (t + 1) % 100 == 0:
-            visualize_velocity_field(field=field)
+        if t == 0 or (t + 1) % 100 == 0:
+            path = 'log/sliding_lid/npy/'
+            make_directories_to_path(path)
+            np.save(f'{path}v_abs{t + 1 if t else 0:0>6}.npy', np.linalg.norm(field.velocity, axis=-1))
+            np.save(f'{path}v_x{t + 1 if t else 0:0>6}.npy', field.velocity[..., 0])
+            np.save(f'{path}v_y{t + 1 if t else 0:0>6}.npy', field.velocity[..., 1])
 
-    run_experiment(field, experiment_vars, proc, boundary_handling)
+    # run LBM
+    field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
+    visualize_velocity_field(subj='sliding_lid', save=True, end=total_time_steps)
+    visualize_velocity_countour('sliding_lid', save=True, end=total_time_steps)
 
 
 def sliding_lid_mpi(experiment_vars: ExperimentVariables,
                     scaling: bool = False) -> None:
 
-    X, Y = experiment_vars.lattice_grid_shape
-    grid_manager = ChunkedGridManager(X, Y)
-    buffer_grid_size = grid_manager.buffer_grid_size
-    experiment_vars.init_velocity = np.zeros((*buffer_grid_size, 2))
-    experiment_vars.init_density = np.ones(buffer_grid_size)
-    field = get_field(experiment_vars)
-    start = time.time_ns()
+    # Initialization
+    grid_manager = ChunkedGridManager(*experiment_vars.lattice_grid_shape)
+    velocity0_density1(experiment_vars, grid_manager.buffer_grid_size)
+    field = get_field(experiment_vars, grid_manager=grid_manager)
+    start, total_time_steps = time.time(), experiment_vars.total_time_steps
 
     rigid_boundary_locations = [
         getattr(DirectionIndicators, dir)
@@ -234,26 +221,49 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables,
             boundary_locations=rigid_boundary_locations
         )
 
-    def boundary_handling(field: LatticeBoltzmannMethod) -> None:
-        if rigid_wall is not None:
-            rigid_wall.boundary_handling(field)
-        if moving_wall is not None:
-            moving_wall.boundary_handling(field)
-
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if not scaling:
-            if (t + 1) % 100 == 0:
-                x_file, y_file = field.save_velocity_field(
-                    dir_name='test_run',
-                    file_name='v',
-                    index=t + 1
-                )
-                if field.grid_manager.rank == 0:
-                    visualize_velocity_field_mpi(x_file, y_file)
+        if not scaling and (t == 0 or (t + 1) % 500 == 0):
+            field.save_velocity_field(t + 1 if t else 0)
 
-    run_experiment(field, experiment_vars, proc, boundary_handling)
+    # run LBM
+    field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
+    visualize_velocity_field('sliding_lid', save=True, end=total_time_steps, freq=500)
+    # visualize_velocity_countour('sliding_lid', save=True, end=total_time_steps)
 
     if scaling and grid_manager.rank == 0:
-        end = time.time_ns()
-        runtime = (end - start) / 1e9
-        MLUPS = X * Y * experiment_vars.total_time_steps / runtime
+        end = time.time()
+        X, Y = experiment_vars.lattice_grid_shape
+        MLUPS = X * Y * experiment_vars.total_time_steps / (end - start)
+        path = 'log/sliding_lid/'
+        make_directories_to_path(path)
+        with open('log/sliding_lid/MLUPS_vs_proc.csv', 'a', newline='') as f:
+            writer = csv.writer(f, delimiter=',')
+            writer.writerow([grid_manager.size, MLUPS])
+
+
+if __name__ == '__main__':
+    experiment_vars = ExperimentVariables(
+        total_time_steps=5000,
+        lattice_grid_shape=(300, 300),
+        # init_density=,
+        # init_velocity=,
+        omega=viscosity2omega(0.04),
+        # epsilon=,
+        # rho0=,
+        # in_density_factor=,
+        # out_density_factor=,
+        wall_vel=np.array([.3, 0.])
+    )
+
+    # density_and_velocity_evolution()
+    experiment_vars.total_time_steps = 10000
+    # couette_flow_velocity_evolution(experiment_vars)
+    # experiment_vars.in_density_factor = 1. / 3. + 1e-3
+    # experiment_vars.out_density_factor = 1. / 3.
+    # poiseuille_flow_velocity_evolution(experiment_vars)
+
+    # experiment_vars.wall_vel[0] = 0.3
+    # experiment_vars.lattice_grid_shape = (100, 100)
+    # experiment_vars.omega = viscosity2omega(1. / 30.)
+    # sliding_lid_seq(experiment_vars)
+    sliding_lid_mpi(experiment_vars)

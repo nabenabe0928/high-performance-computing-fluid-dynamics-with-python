@@ -1,4 +1,5 @@
 from typing import Any
+import os
 
 
 _prohibited = ['clear', 'copy', 'fromkeys', 'get', 'items', 'keys',
@@ -67,3 +68,26 @@ class AttrDict(dict):
     def __setitem__(self, key: str, value: Any) -> None:
         self._prohibited_overwrite(key)
         super().__setitem__(key, value)
+
+
+def make_directory(dir_name: str) -> None:
+    if not os.path.exists(dir_name):
+        try:
+            os.mkdir(dir_name)
+        except FileExistsError:
+            pass
+
+
+def make_directories_to_path(path: str) -> None:
+    base_dir = ''
+    for dir in path.split('/'):
+        base_dir += f'{dir}/'
+        make_directory(base_dir)
+
+
+def omega2viscosity(omega: float) -> float:
+    return 1. / 3. * (1. / omega - 0.5)
+
+
+def viscosity2omega(viscosity: float) -> float:
+    return 1. / (3. * viscosity + 0.5)

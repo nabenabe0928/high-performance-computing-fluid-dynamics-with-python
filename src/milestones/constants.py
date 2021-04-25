@@ -16,6 +16,7 @@ class Milestone2InitVals():
         rng = np.random.RandomState(seed=seed)
 
         X, Y = lattice_grid_shape
-        density = rng.random(lattice_grid_shape)
-        velocity = rng.random((*lattice_grid_shape, 2)) * 0.2 - 0.1
+        # Numpy version 1.14.3
+        density = rng.rand(*lattice_grid_shape)
+        velocity = rng.rand(*lattice_grid_shape, 2) * 0.2 - 0.1
         return density, velocity

@@ -1,10 +1,13 @@
 import numpy as np
-from tqdm import trange
 from typing import Tuple
 
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
-from src.simulation_attributes.boundary_handling import MovingWall, RigidWall
-from src.utils.attr_dict import AttrDict
+from src.simulation_attributes.boundary_handling import (
+    MovingWall,
+    RigidWall,
+    sequential_boundary_handlings
+)
+from src.utils.utils import AttrDict
 from src.utils.constants import DirectionIndicators
 from src.utils.parallel_computation import ChunkedGridManager
 from src.utils.visualization import visualize_velocity_field_mpi
@@ -44,18 +47,10 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, grid_manager: Chun
             boundary_locations=rigid_boundary_locations
         )
 
-    def boundary_handling_func(field: LatticeBoltzmannMethod) -> None:
-        if rigid_wall is not None:
-            rigid_wall.boundary_handling(field)
-        if moving_wall is not None:
-            moving_wall.boundary_handling(field)
-
-    field.local_equilibrium_pdf_update()
-    for t in trange(total_time_steps):
-        field.lattice_boltzmann_step(boundary_handling=boundary_handling_func)
+    field(total_time_steps, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
 
     x_file, y_file = field.save_velocity_field(
-        dir_name='test_run',
+        vis_name='test_run',
         file_name='v',
         index=total_time_steps
     )
@@ -74,8 +69,7 @@ if __name__ == '__main__':
         wall_vel=np.array([.3, 0]),
         lattice_grid_shape=(100, 100)
     )
-    X, Y = kwargs.lattice_grid_shape
-    grid_manager = ChunkedGridManager(X, Y)
+    grid_manager = ChunkedGridManager(*kwargs.lattice_grid_shape)
 
     buffer_grid_size = grid_manager.buffer_grid_size
 

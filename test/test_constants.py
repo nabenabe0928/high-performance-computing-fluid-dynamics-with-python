@@ -1,7 +1,7 @@
 import numpy as np
 import unittest
 
-from src.milestones.constants import sinusoidal_density, sinusoidal_velocity
+from src.utils.constants import sinusoidal_density, sinusoidal_velocity
 from test.utils import abssum
 
 

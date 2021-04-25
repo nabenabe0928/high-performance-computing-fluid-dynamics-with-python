@@ -1,5 +1,4 @@
 import numpy as np
-from tqdm import trange
 from typing import Tuple
 
 from src.utils.visualization import visualize_density_surface, visualize_quantity_vs_time
@@ -29,14 +28,12 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, lattice_grid_shape
 
     densities = np.zeros(total_time_steps)
     vels = np.zeros(total_time_steps)
-    field.local_equilibrium_pdf_update()
 
-    for t in trange(total_time_steps):
-        field.lattice_boltzmann_step()
-        max_density = np.abs(field.density).max()
-        max_vel = np.abs(field.velocity).max()
-        densities[t] = max_density - rho0
-        vels[t] = max_vel
+    def proc(field: LatticeBoltzmannMethod, t: int) -> None:
+        densities[t] = np.abs(field.density).max() - rho0
+        vels[t] = np.abs(field.velocity).max()
+
+    field(total_time_steps, proc=proc)
 
     visualize_density_surface(field)
     for q, q_name, eq in [(densities, "density", density_equation(epsilon, field.viscosity, lattice_grid_shape)),

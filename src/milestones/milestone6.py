@@ -1,12 +1,15 @@
 import numpy as np
-from tqdm import trange
 from typing import Tuple
 
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
-from src.simulation_attributes.boundary_handling import MovingWall, RigidWall
+from src.simulation_attributes.boundary_handling import (
+    MovingWall,
+    RigidWall,
+    sequential_boundary_handlings
+)
 from src.utils.attr_dict import AttrDict
 from src.utils.constants import DirectionIndicators
-from src.utils.visualization import visualize_velocity_field, visualize_velocity_field_of_moving_wall
+from src.utils.visualization import visualize_velocity_field
 
 
 class ExperimentVariables(AttrDict):
@@ -37,23 +40,8 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, lattice_grid_shape
         ]
     )
 
-    def boundary_handling_func(field: LatticeBoltzmannMethod) -> None:
-        rigid_wall.boundary_handling(field)
-        moving_wall.boundary_handling(field)
-
-    field.local_equilibrium_pdf_update()
-    for t in trange(total_time_steps):
-        field.lattice_boltzmann_step(boundary_handling=boundary_handling_func)
-
-    file_name = "log/log_velocity_fields/test_run/v_x000100.npy"
-    vx = np.load(file_name)
-    file_name = "log/log_velocity_fields/test_run/v_y000100.npy"
-    vy = np.load(file_name)
-
-    print(np.abs(vx - field.velocity[..., 0]).sum())
-    print(np.abs(vy - field.velocity[..., 1]).sum())
+    field(total_time_steps, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
     visualize_velocity_field(field=field)
-    visualize_velocity_field_of_moving_wall(field=field, wall_vel=wall_vel)
 
 
 if __name__ == '__main__':

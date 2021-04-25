@@ -1,5 +1,4 @@
 import numpy as np
-from tqdm import trange
 
 from src.milestones.constants import Milestone2InitVals
 from src.utils.visualization import visualize_density_surface
@@ -13,11 +12,7 @@ init_vals = Milestone2InitVals()
 def main(total_time_steps: int, init_density: np.ndarray, init_vel: np.ndarray) -> None:
     X, Y = lattice_grid_shape
     field = LatticeBoltzmannMethod(X, Y, init_density=init_density, init_vel=init_vel)
-
-    field.local_equilibrium_pdf_update()
-    for _ in trange(total_time_steps):
-        field.lattice_boltzmann_step()
-
+    field(total_time_steps)
     visualize_density_surface(field)
 
 

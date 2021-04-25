@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 
@@ -61,6 +61,12 @@ class BaseBoundary():
         self._visualize_wall = visualize_wall
 
         self._init_boundary(pressure_variation=pressure_variation)
+
+    def __call__(self, field: LatticeBoltzmannMethod) -> None:
+        self.boundary_handling(field)
+
+    def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
+        raise NotImplementedError("The child class of BaseBoundary must have boundary_handling function.")
 
     @property
     def in_boundary(self) -> np.ndarray:
@@ -276,6 +282,17 @@ class BaseBoundary():
             print(display)
 
         print("")
+
+
+def sequential_boundary_handlings(*boundary_handlings: Optional[BaseBoundary]
+                                  ) -> Callable[[LatticeBoltzmannMethod], None]:
+
+    def _imp(field: LatticeBoltzmannMethod) -> None:
+        for boundary_handling in boundary_handlings:
+            if boundary_handling is not None:
+                boundary_handling(field)
+
+    return _imp
 
 
 class RigidWall(BaseBoundary, AbstractBoundaryHandling):
