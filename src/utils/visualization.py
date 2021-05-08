@@ -8,7 +8,6 @@ from src.utils.utils import make_directories_to_path
 
 # This import is for the 3D plot (if you remove, you will yield an error.)
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
-import lic_internal
 
 
 class PoiseuilleFlowHyperparams(NamedTuple):
@@ -21,7 +20,6 @@ def show_or_save(path: Optional[str] = None) -> None:
     if path is None:
         plt.show()
     else:
-        plt.tight_layout()
         file_name = path.split('/')[-1]
         path = '/'.join(path.split('/')[:-1])
         format = file_name.split('.')[-1]
@@ -29,8 +27,7 @@ def show_or_save(path: Optional[str] = None) -> None:
             raise ValueError(f'The format must be either pdf or png, but got {format}.')
 
         make_directories_to_path(path)
-
-        plt.savefig(f'{path}/{file_name}')
+        plt.savefig(f'{path}/{file_name}', bbox_inches='tight')
 
 
 def simulated_arrows(vx: np.ndarray, X: int, Y: int, v_analy: np.ndarray) -> None:
@@ -45,7 +42,7 @@ def simulated_arrows(vx: np.ndarray, X: int, Y: int, v_analy: np.ndarray) -> Non
     plt.legend()
 
 
-def visualize_velocity_countour(subject: str, save: bool = False, format: str = 'png', start: int = 0,
+def visualize_velocity_countour(subject: str, save: bool = False, format: str = 'pdf', start: int = 0,
                                 freq: int = 100, end: int = 100001, cmap: Optional[str] = None) -> None:
 
     for t in range(start, end, freq):
@@ -63,7 +60,7 @@ def visualize_velocity_countour(subject: str, save: bool = False, format: str = 
         show_or_save(path=f'log/{subject}/fig/vel_contour{t:0>6}.{format}' if save else None)
 
 
-def visualize_vel_rot_countour(subject: str, save: bool = False, format: str = 'png', start: int = 0,
+def visualize_vel_rot_countour(subject: str, save: bool = False, format: str = 'pdf', start: int = 0,
                                freq: int = 100, end: int = 100001, cmap: Optional[str] = None) -> None:
 
     for t in range(start, end, freq):
@@ -86,7 +83,7 @@ def visualize_vel_rot_countour(subject: str, save: bool = False, format: str = '
         show_or_save(path=f'log/{subject}/fig/rot_contour{t:0>6}.{format}' if save else None)
 
 
-def visualize_density_countour(subject: str, save: bool = False, format: str = 'png', start: int = 0,
+def visualize_density_countour(subject: str, save: bool = False, format: str = 'pdf', start: int = 0,
                                freq: int = 100, end: int = 100001, cmap: Optional[str] = None) -> None:
 
     for t in range(start, end, freq):
@@ -104,11 +101,11 @@ def visualize_density_countour(subject: str, save: bool = False, format: str = '
         show_or_save(path=f'log/{subject}/fig/density{t:0>6}.{format}' if save else None)
 
 
-def visualize_velocity_field(subj: str, save: bool = False, format: str = 'png', start: int = 0,
+def visualize_velocity_field(subj: str, save: bool = False, format: str = 'pdf', start: int = 0,
                              freq: int = 100, end: int = 100001, cmap: Optional[str] = None) -> None:
 
     """ sinusoidal or sliding_lid """
-    if subj not in ['sliding_lid', 'sinusoidal']:
+    if subj[:11] != 'sliding_lid' and subj != 'sinusoidal':
         raise ValueError(f'subj must be either sliding_lid or sinusoidal, but got {subj}.')
 
     for t in range(start, end, freq):
@@ -126,7 +123,7 @@ def visualize_velocity_field(subj: str, save: bool = False, format: str = 'png',
         show_or_save(path=f'log/{subj}/fig/vel_flow{t:0>6}.{format}' if save else None)
 
 
-def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str = 'png', start: int = 0,
+def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str = 'pdf', start: int = 0,
                            freq: int = 100, end: int = 100001, cmap: Optional[str] = None) -> None:
     """ we assume the wall slides to x-direction. """
     for t in range(start, end, freq):
@@ -148,7 +145,7 @@ def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str
         show_or_save(path=f'log/couette_flow/fig/couette_flow{t:0>6}.{format}' if save else None)
 
 
-def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = False, format: str = 'png',
+def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = False, format: str = 'pdf',
                               start: int = 0, freq: int = 500, end: int = 100001, cmap: Optional[str] = None
                               ) -> None:
 

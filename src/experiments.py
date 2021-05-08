@@ -36,15 +36,14 @@ from src.simulation_attributes.boundary_handling import (
 from src.utils.utils import AttrDict, make_directories_to_path
 from src.utils.constants import DirectionIndicators
 from src.utils.parallel_computation import ChunkedGridManager
-from src.utils.utils import omega2viscosity, viscosity2omega
+from src.utils.utils import omega2viscosity
 from src.utils.visualization import (
     PoiseuilleFlowHyperparams,
     visualize_couette_flow,
     visualize_density_countour,
     visualize_poiseuille_flow,
     visualize_velocity_countour,
-    visualize_velocity_field,
-    visualize_vel_rot_countour
+    visualize_velocity_field
 )
 
 
@@ -54,8 +53,6 @@ class ExperimentVariables(AttrDict):
     init_density: np.ndarray
     init_velocity: np.ndarray
     omega: float
-    epsilon: Optional[float]
-    rho0: Optional[float]
     in_density_factor: Optional[float]
     out_density_factor: Optional[float]
     wall_vel: Optional[np.ndarray]
@@ -66,14 +63,16 @@ def velocity0_density1(experiment_vars: ExperimentVariables, shape: Tuple[int, i
     experiment_vars.init_density = np.ones(shape)
 
 
-def get_field(experiment_vars: ExperimentVariables, grid_manager: Optional[ChunkedGridManager] = None
-              ) -> LatticeBoltzmannMethod:
+def get_field(experiment_vars: ExperimentVariables, grid_manager: Optional[ChunkedGridManager] = None,
+              dir_name: Optional[str] = None) -> LatticeBoltzmannMethod:
+
     field = LatticeBoltzmannMethod(
         *experiment_vars.lattice_grid_shape,
         omega=experiment_vars.omega,
         init_vel=experiment_vars.init_velocity,
         init_density=experiment_vars.init_density,
-        grid_manager=grid_manager
+        grid_manager=grid_manager,
+        dir_name=dir_name
     )
 
     return field
@@ -161,7 +160,11 @@ def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> 
 def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
     # Initialization
     velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
-    field = get_field(experiment_vars)
+    X, Y = experiment_vars.lattice_grid_shape
+    visc = omega2viscosity(experiment_vars.omega)
+    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}'
+
+    field = get_field(experiment_vars, dir_name=dir_name)
     total_time_steps = experiment_vars.total_time_steps
 
     moving_wall = MovingWall(
@@ -181,7 +184,7 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if t == 0 or (t + 1) % 100 == 0:
-            path = 'log/sliding_lid/npy/'
+            path = f'log/{dir_name}/npy/'
             make_directories_to_path(path)
             np.save(f'{path}v_abs{t + 1 if t else 0:0>6}.npy', np.linalg.norm(field.velocity, axis=-1))
             np.save(f'{path}v_x{t + 1 if t else 0:0>6}.npy', field.velocity[..., 0])
@@ -189,8 +192,8 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
 
     # run LBM
     field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
-    visualize_velocity_field(subj='sliding_lid', save=True, end=total_time_steps)
-    visualize_velocity_countour('sliding_lid', save=True, end=total_time_steps)
+    visualize_velocity_field(subj=dir_name, save=True, end=total_time_steps)
+    visualize_velocity_countour(dir_name, save=True, end=total_time_steps)
 
 
 def sliding_lid_mpi(experiment_vars: ExperimentVariables,
@@ -199,7 +202,11 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables,
     # Initialization
     grid_manager = ChunkedGridManager(*experiment_vars.lattice_grid_shape)
     velocity0_density1(experiment_vars, grid_manager.buffer_grid_size)
-    field = get_field(experiment_vars, grid_manager=grid_manager)
+    X, Y = experiment_vars.lattice_grid_shape
+    visc = omega2viscosity(experiment_vars.omega)
+    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}'
+
+    field = get_field(experiment_vars, grid_manager=grid_manager, dir_name=dir_name)
     start, total_time_steps = time.time(), experiment_vars.total_time_steps
 
     rigid_boundary_locations = [
@@ -227,43 +234,15 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables,
 
     # run LBM
     field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
-    visualize_velocity_field('sliding_lid', save=True, end=total_time_steps, freq=500)
+    visualize_velocity_field(dir_name, save=True, end=total_time_steps, freq=500)
     # visualize_velocity_countour('sliding_lid', save=True, end=total_time_steps)
 
     if scaling and grid_manager.rank == 0:
         end = time.time()
         X, Y = experiment_vars.lattice_grid_shape
         MLUPS = X * Y * experiment_vars.total_time_steps / (end - start)
-        path = 'log/sliding_lid/'
+        path = f'log/{dir_name}/'
         make_directories_to_path(path)
-        with open('log/sliding_lid/MLUPS_vs_proc.csv', 'a', newline='') as f:
+        with open('log/{dir_name}/MLUPS_vs_proc.csv', 'a', newline='') as f:
             writer = csv.writer(f, delimiter=',')
             writer.writerow([grid_manager.size, MLUPS])
-
-
-if __name__ == '__main__':
-    experiment_vars = ExperimentVariables(
-        total_time_steps=5000,
-        lattice_grid_shape=(300, 300),
-        # init_density=,
-        # init_velocity=,
-        omega=viscosity2omega(0.04),
-        # epsilon=,
-        # rho0=,
-        # in_density_factor=,
-        # out_density_factor=,
-        wall_vel=np.array([.3, 0.])
-    )
-
-    # density_and_velocity_evolution()
-    experiment_vars.total_time_steps = 10000
-    # couette_flow_velocity_evolution(experiment_vars)
-    # experiment_vars.in_density_factor = 1. / 3. + 1e-3
-    # experiment_vars.out_density_factor = 1. / 3.
-    # poiseuille_flow_velocity_evolution(experiment_vars)
-
-    # experiment_vars.wall_vel[0] = 0.3
-    # experiment_vars.lattice_grid_shape = (100, 100)
-    # experiment_vars.omega = viscosity2omega(1. / 30.)
-    # sliding_lid_seq(experiment_vars)
-    sliding_lid_mpi(experiment_vars)

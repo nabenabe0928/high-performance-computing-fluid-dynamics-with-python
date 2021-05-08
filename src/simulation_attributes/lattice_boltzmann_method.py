@@ -39,8 +39,8 @@ class LatticeBoltzmannMethod():
                  init_pdf: Optional[np.ndarray] = None,
                  init_density: Optional[np.ndarray] = None,
                  init_vel: Optional[np.ndarray] = None,
-                 repr_vel: Optional[float] = None,
-                 grid_manager: Optional[ChunkedGridManager] = None):
+                 grid_manager: Optional[ChunkedGridManager] = None,
+                 dir_name: Optional[str] = None):
         """
         This class computes and stores the density and velocity field
         given (x, y) and initializes them at given v and t = 0.
@@ -79,6 +79,7 @@ class LatticeBoltzmannMethod():
         self._lattice_grid_shape = (X, Y)
         self._finish_initialize = False
         self.grid_manager = grid_manager
+        self.dir_name = dir_name
 
         self._init_vals(init_pdf=init_pdf,
                         init_density=init_density,
@@ -89,8 +90,6 @@ class LatticeBoltzmannMethod():
 
         assert 0 < omega < 2
         self._omega = omega
-        self._repr_vel = 0.0
-        self._viscosity = 1. / 3. * (1. / omega - 0.5)
         self.local_density_sum = 0.0
         self.global_density_average = 0.0
         self.recvbuf = [
@@ -201,10 +200,6 @@ class LatticeBoltzmannMethod():
             _omega (float): relaxation term.
         """
         return self._omega
-
-    @property
-    def repr_vel(self) -> float:
-        return self._repr_vel
 
     @property
     def viscosity(self) -> float:
@@ -374,7 +369,7 @@ class LatticeBoltzmannMethod():
         x_start, x_end = self.grid_manager.x_valid_slice
         y_start, y_end = self.grid_manager.y_valid_slice
 
-        path = 'log/sliding_lid/npy/'
+        path = f'log/{self.dir_name}/npy/'
         make_directories_to_path(path)
         abs_file_name = f'{path}v_abs{t:0>6}.npy'
         x_file_name = f'{path}v_x{t:0>6}.npy'
