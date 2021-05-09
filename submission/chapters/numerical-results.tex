@@ -6,10 +6,6 @@ obtained from the series experiments.
 
 \section{Shear wave decay}
 
-\begin{comment}
-  python -m run_experiment -E se -T 3000 -S 50 --eps 0.08 --omega 1.0 -S 50 --mode v
-\end{comment}
-
 \begin{figure}[tb]
   \begin{center}
     \subfloat[$t = 0$]{
@@ -104,6 +100,62 @@ obtained from the series experiments.
       \label{fig:sinusoidal-velocity}}
   \end{center}
 \end{figure}
+
+\begin{figure}[tb]
+  \begin{center}
+    \subfloat[Sinusoidal density]{
+      \includegraphics[width=0.48\textwidth]{../log/sinusoidal_density/fig/omega_vs_visc.pdf}
+    }
+    \subfloat[Sinusoidal velocity]{
+      \includegraphics[width=0.48\textwidth]{../log/sinusoidal_velocity/fig/omega_vs_visc.pdf}
+    }
+    \caption{The simulated viscosity value 
+    over various relaxation values $\omega$.\label{fig:omega-vs-visc}}
+  \end{center}
+\end{figure}
+
+\begin{equation}
+  \begin{aligned}
+    \vv_x(y, t) & = \epsilon \exp
+    \Biggl(
+    -\nu
+    \biggl(
+      \frac{2\pi}{Y}
+      \biggr)^2 t
+    \Biggr) 
+    \sin 
+      \frac{2\pi y}{Y} \\
+    \frac{\vv_x(y, t)}{
+      \epsilon
+      \sin  \frac{2\pi y}{Y}
+    } & =  \exp
+    \Biggl(
+    -\nu
+    \biggl(
+      \frac{2\pi}{Y}
+      \biggr)^2 t
+    \Biggr) \\
+    -\nu
+    \biggl(
+      \frac{2\pi}{Y}
+      \biggr)^2 t
+      &= 
+    \log \frac{\vv_x(y, t)}{
+      \epsilon
+      \sin  \frac{2\pi y}{Y}
+    } \\
+    \nu
+      &=
+      - \frac{1}{t}
+      \biggl(
+        \frac{Y}{2\pi}
+        \biggr)^2 
+    \log \frac{\vv_x(y, t)}{
+      \epsilon
+      \sin  \frac{2\pi y}{Y}
+    } \\
+  \end{aligned}
+\end{equation}
 
 \section{Couette flow}
 

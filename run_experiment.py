@@ -8,6 +8,7 @@ from src.experiments import (
     couette_flow_velocity_evolution,
     poiseuille_flow_velocity_evolution,
     sinusoidal_evolution,
+    sinusoidal_viscosity,
     sliding_lid_seq,
     sliding_lid_mpi
 )
@@ -27,6 +28,7 @@ def run():
         'cf': couette_flow_velocity_evolution,
         'pf': poiseuille_flow_velocity_evolution,
         'se': sinusoidal_evolution,
+        'sv': sinusoidal_viscosity,
         'ss': sliding_lid_seq,
         'sm': sliding_lid_mpi
     }

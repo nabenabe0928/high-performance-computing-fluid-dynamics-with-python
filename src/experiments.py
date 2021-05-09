@@ -24,7 +24,9 @@ NOTE: one lattice == one point
 import csv
 import numpy as np
 import time
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
+
+import matplotlib.pyplot as plt
 
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from src.simulation_attributes.boundary_handling import (
@@ -86,7 +88,8 @@ def get_field(experiment_vars: ExperimentVariables, grid_manager: Optional[Chunk
     return field
 
 
-def sinusoidal_evolution(experiment_vars: ExperimentVariables) -> None:
+def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool = True
+                         ) -> Union[None, float]:
     # Initialization
     lattice_grid_shape = experiment_vars.lattice_grid_shape
     mode = experiment_vars.mode
@@ -110,7 +113,7 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables) -> None:
     subj = f'sinusoidal_{mode}'
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if t == 0 or (t + 1) % 100 == 0:
+        if visualize and (t == 0 or (t + 1) % 100 == 0):
             make_directories_to_path(f'log/{subj}/npy/')
             np.save(f'log/{subj}/npy/density{t + 1 if t else 0:0>6}.npy', field.density)
             np.save(f'log/{subj}/npy/v_abs{t + 1 if t else 0:0>6}.npy', field.velocity[..., 0])
@@ -118,9 +121,37 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables) -> None:
     field = get_field(experiment_vars)
     # run LBM
     field(total_time_steps, proc=proc)
-    # viscosity_equation(total_time_steps, eps, field.velocity)
-    visualize_velocity_plot(subj, save=True, end=total_time_steps, bounds=v_bounds)
-    visualize_density_plot(subj, save=True, end=total_time_steps, bounds=d_bounds)
+    if visualize:
+        visualize_velocity_plot(subj, save=True, end=total_time_steps, bounds=v_bounds)
+        visualize_density_plot(subj, save=True, end=total_time_steps, bounds=d_bounds)
+    else:
+        X, Y = field.lattice_grid_shape
+        viscs = viscosity_equation(total_time_steps, eps, field.velocity[X // 2, :, 0])
+        viscs = np.array([visc for visc in viscs if 0 < visc < 10])
+        return np.mean(viscs)
+
+
+def sinusoidal_viscosity(experiment_vars: ExperimentVariables) -> None:
+    n_runs = 20
+    visc_sim, visc_truth = [], []
+    subj = f'sinusoidal_{experiment_vars.mode}'
+    omegas = np.linspace(1e-6, 2 - 1e-6, n_runs + 1)[1:]
+    for omega in omegas:
+        experiment_vars.omega = omega
+        v_sim = sinusoidal_evolution(experiment_vars, visualize=False)
+        visc_truth.append(omega2viscosity(omega))
+        visc_sim.append(v_sim)
+
+    plt.plot(omegas, visc_truth, label="Analytical viscosity", color='red')
+    plt.plot(omegas, visc_sim, label="Simulated result", color='blue')
+    plt.scatter(omegas, visc_truth, marker='x', s=100, color='red')
+    plt.scatter(omegas, visc_sim, marker='+', s=100, color='blue')
+    plt.xlabel('$\omega$')
+    plt.ylabel('viscosity $\\nu$ (Log scale)')
+    plt.yscale('log')
+    plt.grid(which='both', color='black', linestyle='-')
+    plt.legend(loc='lower left')
+    plt.savefig(f'log/{subj}/fig/omega_vs_visc.pdf', bbox_inches='tight')
 
 
 def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> None:
