@@ -10,7 +10,7 @@ from src.simulation_attributes.boundary_handling import (
 from src.utils.utils import AttrDict
 from src.utils.constants import DirectionIndicators
 from src.utils.parallel_computation import ChunkedGridManager
-from src.utils.visualization import visualize_velocity_field_mpi
+# from src.utils.visualization import visualize_velocity_field_mpi
 
 
 class ExperimentVariables(AttrDict):
@@ -49,14 +49,17 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, grid_manager: Chun
 
     field(total_time_steps, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
 
+    """deprecated
     x_file, y_file = field.save_velocity_field(
         vis_name='test_run',
         file_name='v',
         index=total_time_steps
     )
+    """
 
     if field.grid_manager.rank == 0:
-        visualize_velocity_field_mpi(x_file, y_file)
+        # visualize_velocity_field_mpi(x_file, y_file)
+        pass
 
 
 if __name__ == '__main__':

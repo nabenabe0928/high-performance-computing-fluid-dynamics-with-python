@@ -1,14 +1,14 @@
 import numpy as np
 from typing import Tuple
 
-from src.utils.visualization import visualize_density_surface, visualize_quantity_vs_time
+# from src.utils.visualization import visualize_density_surface, visualize_quantity_vs_time
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
-from src.utils.attr_dict import AttrDict
+from src.utils.utils import AttrDict
 from src.utils.constants import (
-    density_equation,
+    # density_equation,
     sinusoidal_density,
     sinusoidal_velocity,
-    velocity_equation
+    # velocity_equation
 )
 
 
@@ -26,8 +26,8 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, lattice_grid_shape
     X, Y = lattice_grid_shape
     field = LatticeBoltzmannMethod(X, Y, omega=omega, init_vel=init_velocity, init_density=init_density)
 
-    densities = np.zeros(total_time_steps)
-    vels = np.zeros(total_time_steps)
+    densities = np.zeros(total_time_steps + 1)
+    vels = np.zeros(total_time_steps + 1)
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         densities[t] = np.abs(field.density).max() - rho0
@@ -35,6 +35,7 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, lattice_grid_shape
 
     field(total_time_steps, proc=proc)
 
+    """
     visualize_density_surface(field)
     for q, q_name, eq in [(densities, "density", density_equation(epsilon, field.viscosity, lattice_grid_shape)),
                           (vels, "velocity", velocity_equation(epsilon, field.viscosity, lattice_grid_shape))]:
@@ -44,6 +45,7 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, lattice_grid_shape
             equation=eq,
             total_time_steps=total_time_steps
         )
+    """
 
 
 if __name__ == '__main__':

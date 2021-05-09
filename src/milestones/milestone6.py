@@ -7,9 +7,9 @@ from src.simulation_attributes.boundary_handling import (
     RigidWall,
     sequential_boundary_handlings
 )
-from src.utils.attr_dict import AttrDict
+from src.utils.utils import AttrDict
 from src.utils.constants import DirectionIndicators
-from src.utils.visualization import visualize_velocity_field
+# from src.utils.visualization import visualize_velocity_field
 
 
 class ExperimentVariables(AttrDict):
@@ -41,7 +41,7 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, lattice_grid_shape
     )
 
     field(total_time_steps, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
-    visualize_velocity_field(field=field)
+    # visualize_velocity_field(field=field)
 
 
 if __name__ == '__main__':

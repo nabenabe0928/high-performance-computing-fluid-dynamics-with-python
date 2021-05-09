@@ -36,7 +36,6 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, lattice_grid_shape
     )
 
     field(total_time_steps, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
-    visualize_couette_flow(field=field, wall_vel=wall_vel)
 
 
 if __name__ == '__main__':

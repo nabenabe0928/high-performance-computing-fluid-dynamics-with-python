@@ -41,7 +41,7 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
     )
 
     field(total_time_steps, boundary_handling=sequential_boundary_handlings(rigid_wall, pbc))
-    visualize_poiseuille_flow(field=field, pbc=pbc)
+    # visualize_poiseuille_flow(field=field, pbc=pbc)
 
 
 if __name__ == '__main__':

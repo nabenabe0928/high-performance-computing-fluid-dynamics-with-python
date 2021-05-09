@@ -17,7 +17,7 @@ def main() -> None:
         field.update_density()
         field.update_velocity()
         field.update_pdf()
-        visualize_velocity_field(field)
+        # visualize_velocity_field(field)
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 import numpy as np
 
 from src.milestones.constants import Milestone2InitVals
-from src.utils.visualization import visualize_density_surface
+# from src.utils.visualization import visualize_density_surface
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 
 
@@ -13,7 +13,7 @@ def main(total_time_steps: int, init_density: np.ndarray, init_vel: np.ndarray) 
     X, Y = lattice_grid_shape
     field = LatticeBoltzmannMethod(X, Y, init_density=init_density, init_vel=init_vel)
     field(total_time_steps)
-    visualize_density_surface(field)
+    # visualize_density_surface(field)
 
 
 if __name__ == '__main__':

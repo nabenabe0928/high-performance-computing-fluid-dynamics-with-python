@@ -7,6 +7,7 @@ from src.utils.utils import AttrDict, viscosity2omega
 from src.experiments import (
     couette_flow_velocity_evolution,
     poiseuille_flow_velocity_evolution,
+    sinusoidal_evolution,
     sliding_lid_seq,
     sliding_lid_mpi
 )
@@ -25,6 +26,7 @@ def run():
     name2func = {
         'cf': couette_flow_velocity_evolution,
         'pf': poiseuille_flow_velocity_evolution,
+        'se': sinusoidal_evolution,
         'ss': sliding_lid_seq,
         'sm': sliding_lid_mpi
     }
@@ -39,6 +41,9 @@ def run():
     parser.add_argument('-I', '--indensity', type=float, help='The density factor at the inlet.')
     parser.add_argument('-O', '--outdensity', type=float, help='The density factor at the outlet.')
     parser.add_argument('-W', '--wall_vel', type=float, help='The velocity of the wall along the x-axis.')
+    parser.add_argument('--eps', type=float, help='The amplitude of swinging in sinusoidal.')
+    parser.add_argument('--rho', type=float, help='The offset of the density in sinusoidal..')
+    parser.add_argument('--mode', type=str, choices=['d', 'v'], help='Either sinusoidal velocity or density.')
 
     args = parser.parse_args()
     if args.omega is None and args.visc is None:
@@ -58,6 +63,14 @@ def run():
 
     if args.wall_vel is not None:
         experiment_vars.update(wall_vel=np.array([args.wall_vel, 0.]))
+
+    if args.mode is not None:
+        mode2quant = {'v': 'velocity', 'd': 'density'}
+        experiment_vars.update(
+            mode=mode2quant[args.mode],
+            rho0=args.rho,
+            epsilon=args.eps
+        )
 
     name2func[args.experiment](experiment_vars)
 

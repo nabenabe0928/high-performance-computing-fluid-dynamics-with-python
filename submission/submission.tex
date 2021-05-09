@@ -1,0 +1,98 @@
+\documentclass[a4paper,11pt]{report}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+
+\usepackage{amsmath,amssymb,bm,bbm}
+\usepackage{graphicx}
+% \usepackage{subcaption}
+\usepackage{ascmac}
+\usepackage{fancyhdr}
+\usepackage{algorithm, algpseudocode}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usepackage{ulem}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[caption=false]{subfig}
+\usepackage{comment}
+\usepackage{listings}
+\usetikzlibrary{chains}
+\usetikzlibrary{calc}
+\usepackage{amsmath,tikz}
+\usepackage{lastpage}
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable, skins, theorems}
+\newtheorem{theorem1}{Theorem}
+\newtheorem{theorem2}{Definition}
+\newtheorem{theorem3}{Assumption}
+\def\qed{\hfill $\Box$}
+
+% remove the end from algorithm
+\algtext*{EndFor}
+\algtext*{EndWhile}
+\algtext*{EndIf}
+\algtext*{EndProcedure}
+\algtext*{EndFunction}
+\newcommand{\Break}{\textbf{break}}
+\newcommand{\Continue}{\textbf{continue}}
+
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage[english]{babel}
+
+\usepackage{graphicx}
+\usepackage{comment}
+
+\usepackage{listings} % package for listing parts of code
+
+\renewcommand*\footnoterule{}
+
+\makeatletter
+\renewcommand{\@chapapp}{}% Not necessary...
+\newenvironment{chapquote}[2][2em]
+  {\setlength{\@tempdima}{#1}%
+   \def\chapquote@author{#2}%
+   \parshape 1 \@tempdima \dimexpr\textwidth-2\@tempdima\relax%
+   \itshape}
+  {\par\normalfont\hfill--\ \chapquote@author\hspace*{\@tempdima}\par\bigskip}
+\makeatother
+
+% Book's title and subtitle
+\title{\Huge \textbf{High Performance Computing with Python} \vspace{4mm} \\ \huge Final Report}
+% Author
+% \author{\textsc{First-name Last-name}\footnote{email address}}
+\author{\textsc{Shuhei Watanabe} \\ \vspace{3mm}\text{5171091}  \\
+\vspace{3mm}\text{watanabs@informatik.uni-freiburg.de}}
+
+
+\begin{document}
+
+\makeatletter
+    \begin{titlepage}
+        \begin{center}
+            \includegraphics[width=0.5\linewidth]{logos/Uni_Logo-Grundversion_E1_A4_CMYK.eps}\\[4ex]
+            {\huge \bfseries  \@title }\\[2ex] 
+            {\LARGE  \@author}\\[30ex] 
+            {\large \@date}
+        \end{center}
+    \end{titlepage}
+\makeatother
+\thispagestyle{empty}
+\newpage
+
+\tableofcontents
+
+\input{chapters/introduction.tex}
+
+\input{chapters/lattice-boltzmann-method.tex}
+
+\input{chapters/implementation-details.tex}
+
+\input{chapters/numerical-results.tex}
+
+\input{chapters/conclusions.tex}
+
+\bibliographystyle{unsrt}
+\bibliography{biblio}
+\end{document}

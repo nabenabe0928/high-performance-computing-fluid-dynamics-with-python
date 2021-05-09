@@ -34,15 +34,19 @@ from src.simulation_attributes.boundary_handling import (
     sequential_boundary_handlings
 )
 from src.utils.utils import AttrDict, make_directories_to_path
-from src.utils.constants import DirectionIndicators
+from src.utils.constants import (
+    DirectionIndicators,
+    sinusoidal_density,
+    sinusoidal_velocity
+)
 from src.utils.parallel_computation import ChunkedGridManager
 from src.utils.utils import omega2viscosity
 from src.utils.visualization import (
     PoiseuilleFlowHyperparams,
     visualize_couette_flow,
-    visualize_density_countour,
+    visualize_density_plot,
     visualize_poiseuille_flow,
-    visualize_velocity_countour,
+    visualize_velocity_plot,
     visualize_velocity_field
 )
 
@@ -53,6 +57,9 @@ class ExperimentVariables(AttrDict):
     init_density: np.ndarray
     init_velocity: np.ndarray
     omega: float
+    epsilon: Optional[float]
+    rho0: Optional[float]
+    mode: Optional[str]
     in_density_factor: Optional[float]
     out_density_factor: Optional[float]
     wall_vel: Optional[np.ndarray]
@@ -78,23 +85,40 @@ def get_field(experiment_vars: ExperimentVariables, grid_manager: Optional[Chunk
     return field
 
 
-def density_and_velocity_evolution(experiment_vars: ExperimentVariables) -> None:
+def sinusoidal_evolution(experiment_vars: ExperimentVariables) -> None:
     # Initialization
+    lattice_grid_shape = experiment_vars.lattice_grid_shape
+    mode = experiment_vars.mode
+
+    if mode == 'density':
+        eps, rho0 = experiment_vars.epsilon, experiment_vars.rho0
+        density, vel = sinusoidal_density(lattice_grid_shape,
+                                          epsilon=eps,
+                                          rho0=rho0)
+        d_bounds = np.array([rho0 - eps, rho0 + eps])
+        v_bounds = np.array([-eps, eps])
+    elif mode == 'velocity':
+        eps = experiment_vars.epsilon
+        density, vel = sinusoidal_velocity(lattice_grid_shape,
+                                           epsilon=eps)
+        d_bounds = np.array([-eps, eps])
+        v_bounds = np.array([-eps, eps])
+
+    experiment_vars.update(init_density=density, init_velocity=vel)
     total_time_steps = experiment_vars.total_time_steps
-    subj = 'sinusoidal'
+    subj = f'sinusoidal_{mode}'
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if t == 0 or (t + 1) % 100 == 0:
             make_directories_to_path(f'log/{subj}/npy/')
             np.save(f'log/{subj}/npy/density{t + 1 if t else 0:0>6}.npy', field.density)
-            np.save(f'log/{subj}/npy/v_x{t + 1 if t else 0:0>6}.npy', field.velocity)
-            np.save(f'log/{subj}/npy/v_y{t + 1 if t else 0:0>6}.npy', field.velocity)
+            np.save(f'log/{subj}/npy/v_abs{t + 1 if t else 0:0>6}.npy', field.velocity[..., 0])
 
     field = get_field(experiment_vars)
     # run LBM
     field(total_time_steps, proc=proc)
-    visualize_velocity_countour(subj, save=True, end=total_time_steps)
-    visualize_density_countour(subj, save=True, end=total_time_steps)
+    visualize_velocity_plot(subj, save=True, end=total_time_steps, bounds=v_bounds)
+    visualize_density_plot(subj, save=True, end=total_time_steps, bounds=d_bounds)
 
 
 def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> None:
@@ -193,7 +217,6 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
     # run LBM
     field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
     visualize_velocity_field(subj=dir_name, save=True, end=total_time_steps)
-    visualize_velocity_countour(dir_name, save=True, end=total_time_steps)
 
 
 def sliding_lid_mpi(experiment_vars: ExperimentVariables,
@@ -235,7 +258,6 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables,
     # run LBM
     field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
     visualize_velocity_field(dir_name, save=True, end=total_time_steps, freq=500)
-    # visualize_velocity_countour('sliding_lid', save=True, end=total_time_steps)
 
     if scaling and grid_manager.rank == 0:
         end = time.time()

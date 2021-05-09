@@ -39,16 +39,21 @@ def simulated_arrows(vx: np.ndarray, X: int, Y: int, v_analy: np.ndarray) -> Non
     plt.plot(v_analy, np.arange(Y + 1) - 0.5, label="Analytical velocity")
     plt.ylabel('y axis')
     plt.xlabel('velocity in y axis')
-    plt.legend()
 
 
 def visualize_velocity_countour(subject: str, save: bool = False, format: str = 'pdf', start: int = 0,
-                                freq: int = 100, end: int = 100001, cmap: Optional[str] = None) -> None:
+                                freq: int = 100, end: int = 100001, cmap: Optional[str] = None,
+                                bounds: Optional[np.ndarray] = None) -> None:
+
+    if bounds is not None:
+        assert bounds.shape == (2,)
+        levels = np.linspace(bounds[0], bounds[1], 100)
+    else:
+        levels = None
 
     for t in range(start, end, freq):
         v_abs_file_name = f'log/{subject}/npy/v_abs{t:0>6}.npy'
         v = np.load(v_abs_file_name)
-        v /= np.amax(v)
         X, Y = v.shape
         x, y = np.meshgrid(np.arange(X), np.arange(Y))
 
@@ -56,8 +61,8 @@ def visualize_velocity_countour(subject: str, save: bool = False, format: str = 
         plt.figure()
         plt.xlim(0, X)
         plt.ylim(0, Y)
-        plt.contourf(x, y, v, cmap=cmap)
-        show_or_save(path=f'log/{subject}/fig/vel_contour{t:0>6}.{format}' if save else None)
+        plt.contourf(x, y, v, cmap=cmap, levels=levels)
+        show_or_save(path=f'log/{subject}/fig/vel{t:0>6}.{format}' if save else None)
 
 
 def visualize_vel_rot_countour(subject: str, save: bool = False, format: str = 'pdf', start: int = 0,
@@ -84,12 +89,19 @@ def visualize_vel_rot_countour(subject: str, save: bool = False, format: str = '
 
 
 def visualize_density_countour(subject: str, save: bool = False, format: str = 'pdf', start: int = 0,
-                               freq: int = 100, end: int = 100001, cmap: Optional[str] = None) -> None:
+                               freq: int = 100, end: int = 100001, cmap: Optional[str] = None,
+                               bounds: Optional[np.ndarray] = None) -> None:
+
+    if bounds is not None:
+        assert bounds.shape == (2,)
+        levels = np.linspace(bounds[0], bounds[1], 100)
+    else:
+        levels = None
 
     for t in range(start, end, freq):
         density_file_name = f'log/{subject}/npy/density{t:0>6}.npy'
         density = np.load(density_file_name)
-        density = np.amax(density)
+        # density /= np.amax(density)
         X, Y = density.shape
         x, y = np.meshgrid(np.arange(X), np.arange(Y))
 
@@ -97,8 +109,44 @@ def visualize_density_countour(subject: str, save: bool = False, format: str = '
         plt.figure()
         plt.xlim(0, X)
         plt.ylim(0, Y)
-        plt.contourf(x, y, density, cmap=cmap)
+        plt.contourf(x, y, density, levels=levels, cmap=cmap)
         show_or_save(path=f'log/{subject}/fig/density{t:0>6}.{format}' if save else None)
+
+
+def visualize_density_plot(subject: str, save: bool = False, format: str = 'pdf', start: int = 0,
+                           freq: int = 100, end: int = 100001, cmap: Optional[str] = None,
+                           bounds: np.ndarray = np.array([0., 1.])) -> None:
+
+    buf = (bounds[1] - bounds[0]) * 0.1
+    for t in range(start, end, freq):
+        density_file_name = f'log/{subject}/npy/density{t:0>6}.npy'
+        density = np.load(density_file_name)
+        X, Y = density.shape
+
+        plt.close('all')
+        plt.figure(figsize=(5, 3))
+        plt.xlim(0, X)
+        plt.ylim(bounds[0] - buf, bounds[1] + buf)
+        plt.plot(np.arange(X), density[:, Y // 2])
+        show_or_save(path=f'log/{subject}/fig/density{t:0>6}.{format}' if save else None)
+
+
+def visualize_velocity_plot(subject: str, save: bool = False, format: str = 'pdf', start: int = 0,
+                            freq: int = 100, end: int = 100001, cmap: Optional[str] = None,
+                            bounds: Optional[np.ndarray] = None) -> None:
+
+    buf = (bounds[1] - bounds[0]) * 0.1
+    for t in range(start, end, freq):
+        v_abs_file_name = f'log/{subject}/npy/v_abs{t:0>6}.npy'
+        v = np.load(v_abs_file_name)
+        X, Y = v.shape
+
+        plt.close('all')
+        plt.figure(figsize=(5, 3))
+        plt.xlim(0, Y)
+        plt.ylim(bounds[0] - buf, bounds[1] + buf)
+        plt.plot(np.arange(Y), v[X // 2, :])
+        show_or_save(path=f'log/{subject}/fig/vel{t:0>6}.{format}' if save else None)
 
 
 def visualize_velocity_field(subj: str, save: bool = False, format: str = 'pdf', start: int = 0,
@@ -133,14 +181,17 @@ def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str
         x, y = np.meshgrid(np.arange(X), np.arange(Y))
 
         plt.close('all')
-        plt.figure()
+        plt.figure(figsize=(5, 3))
         plt.xlim(-0.5, X)
         plt.ylim(-0.5, Y)
         simulated_arrows(vx, X, Y, wall_vel[0] * (Y - np.arange(Y + 1)) / Y)
         vmax = int(max(wall_vel[0], np.ceil(vx[X // 2, :].max()))) + 1
         plt.plot(np.arange(vmax), np.ones(vmax) * (Y - 1) + 0.5, label="Rigid wall", color='black', linewidth=3.0)
         plt.plot(np.arange(vmax), np.zeros(vmax), label='Moving wall', color='blue', linewidth=3.0)
-        plt.legend(loc='upper right')
+
+        if t == 0:
+            plt.rc('legend', fontsize=16)
+            plt.legend(loc='upper right')
 
         show_or_save(path=f'log/couette_flow/fig/couette_flow{t:0>6}.{format}' if save else None)
 
@@ -165,11 +216,15 @@ def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = Fa
         y = np.arange(Y + 1)
 
         plt.close('all')
-        plt.figure()
+        plt.figure(figsize=(5, 3))
         plt.xlim(0, 0.023)
         plt.ylim(-0.5, Y)
         simulated_arrows(vx, X, Y, - 0.5 * deriv_density_x * y * (Y - y) / average_density)
-        plt.legend(loc='upper right')
+
+        if t == 0:
+            plt.rc('legend', fontsize=16)
+            plt.legend(loc='upper right')
+
         show_or_save(path=f'log/poiseuille_flow/fig/poiseuille_flow{t:0>6}.{format}' if save else None)
 
 
