@@ -7,9 +7,21 @@ import numpy as np
 EquationFuncType = Callable[[np.ndarray], np.ndarray]
 
 
+def viscosity_equation(t: int, epsilon: float, velocity: np.ndarray):
+    """
+    v(y, t) = epsilon * exp(- visc * (2pi / Y) ** 2 * t) sin(2pi / Y * y)
+    => - visc * (2pi / Y) ** 2 * t = log(v(y, t) / sin(2pi / Y * y) / epsilon)
+    """
+    assert len(velocity.shape) == 1
+    Y = velocity.shape[0]
+    y = np.arange(Y)
+    coef = 2 * np.pi / Y
+    visc = - np.log(velocity / np.sin(coef * y) / epsilon) / coef ** 2 / t
+    return visc
+
+
 def density_equation(epsilon: float, viscosity: float, lattice_grid_shape: Tuple[int, int]
                      ) -> EquationFuncType:
-    """ fourier equation (reference) """
     X, _ = lattice_grid_shape
 
     def _imp(t: np.ndarray) -> np.ndarray:

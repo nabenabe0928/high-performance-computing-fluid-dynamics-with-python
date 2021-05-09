@@ -37,7 +37,8 @@ from src.utils.utils import AttrDict, make_directories_to_path
 from src.utils.constants import (
     DirectionIndicators,
     sinusoidal_density,
-    sinusoidal_velocity
+    sinusoidal_velocity,
+    viscosity_equation
 )
 from src.utils.parallel_computation import ChunkedGridManager
 from src.utils.utils import omega2viscosity
@@ -117,6 +118,7 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables) -> None:
     field = get_field(experiment_vars)
     # run LBM
     field(total_time_steps, proc=proc)
+    # viscosity_equation(total_time_steps, eps, field.velocity)
     visualize_velocity_plot(subj, save=True, end=total_time_steps, bounds=v_bounds)
     visualize_density_plot(subj, save=True, end=total_time_steps, bounds=d_bounds)
 
