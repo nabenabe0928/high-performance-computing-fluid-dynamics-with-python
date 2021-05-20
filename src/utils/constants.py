@@ -7,7 +7,7 @@ import numpy as np
 EquationFuncType = Callable[[np.ndarray], np.ndarray]
 
 
-def viscosity_equation(t: int, epsilon: float, velocity: np.ndarray):
+def viscosity_equation(t: int, epsilon: float, velocity: np.ndarray) -> np.ndarray:
     """
     v(y, t) = epsilon * exp(- visc * (2pi / Y) ** 2 * t) sin(2pi / Y * y)
     => - visc * (2pi / Y) ** 2 * t = log(v(y, t) / sin(2pi / Y * y) / epsilon)

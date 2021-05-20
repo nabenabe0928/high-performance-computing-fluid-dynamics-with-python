@@ -8,7 +8,7 @@ from src.utils.constants import (
     DIRECTION2VEC
 )
 from src.utils.parallel_computation import ChunkedGridManager
-from src.utils.utils import make_directories_to_path
+from src.utils.utils import make_directories_to_path, omega2viscosity
 
 
 EPS = 1e-12
@@ -90,6 +90,7 @@ class LatticeBoltzmannMethod():
 
         assert 0 < omega < 2
         self._omega = omega
+        self._viscosity = omega2viscosity(omega)
         self.local_density_sum = 0.0
         self.global_density_average = 0.0
         self.recvbuf = [

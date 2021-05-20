@@ -23,7 +23,7 @@ class ExperimentVariables(AttrDict):
     wall_vel: Optional[np.ndarray]
 
 
-def run():
+def run() -> None:
     name2func = {
         'cf': couette_flow_velocity_evolution,
         'pf': poiseuille_flow_velocity_evolution,

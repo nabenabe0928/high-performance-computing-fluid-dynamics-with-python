@@ -45,11 +45,10 @@ def visualize_velocity_countour(subject: str, save: bool = False, format: str = 
                                 freq: int = 100, end: int = 100001, cmap: Optional[str] = None,
                                 bounds: Optional[np.ndarray] = None) -> None:
 
+    levels: Optional[np.ndarray] = None
     if bounds is not None:
         assert bounds.shape == (2,)
         levels = np.linspace(bounds[0], bounds[1], 100)
-    else:
-        levels = None
 
     for t in range(start, end, freq):
         v_abs_file_name = f'log/{subject}/npy/v_abs{t:0>6}.npy'
@@ -92,11 +91,10 @@ def visualize_density_countour(subject: str, save: bool = False, format: str = '
                                freq: int = 100, end: int = 100001, cmap: Optional[str] = None,
                                bounds: Optional[np.ndarray] = None) -> None:
 
+    levels: Optional[np.ndarray] = None
     if bounds is not None:
         assert bounds.shape == (2,)
         levels = np.linspace(bounds[0], bounds[1], 100)
-    else:
-        levels = None
 
     for t in range(start, end, freq):
         density_file_name = f'log/{subject}/npy/density{t:0>6}.npy'
@@ -135,6 +133,7 @@ def visualize_velocity_plot(subject: str, save: bool = False, format: str = 'pdf
                             freq: int = 100, end: int = 100001, cmap: Optional[str] = None,
                             bounds: Optional[np.ndarray] = None) -> None:
 
+    assert bounds is not None
     buf = (bounds[1] - bounds[0]) * 0.1
     for t in range(start, end, freq):
         v_abs_file_name = f'log/{subject}/npy/v_abs{t:0>6}.npy'

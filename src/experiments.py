@@ -24,7 +24,7 @@ NOTE: one lattice == one point
 import csv
 import numpy as np
 import time
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple
 
 import matplotlib.pyplot as plt
 
@@ -89,13 +89,15 @@ def get_field(experiment_vars: ExperimentVariables, grid_manager: Optional[Chunk
 
 
 def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool = True
-                         ) -> Union[None, float]:
+                         ) -> Optional[float]:
     # Initialization
     lattice_grid_shape = experiment_vars.lattice_grid_shape
     mode = experiment_vars.mode
 
     if mode == 'density':
         eps, rho0 = experiment_vars.epsilon, experiment_vars.rho0
+
+        assert eps is not None and rho0 is not None
         density, vel = sinusoidal_density(lattice_grid_shape,
                                           epsilon=eps,
                                           rho0=rho0)
@@ -103,6 +105,8 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
         v_bounds = np.array([-eps, eps])
     elif mode == 'velocity':
         eps = experiment_vars.epsilon
+
+        assert eps is not None
         density, vel = sinusoidal_velocity(lattice_grid_shape,
                                            epsilon=eps)
         d_bounds = np.array([-eps, eps])
@@ -124,11 +128,12 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
     if visualize:
         visualize_velocity_plot(subj, save=True, end=total_time_steps, bounds=v_bounds)
         visualize_density_plot(subj, save=True, end=total_time_steps, bounds=d_bounds)
+        return None
     else:
         X, Y = field.lattice_grid_shape
         viscs = viscosity_equation(total_time_steps, eps, field.velocity[X // 2, :, 0])
         viscs = np.array([visc for visc in viscs if 0 < visc < 10])
-        return np.mean(viscs)
+        return float(np.mean(viscs))
 
 
 def sinusoidal_viscosity(experiment_vars: ExperimentVariables) -> None:
@@ -146,7 +151,7 @@ def sinusoidal_viscosity(experiment_vars: ExperimentVariables) -> None:
     plt.plot(omegas, visc_sim, label="Simulated result", color='blue')
     plt.scatter(omegas, visc_truth, marker='x', s=100, color='red')
     plt.scatter(omegas, visc_sim, marker='+', s=100, color='blue')
-    plt.xlabel('$\omega$')
+    plt.xlabel('$\\omega$')
     plt.ylabel('viscosity $\\nu$ (Log scale)')
     plt.yscale('log')
     plt.grid(which='both', color='black', linestyle='-')
@@ -219,6 +224,8 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
     velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
     X, Y = experiment_vars.lattice_grid_shape
     visc = omega2viscosity(experiment_vars.omega)
+
+    assert experiment_vars.wall_vel is not None
     dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}'
 
     field = get_field(experiment_vars, dir_name=dir_name)
@@ -260,6 +267,8 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables,
     velocity0_density1(experiment_vars, grid_manager.buffer_grid_size)
     X, Y = experiment_vars.lattice_grid_shape
     visc = omega2viscosity(experiment_vars.omega)
+
+    assert experiment_vars.wall_vel is not None
     dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}'
 
     field = get_field(experiment_vars, grid_manager=grid_manager, dir_name=dir_name)
