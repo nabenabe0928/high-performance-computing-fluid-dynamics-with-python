@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
@@ -30,21 +30,6 @@ def get_direction_representor(boundary: np.ndarray) -> str:
         return "*"
 
 
-class AbstractBoundaryHandling(object, metaclass=ABCMeta):
-    @abstractmethod
-    def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
-        """
-        Compute the PDF using pdf_pre, pdf_mid, pdf and density, velocity
-        and return the PDF after boundary handling.
-        In order to be able to joint multiple boundary handlings,
-        the update of the PDF has to be performed inside the function.
-
-        Args:
-            field (LatticeBoltzmannMethod)
-        """
-        raise NotImplementedError
-
-
 class BaseBoundary():
     def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators],
                  pressure_variation: bool = False, visualize_wall: bool = False,
@@ -65,7 +50,17 @@ class BaseBoundary():
     def __call__(self, field: LatticeBoltzmannMethod) -> None:
         self.boundary_handling(field)
 
+    @abstractmethod
     def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
+        """
+        Compute the PDF using pdf_pre, pdf_mid, pdf and density, velocity
+        and return the PDF after boundary handling.
+        In order to be able to joint multiple boundary handlings,
+        the update of the PDF has to be performed inside the function.
+
+        Args:
+            field (LatticeBoltzmannMethod)
+        """
         raise NotImplementedError("The child class of BaseBoundary must have boundary_handling function.")
 
     @property
@@ -264,7 +259,7 @@ class BaseBoundary():
         x_itr = [0, 1, X // 2, X - 2, X - 1] if compress else range(X)
 
         child_cls = set([obj.__name__ for obj in self.__class__.__mro__])
-        child_cls -= set(['BaseBoundary', 'AbstractBoundaryHandling', 'object'])
+        child_cls -= set(['BaseBoundary', 'object'])
         boundary_name = list(child_cls)[0]
 
         print(f"### {boundary_name} Out boundary ###")
@@ -295,7 +290,7 @@ def sequential_boundary_handlings(*boundary_handlings: Optional[BaseBoundary]
     return _imp
 
 
-class RigidWall(BaseBoundary, AbstractBoundaryHandling):
+class RigidWall(BaseBoundary):
     def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators]):
         super().__init__(field, boundary_locations)
 
@@ -304,7 +299,7 @@ class RigidWall(BaseBoundary, AbstractBoundaryHandling):
         pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
 
 
-class MovingWall(BaseBoundary, AbstractBoundaryHandling):
+class MovingWall(BaseBoundary):
     def __init__(self, field: LatticeBoltzmannMethod,
                  boundary_locations: List[DirectionIndicators], wall_vel: np.ndarray):
         """
@@ -375,7 +370,7 @@ class MovingWall(BaseBoundary, AbstractBoundaryHandling):
         )
 
 
-class PeriodicBoundaryConditions(BaseBoundary, AbstractBoundaryHandling):
+class PeriodicBoundaryConditions(BaseBoundary):
     def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators],
                  in_density_factor: float, out_density_factor: float):
 
