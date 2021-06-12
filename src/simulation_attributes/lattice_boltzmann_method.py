@@ -1,5 +1,4 @@
 import numpy as np
-from tqdm import trange
 from typing import Callable, Optional, Tuple
 from copy import deepcopy
 
@@ -107,7 +106,8 @@ class LatticeBoltzmannMethod():
     ) -> None:
 
         self.local_equilibrium_pdf_update()
-        for t in trange(total_time_steps + 1):
+        # for t in trange(total_time_steps + 1):
+        for t in range(total_time_steps + 1):
             self.lattice_boltzmann_step(boundary_handling=boundary_handling)
             if proc is not None:
                 proc(self, t)
