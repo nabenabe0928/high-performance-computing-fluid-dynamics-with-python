@@ -259,10 +259,10 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
     visualize_velocity_field(subj=dir_name, save=True, end=total_time_steps)
 
 
-def sliding_lid_mpi(experiment_vars: ExperimentVariables,
-                    scaling: bool = False) -> None:
+def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
 
     # Initialization
+    scaling = experiment_vars.scaling_test
     grid_manager = ChunkedGridManager(*experiment_vars.lattice_grid_shape)
     velocity0_density1(experiment_vars, grid_manager.buffer_grid_size)
     X, Y = experiment_vars.lattice_grid_shape
@@ -299,7 +299,9 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables,
 
     # run LBM
     field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
-    visualize_velocity_field(dir_name, save=True, end=total_time_steps, freq=500)
+    
+    if not scaling:
+        visualize_velocity_field(dir_name, save=True, end=total_time_steps, freq=500)
 
     if scaling and grid_manager.rank == 0:
         end = time.time()
@@ -307,6 +309,6 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables,
         MLUPS = X * Y * experiment_vars.total_time_steps / (end - start)
         path = f'log/{dir_name}/'
         make_directories_to_path(path)
-        with open('log/{dir_name}/MLUPS_vs_proc.csv', 'a', newline='') as f:
+        with open(f'log/{dir_name}/MLUPS_vs_proc.csv', 'a', newline='') as f:
             writer = csv.writer(f, delimiter=',')
             writer.writerow([grid_manager.size, MLUPS])

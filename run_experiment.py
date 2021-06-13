@@ -18,6 +18,7 @@ class ExperimentVariables(AttrDict):
     total_time_steps: int
     lattice_grid_shape: Tuple[int, int]
     omega: float
+    scaling_test: bool
     in_density_factor: Optional[float]
     out_density_factor: Optional[float]
     wall_vel: Optional[np.ndarray]
@@ -46,6 +47,7 @@ def run() -> None:
     parser.add_argument('--eps', type=float, help='The amplitude of swinging in sinusoidal.')
     parser.add_argument('--rho', type=float, help='The offset of the density in sinusoidal..')
     parser.add_argument('--mode', type=str, choices=['d', 'v'], help='Either sinusoidal velocity or density.')
+    parser.add_argument('--scaling', type=str, choices=['True', 'False'], default='True', help='If performing scaling test.')
 
     args = parser.parse_args()
     if args.omega is None and args.visc is None:
@@ -55,6 +57,7 @@ def run() -> None:
         total_time_steps=args.total_time_steps,
         lattice_grid_shape=(args.S, args.S),
         omega=args.omega if args.omega is not None else viscosity2omega(args.visc),
+        scaling_test=eval(args.scaling)
     )
 
     if args.indensity is not None and args.outdensity is not None:
