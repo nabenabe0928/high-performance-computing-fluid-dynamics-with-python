@@ -1,3 +1,5 @@
+import csv
+
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import argrelextrema
@@ -245,3 +247,20 @@ def visualize_quantity_vs_time(quantities: np.ndarray, quantity_name: str,
     plt.xlabel("Time")
     plt.ylabel(f"Amplitude of {quantity_name}")
     plt.show()
+
+
+def visualize_proc_vs_MLUPS(save: bool = False, format: str = 'pdf'):
+    file_path = "log/sliding_lid_W0.10_visc0.04_size300/MLUPS_vs_proc.csv"
+
+    with open(file_path, 'r') as f:
+        reader = list(csv.reader(f, delimiter=','))
+        procs = np.array([int(row[0]) for row in reader])
+        mlups = np.array([float(row[1]) / 1e6 for row in reader])
+
+    plt.plot(procs, mlups, marker='x')
+    plt.xlabel('# of processes')
+    plt.ylabel('MLUPS')
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.grid()
+    show_or_save(path=f'log/sliding_lid_W0.10_visc0.04_size300/fig/scaling_test.{format}' if save else None)
