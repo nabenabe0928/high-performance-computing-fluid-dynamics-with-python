@@ -3,10 +3,7 @@ from tqdm import trange
 from typing import Callable, Optional, Tuple
 from copy import deepcopy
 
-from src.utils.constants import (
-    AdjacentAttributes,
-    DIRECTION2VEC
-)
+from src.utils.constants import AdjacentAttributes
 from src.utils.parallel_computation import ChunkedGridManager
 from src.utils.utils import make_directories_to_path, omega2viscosity
 
@@ -255,8 +252,8 @@ class LatticeBoltzmannMethod():
         ) / np.maximum(self.density, EPS)
 
         self._velocity[:, :, 1] = (
-            np.sum(self.pdf[:, :, AdjacentAttributes.y_upper], axis=-1)
-            - np.sum(self.pdf[:, :, AdjacentAttributes.y_lower], axis=-1)
+            np.sum(self.pdf[:, :, AdjacentAttributes.y_top], axis=-1)
+            - np.sum(self.pdf[:, :, AdjacentAttributes.y_bottom], axis=-1)
         ) / np.maximum(self.density, EPS)
 
     def update_pdf(self) -> None:
@@ -310,7 +307,7 @@ class LatticeBoltzmannMethod():
         """ Communicate the pdf_pre with neighbors """
         step_to_idx = self.grid_manager._step_to_idx
         for dir in self.grid_manager.neighbor_directions:
-            dx, dy = DIRECTION2VEC[dir]
+            dx, dy = AdjacentAttributes.velocity_direction_set[dir]
             sendidx, recvidx = step_to_idx(dx, dy, True), step_to_idx(dx, dy, False)
             neighbor = self.grid_manager.get_neighbor_rank(dir)
 

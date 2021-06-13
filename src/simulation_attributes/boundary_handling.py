@@ -18,13 +18,13 @@ def get_direction_representor(boundary: np.ndarray) -> str:
     3 0 1
     7 4 8
     """
-    if indices == [3, 6, 7]:
+    if indices == list(AdjacentAttributes.x_left):
         return "<"
-    if indices == [1, 5, 8]:
+    if indices == list(AdjacentAttributes.x_right):
         return ">"
-    if indices == [2, 5, 6]:
+    if indices == list(AdjacentAttributes.y_top):
         return "^"
-    if indices == [4, 7, 8]:
+    if indices == list(AdjacentAttributes.y_bottom):
         return "v"
     else:
         return "*"
@@ -150,13 +150,13 @@ class BaseBoundary():
         out_indices = []
         if not pressure_variation:
             if DirectionIndicators.LEFT in self.boundary_locations:
-                out_indices += [3, 6, 7]
+                out_indices += list(AdjacentAttributes.x_left)
             if DirectionIndicators.RIGHT in self.boundary_locations:
-                out_indices += [1, 5, 8]
+                out_indices += list(AdjacentAttributes.x_right)
             if DirectionIndicators.BOTTOM in self.boundary_locations:
-                out_indices += [4, 7, 8]
+                out_indices += list(AdjacentAttributes.y_bottom)
             if DirectionIndicators.TOP in self.boundary_locations:
-                out_indices += [2, 5, 6]
+                out_indices += list(AdjacentAttributes.y_top)
         else:
             # left to right (the flow of particles)
             horiz = (DirectionIndicators.LEFT in self.boundary_locations and
@@ -167,10 +167,10 @@ class BaseBoundary():
             assert vert or horiz
             if horiz:
                 # left to right
-                out_indices = [1, 5, 8]
+                out_indices = list(AdjacentAttributes.x_right)
             else:
                 # bottom to top
-                out_indices = [2, 5, 6]
+                out_indices = list(AdjacentAttributes.y_top)
 
         self._out_indices = np.array(out_indices)
         self._in_indices = self.in_indices[self.out_indices]
@@ -189,27 +189,32 @@ class BaseBoundary():
             out_idx (int):
                 The direction to come out from the inside.
         """
+        left = list(AdjacentAttributes.x_left)
+        right = list(AdjacentAttributes.x_right)
+        top = list(AdjacentAttributes.y_top)
+        bottom = list(AdjacentAttributes.y_bottom)
+
         if (
             DirectionIndicators.LEFT in self.boundary_locations and
-            (out_idx in [3, 6, 7] and in_idx in [1, 5, 8])  # Wall exists left
+            (out_idx in left and in_idx in right)  # Wall exists left
         ):
             self._out_boundary[0, :, out_idx] = True
             self._in_boundary[0, :, in_idx] = True
         if (
             DirectionIndicators.RIGHT in self.boundary_locations and
-            (in_idx in [3, 6, 7] and out_idx in [1, 5, 8])  # Wall exists left
+            (in_idx in left and out_idx in right)  # Wall exists left
         ):
             self._out_boundary[-1, :, out_idx] = True
             self._in_boundary[-1, :, in_idx] = True
         if (
             DirectionIndicators.TOP in self.boundary_locations and
-            out_idx in [2, 5, 6] and in_idx in [4, 7, 8]  # Wall exists top
+            out_idx in top and in_idx in bottom  # Wall exists top
         ):
             self._out_boundary[:, -1, out_idx] = True
             self._in_boundary[:, -1, in_idx] = True
         if (
             DirectionIndicators.BOTTOM in self.boundary_locations and
-            in_idx in [2, 5, 6] and out_idx in [4, 7, 8]  # Wall exists bottom
+            in_idx in top and out_idx in bottom  # Wall exists bottom
         ):
             self._out_boundary[:, 0, out_idx] = True
             self._in_boundary[:, 0, in_idx] = True

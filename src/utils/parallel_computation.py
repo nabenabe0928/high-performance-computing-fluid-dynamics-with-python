@@ -4,7 +4,7 @@ import numpy as np
 from numpy.lib.format import dtype_to_descr, magic
 from mpi4py import MPI
 
-from src.utils.constants import DirectionIndicators, DIRECTION2VEC
+from src.utils.constants import AdjacentAttributes, DirectionIndicators
 
 
 def Shift(rank_grid: MPI.Cartcomm, direction: int, disp: int) -> Tuple[int, int]:
@@ -353,6 +353,8 @@ class ChunkedGridManager():
             return not self.is_boundary(DirectionIndicators.RIGHT) and not self.is_boundary(DirectionIndicators.BOTTOM)
         elif dir == DirectionIndicators.LEFTBOTTOM:
             return not self.is_boundary(DirectionIndicators.LEFT) and not self.is_boundary(DirectionIndicators.BOTTOM)
+        elif dir == DirectionIndicators.CENTER:
+            return False
         else:
             raise ValueError("dir must be either {TOP, BOTTOM, LEFT, RIGHT, "
                              "RIGHTTOP, LEFTTOP, RIGHTBOTTOM, LEFTBOTTOM}.")
@@ -360,7 +362,7 @@ class ChunkedGridManager():
     def get_neighbor_rank(self, dir: DirectionIndicators) -> int:
         """ Get the rank of the process that exists in the given direction. """
         assert self.exist_neighbor(dir)
-        dx, dy = DIRECTION2VEC[dir]
+        dx, dy = AdjacentAttributes.velocity_direction_set[dir]
         rX, rY = self.rank_grid_size
         rx, ry = self.rank_loc
         rx, ry = (rx + dx + rX) % rX, (ry + dy + rY) % rY

@@ -299,7 +299,7 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
 
     # run LBM
     field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
-    
+
     if not scaling:
         visualize_velocity_field(dir_name, save=True, end=total_time_steps, freq=500)
 

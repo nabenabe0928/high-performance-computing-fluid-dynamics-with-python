@@ -93,20 +93,27 @@ def sinusoidal_density(lattice_grid_shape: Tuple[int, int], epsilon: float,
 
 
 class DirectionIndicators(IntEnum):
-    RIGHT: int = 0
-    LEFT: int = 1
+    CENTER: int = 0
+    RIGHT: int = 1
     TOP: int = 2
-    BOTTOM: int = 3
-    RIGHTTOP: int = 4
-    LEFTTOP: int = 5
-    RIGHTBOTTOM: int = 6
+    LEFT: int = 3
+    BOTTOM: int = 4
+    RIGHTTOP: int = 5
+    LEFTTOP: int = 6
     LEFTBOTTOM: int = 7
+    RIGHTBOTTOM: int = 8
 
+    def is_left(self) -> bool:
+        return 'LEFT' in self.name
 
-DIRECTION2VEC = np.array([
-    [1, 0], [-1, 0], [0, 1], [0, -1],
-    [1, 1], [-1, 1], [1, -1], [-1, -1]
-    ], dtype=np.int32)
+    def is_right(self) -> bool:
+        return 'RIGHT' in self.name
+
+    def is_top(self) -> bool:
+        return 'TOP' in self.name
+
+    def is_bottom(self) -> bool:
+        return 'BOTTOM' in self.name
 
 
 class MetaAdjacentAttributes(type):
@@ -122,27 +129,35 @@ class MetaAdjacentAttributes(type):
 
     @property
     def x_left(cls) -> np.ndarray:
-        return np.array([3, 6, 7])
+        return np.array([dir for dir in DirectionIndicators if dir.is_left()])
 
     @property
     def x_center(cls) -> np.ndarray:
-        return np.array([0, 2, 4])
+        return np.array([
+            DirectionIndicators.CENTER,
+            DirectionIndicators.TOP,
+            DirectionIndicators.BOTTOM
+        ])
 
     @property
     def x_right(cls) -> np.ndarray:
-        return np.array([1, 5, 8])
+        return np.array([dir for dir in DirectionIndicators if dir.is_right()])
 
     @property
-    def y_upper(cls) -> np.ndarray:
-        return np.array([2, 5, 6])
+    def y_top(cls) -> np.ndarray:
+        return np.array([dir for dir in DirectionIndicators if dir.is_top()])
 
     @property
     def y_center(cls) -> np.ndarray:
-        return np.array([0, 1, 3])
+        return np.array([
+            DirectionIndicators.CENTER,
+            DirectionIndicators.RIGHT,
+            DirectionIndicators.LEFT
+        ])
 
     @property
-    def y_lower(cls) -> np.ndarray:
-        return np.array([4, 7, 8])
+    def y_bottom(cls) -> np.ndarray:
+        return np.array([dir for dir in DirectionIndicators if dir.is_bottom()])
 
     @property
     def velocity_direction_set(cls) -> np.ndarray:
@@ -153,7 +168,17 @@ class MetaAdjacentAttributes(type):
 
     @property
     def reflected_direction(cls) -> np.ndarray:
-        return np.array([0, 3, 4, 1, 2, 7, 8, 5, 6])
+        return np.array([
+            DirectionIndicators.CENTER,
+            DirectionIndicators.LEFT,
+            DirectionIndicators.BOTTOM,
+            DirectionIndicators.RIGHT,
+            DirectionIndicators.TOP,
+            DirectionIndicators.LEFTBOTTOM,
+            DirectionIndicators.RIGHTBOTTOM,
+            DirectionIndicators.RIGHTTOP,
+            DirectionIndicators.LEFTTOP
+        ])
 
     @property
     def weights(cls) -> np.ndarray:

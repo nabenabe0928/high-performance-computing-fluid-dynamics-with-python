@@ -9,7 +9,7 @@ from src.simulation_attributes.boundary_handling import (
 )
 from src.utils.utils import AttrDict
 from src.utils.constants import DirectionIndicators
-from src.utils.visualization import visualize_couette_flow
+# from src.utils.visualization import visualize_couette_flow
 
 
 class ExperimentVariables(AttrDict):
