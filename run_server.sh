@@ -1,7 +1,7 @@
 #!/bin/bash -x
 #SBATCH --time=00:40:00
 #SBATCH -J MLUPS
-#SBATCH --mem=6gb
+#SBATCH --mem=200gb
 #SBATCH --export=ALL
 #SBATCH --partition=multiple
 
