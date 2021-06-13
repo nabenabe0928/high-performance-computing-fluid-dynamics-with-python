@@ -47,7 +47,7 @@ def run() -> None:
     parser.add_argument('--eps', type=float, help='The amplitude of swinging in sinusoidal.')
     parser.add_argument('--rho', type=float, help='The offset of the density in sinusoidal..')
     parser.add_argument('--mode', type=str, choices=['d', 'v'], help='Either sinusoidal velocity or density.')
-    parser.add_argument('--scaling', type=str, choices=['True', 'False'], default='True',
+    parser.add_argument('--scaling', type=str, choices=['True', 'False'], default='False',
                         help='If performing scaling test.')
 
     args = parser.parse_args()
