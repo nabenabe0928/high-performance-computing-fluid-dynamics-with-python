@@ -278,7 +278,7 @@ class LatticeBoltzmannMethod():
 
     def lattice_boltzmann_step(
         self,
-        boundary_handling: Optional[Callable[['LatticeBoltzmannMethod'], None]] = None
+        boundary_handling: Optional[BoundaryHandlingFuncType] = None
     ) -> None:
 
         self._apply_local_equilibrium()
