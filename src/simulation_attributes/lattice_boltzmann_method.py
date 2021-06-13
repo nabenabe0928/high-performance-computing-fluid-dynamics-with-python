@@ -291,6 +291,7 @@ class LatticeBoltzmannMethod():
         if self.is_parallel():
             self._communicate_for_pdf()
             self._communicate_for_density()
+            # Wait for all the communications
             self.grid_manager.comm.Barrier()
         else:
             self.global_density_average = float(self.density.mean())
