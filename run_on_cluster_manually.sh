@@ -6,7 +6,7 @@ pip install --user --upgrade mpi4py numpy matplotlib tqdm scipy
 # Use only half of the CPUs for the correct performance measurement
 # Note: 40 CPUs are available for each node
 
-N_THREADS_LIST=(1 4 9 16)
+N_THREADS_LIST=(1 4 9 16 25 36)
 for N_THREADS in ${N_THREADS_LIST[@]}; do
     NODES=$((${N_THREADS}/20+1))
     echo "Use ${N_THREADS} threads on ${NODES} nodes."
