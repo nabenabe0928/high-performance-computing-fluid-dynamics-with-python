@@ -35,7 +35,6 @@ class BaseBoundary():
                  pressure_variation: bool = False, visualize_wall: bool = False,
                  **kwargs: Dict[str, Any]):
 
-        X, Y = field.lattice_grid_shape
         self._out_boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)
         self._out_indices = np.arange(9)
         self._in_boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)

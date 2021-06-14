@@ -241,7 +241,7 @@ class LatticeBoltzmannMethod():
 
     def update_density(self) -> None:
         assert self._finish_initialize
-        self._density = np.array(np.sum(self.pdf, axis=-1))
+        self._density = np.sum(self.pdf, axis=-1)
 
     def update_velocity(self) -> None:
         assert self._finish_initialize

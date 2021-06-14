@@ -124,70 +124,85 @@ class MetaAdjacentAttributes(type):
     y_center -> 3 0 1
     y_lower  -> 7 4 8
     """
+    _x_left = np.array([dir for dir in DirectionIndicators if dir.is_left()])
+    _x_right = np.array([dir for dir in DirectionIndicators if dir.is_right()])
+    _y_top = np.array([dir for dir in DirectionIndicators if dir.is_top()])
+    _y_bottom = np.array([dir for dir in DirectionIndicators if dir.is_bottom()])
+
+    _x_center = np.array([
+        DirectionIndicators.CENTER,
+        DirectionIndicators.TOP,
+        DirectionIndicators.BOTTOM
+    ])
+    _y_center = np.array([
+        DirectionIndicators.CENTER,
+        DirectionIndicators.RIGHT,
+        DirectionIndicators.LEFT
+    ])
+
+    _reflected_direction = np.array([
+        DirectionIndicators.CENTER,
+        DirectionIndicators.LEFT,
+        DirectionIndicators.BOTTOM,
+        DirectionIndicators.RIGHT,
+        DirectionIndicators.TOP,
+        DirectionIndicators.LEFTBOTTOM,
+        DirectionIndicators.RIGHTBOTTOM,
+        DirectionIndicators.RIGHTTOP,
+        DirectionIndicators.LEFTTOP
+    ])
+    _velocity_direction_set = np.array([
+        [0, 0], [1, 0], [0, 1],
+        [-1, 0], [0, -1], [1, 1],
+        [-1, 1], [-1, -1], [1, -1]
+    ])
+
+    _weights = np.array(
+        [4. / 9.]
+        + [1. / 9.] * 4
+        + [1. / 36.] * 4
+    )
+
     def __init__(cls, *args: List[Any], **kwargs: Dict[str, Any]):
         pass
 
     @property
     def x_left(cls) -> np.ndarray:
-        return np.array([dir for dir in DirectionIndicators if dir.is_left()])
+        return cls._x_left
 
     @property
     def x_center(cls) -> np.ndarray:
-        return np.array([
-            DirectionIndicators.CENTER,
-            DirectionIndicators.TOP,
-            DirectionIndicators.BOTTOM
-        ])
+        return cls._x_center
 
     @property
     def x_right(cls) -> np.ndarray:
-        return np.array([dir for dir in DirectionIndicators if dir.is_right()])
+        return cls._x_right
 
     @property
     def y_top(cls) -> np.ndarray:
-        return np.array([dir for dir in DirectionIndicators if dir.is_top()])
+        return cls._y_top
 
     @property
     def y_center(cls) -> np.ndarray:
-        return np.array([
-            DirectionIndicators.CENTER,
-            DirectionIndicators.RIGHT,
-            DirectionIndicators.LEFT
-        ])
+        return cls._y_center
 
     @property
     def y_bottom(cls) -> np.ndarray:
-        return np.array([dir for dir in DirectionIndicators if dir.is_bottom()])
+        return cls._y_bottom
 
     @property
     def velocity_direction_set(cls) -> np.ndarray:
         """ Note: Those do not have identical norms. """
-        return np.array([[0, 0], [1, 0], [0, 1],
-                         [-1, 0], [0, -1], [1, 1],
-                         [-1, 1], [-1, -1], [1, -1]])
+        return cls._velocity_direction_set
 
     @property
     def reflected_direction(cls) -> np.ndarray:
-        return np.array([
-            DirectionIndicators.CENTER,
-            DirectionIndicators.LEFT,
-            DirectionIndicators.BOTTOM,
-            DirectionIndicators.RIGHT,
-            DirectionIndicators.TOP,
-            DirectionIndicators.LEFTBOTTOM,
-            DirectionIndicators.RIGHTBOTTOM,
-            DirectionIndicators.RIGHTTOP,
-            DirectionIndicators.LEFTTOP
-        ])
+        return cls._reflected_direction
 
     @property
     def weights(cls) -> np.ndarray:
         """ The weights for each adjacent cell """
-        return np.array(
-            [4. / 9.]
-            + [1. / 9.] * 4
-            + [1. / 36.] * 4
-        )
+        return cls._weights
 
 
 class AdjacentAttributes(metaclass=MetaAdjacentAttributes):

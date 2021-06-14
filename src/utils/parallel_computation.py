@@ -232,7 +232,6 @@ class ChunkedGridManager():
 
         (X_rank, Y_rank) = self.rank_grid_size
         (x_rank, y_rank) = self.rank_loc
-        (X_local, Y_local) = self.local_grid_size
         X_small, X_large = X_global // X_rank, (X_global + X_rank - 1) // X_rank
         Y_small, Y_large = Y_global // Y_rank, (Y_global + Y_rank - 1) // Y_rank
         rx, ry = X_global % X_rank, Y_global % Y_rank
@@ -342,7 +341,6 @@ class ChunkedGridManager():
         if not isinstance(dir, DirectionIndicators):
             raise ValueError(f"Args `dir` must be DirectionIndicators type, but got {type(dir)}.")
 
-        X_global, Y_global = self.global_grid_size
         if dir in [getattr(DirectionIndicators, s_dir) for s_dir in ['TOP', 'BOTTOM', 'LEFT', 'RIGHT']]:
             return not self.is_boundary(dir)
         elif dir == DirectionIndicators.RIGHTTOP:
