@@ -257,7 +257,7 @@ def visualize_proc_vs_MLUPS(save: bool = False, format: str = 'pdf') -> None:
         'MLUPS_vs_proc.csv'
     ]
     cols = ['red', 'blue']
-    labels = ['With a bottleneck part', 'Without a bottleneck part']
+    labels = ['Without a bottleneck part', 'With a bottleneck part']
 
     for file_name, col, label in zip(file_names, cols, labels):
         file_path = f"{dir_name}{file_name}"
