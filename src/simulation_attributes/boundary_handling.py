@@ -303,7 +303,21 @@ class RigidWall(BaseBoundary):
         pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
 
 
+def dir2coef(wall: DirectionIndicators, dir: DirectionIndicators) -> None:
+    if dir.is_opposite(wall):
+        return 0.0
+    elif dir.is_sameside(wall):
+        return 2.0
+    else:
+        return 1.0
+
+
 class MovingWall(BaseBoundary):
+    coefs = {
+        wall: [dir2coef(wall, dir) for dir in DirectionIndicators]
+        for wall in DirectionIndicators
+    }
+
     def __init__(self, field: LatticeBoltzmannMethod,
                  boundary_locations: List[DirectionIndicators], wall_vel: np.ndarray):
         """
@@ -325,6 +339,14 @@ class MovingWall(BaseBoundary):
         self._weighted_vel_dot_wall_vel6 = np.array([])
         self._wall_vel = wall_vel  # shape (2, )
         self._finish_precompute = False
+        self._wall_density = np.zeros((*field.lattice_grid_shape, 9))
+
+        if len(boundary_locations) != 1:
+            raise ValueError("Moving wall only supports one moving wall, but got {} directions".format(
+                len(boundary_locations)
+            ))
+
+        self._pdf_prod_coef = np.array(self.coefs[boundary_locations[0]])
 
     @property
     def wall_vel(self) -> np.ndarray:
@@ -335,6 +357,15 @@ class MovingWall(BaseBoundary):
     def wall_vel(self) -> None:
         """ The velocity of the wall """
         raise NotImplementedError("wall_vel is not supposed to change from outside.")
+    
+    @property
+    def wall_density(self) -> np.ndarray:
+        """ The density at the wall """
+        return self._wall_density
+
+    @wall_density.setter
+    def wall_density(self) -> None:
+        raise NotImplementedError("wall_density is not supposed to change from outside.")
 
     @property
     def weighted_vel_dot_wall_vel6(self) -> np.ndarray:
@@ -359,17 +390,46 @@ class MovingWall(BaseBoundary):
             self._weighted_vel_dot_wall_vel6[:, :, out_idx] = 6 * w * (v @ self.wall_vel)
 
         self._finish_precompute = True
+    
+    def _compute_wall_density(self, pdf: np.ndarray, vel: np.ndarray) -> None:
+        """
+        The computation of the average density at the wall follows the following literatures:
+            Title: A study of wall boundary conditions in pseudopotential lattice Boltzmann models
+            Authors: Sorush Khajepor et al.
+            Equation number: 14
+
+            Title: On pressure and velocity boundary conditions for the lattice Boltzmann BGK model
+            Authors: Qisu Zou and Xiaoyi He
+            Equation number: 19
+        """
+        wall = self.boundary_locations[0]
+        if wall == DirectionIndicators.RIGHT:
+            wall_density = pdf[-1, ...] @ self._pdf_prod_coef
+            wall_density /= 1. + vel[-1, ..., 0]
+            self._wall_density[-1, ...] = wall_density[:, np.newaxis]
+        elif wall == DirectionIndicators.LEFT:
+            wall_density = pdf[0, ...] @ self._pdf_prod_coef
+            wall_density /= 1. - vel[0, ..., 0]
+            self._wall_density[0, ...] = wall_density[:, np.newaxis]
+        elif wall == DirectionIndicators.TOP:
+            wall_density = pdf[:, -1, ...] @ self._pdf_prod_coef
+            wall_density /= 1. + vel[:, -1, ..., 1]
+            self._wall_density[:, -1, ...] = wall_density[:, np.newaxis]
+        elif wall == DirectionIndicators.BOTTOM:
+            wall_density = pdf[:, 0, ...] @ self._pdf_prod_coef
+            wall_density /= 1. - vel[:, 0, ..., 1]
+            self._wall_density[:, 0, ...] = wall_density[:, np.newaxis]
 
     def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
         if not self._finish_precompute:
             self._precompute()
 
         pdf_post = field.pdf
-        average_density = field.global_density_average
+        self._compute_wall_density(field.pdf, field.velocity)
 
         pdf_post[self.in_boundary] = (
             field.pdf_pre[self.out_boundary]
-            - average_density *
+            - self.wall_density[self.out_boundary] *
             self.weighted_vel_dot_wall_vel6[self.out_boundary]
         )
 

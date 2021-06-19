@@ -115,6 +115,49 @@ class DirectionIndicators(IntEnum):
     def is_bottom(self) -> bool:
         return 'BOTTOM' in self.name
 
+    def is_center(self, axis: int) -> bool:
+        """
+        axis == 0: x axis
+        axis == 1: y axis
+        """
+        if axis == 0:
+            return self in [
+                DirectionIndicators.CENTER,
+                DirectionIndicators.RIGHT,
+                DirectionIndicators.LEFT
+            ]
+        else:
+            return self in [
+                DirectionIndicators.CENTER,
+                DirectionIndicators.TOP,
+                DirectionIndicators.BOTTOM
+            ]
+
+    def is_opposite(self, dir: 'DirectionIndicators') -> bool:
+        """ dir points the opposite side of self. """
+        if self.is_right() and dir.is_left():
+            return True
+        elif self.is_left() and dir.is_right():
+            return True
+        elif self.is_bottom() and dir.is_top():
+            return True
+        elif self.is_top() and dir.is_bottom():
+            return True
+        else:
+            return False
+    
+    def is_sameside(self, dir: 'DirectionIndicators') -> bool:
+        if self.is_right() and dir.is_right():
+            return True
+        elif self.is_left() and dir.is_left():
+            return True
+        elif self.is_bottom() and dir.is_bottom():
+            return True
+        elif self.is_top() and dir.is_top():
+            return True
+        else:
+            return False
+
 
 class MetaAdjacentAttributes(type):
     """
