@@ -183,7 +183,7 @@ def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str
 
         plt.close('all')
         plt.figure(figsize=(5, 3))
-        plt.xlim(-0.5, X)
+        plt.xlim(-0.01 * wall_vel[0], wall_vel[0])
         plt.ylim(-0.5, Y)
         simulated_arrows(vx, X, Y, wall_vel[0] * (Y - np.arange(Y + 1)) / Y)
         vmax = int(max(wall_vel[0], np.ceil(vx[X // 2, :].max()))) + 1

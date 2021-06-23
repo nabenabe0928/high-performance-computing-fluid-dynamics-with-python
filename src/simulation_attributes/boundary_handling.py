@@ -70,7 +70,7 @@ class BaseBoundary():
                 Direction to come in.
                 In other words, if the reflected direction of _out_boundary
                 or the inlet of pipes.
-                Each element is True or False with the shape is (X, Y, 9).
+                Each element is True or False with the shape of (X, Y, 9).
         """
         return self._in_boundary
 
@@ -86,7 +86,7 @@ class BaseBoundary():
                 Direction to come out.
                 In other words, if there are walls (or boundary) or not
                 or the outlet of pipes.
-                Each element is True or False with the shape is (X, Y, 9).
+                Each element is True or False with the shape of (X, Y, 9).
         """
         return self._out_boundary
 
@@ -303,18 +303,22 @@ class RigidWall(BaseBoundary):
         pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
 
 
-def dir2coef(wall: DirectionIndicators, dir: DirectionIndicators) -> None:
+def dir2coef(wall: DirectionIndicators, dir: DirectionIndicators, equilibrium: bool = False) -> None:
     if dir.is_opposite(wall):
         return 0.0
     elif dir.is_sameside(wall):
-        return 2.0
-    else:
         return 1.0
+    else:
+        return not equilibrium
 
 
 class MovingWall(BaseBoundary):
-    coefs = {
-        wall: [dir2coef(wall, dir) for dir in DirectionIndicators]
+    coefs_pre = {
+        wall: [dir2coef(wall, dir, True) for dir in DirectionIndicators]
+        for wall in DirectionIndicators
+    }
+    coefs_post = {
+        wall: [dir2coef(wall, dir, False) for dir in DirectionIndicators]
         for wall in DirectionIndicators
     }
 
@@ -346,7 +350,8 @@ class MovingWall(BaseBoundary):
                 len(boundary_locations)
             ))
 
-        self._pdf_prod_coef = np.array(self.coefs[boundary_locations[0]])
+        self._prod_coef_pre = np.array(self.coefs_pre[boundary_locations[0]])
+        self._prod_coef_post = np.array(self.coefs_post[boundary_locations[0]])
 
     @property
     def wall_vel(self) -> np.ndarray:
@@ -391,7 +396,7 @@ class MovingWall(BaseBoundary):
 
         self._finish_precompute = True
     
-    def _compute_wall_density(self, pdf: np.ndarray, vel: np.ndarray) -> None:
+    def _compute_wall_density(self, pdf_pre: np.ndarray, pdf: np.ndarray, vel: np.ndarray) -> None:
         """
         The computation of the average density at the wall follows the following literatures:
             Title: A study of wall boundary conditions in pseudopotential lattice Boltzmann models
@@ -404,20 +409,20 @@ class MovingWall(BaseBoundary):
         """
         wall = self.boundary_locations[0]
         if wall == DirectionIndicators.RIGHT:
-            wall_density = pdf[-1, ...] @ self._pdf_prod_coef
-            wall_density /= 1. + vel[-1, ..., 0]
+            wall_density = pdf_pre[-1, ...] @ self._prod_coef_pre
+            wall_density += pdf[-1, ...] @ self._prod_coef_post
             self._wall_density[-1, ...] = wall_density[:, np.newaxis]
         elif wall == DirectionIndicators.LEFT:
-            wall_density = pdf[0, ...] @ self._pdf_prod_coef
-            wall_density /= 1. - vel[0, ..., 0]
+            wall_density = pdf_pre[0, ...] @ self._prod_coef_pre
+            wall_density += pdf[0, ...] @ self._prod_coef_post
             self._wall_density[0, ...] = wall_density[:, np.newaxis]
         elif wall == DirectionIndicators.TOP:
-            wall_density = pdf[:, -1, ...] @ self._pdf_prod_coef
-            wall_density /= 1. + vel[:, -1, ..., 1]
+            wall_density = pdf_pre[:, -1, ...] @ self._prod_coef_pre
+            wall_density += pdf[:, -1, ...] @ self._prod_coef_post
             self._wall_density[:, -1, ...] = wall_density[:, np.newaxis]
         elif wall == DirectionIndicators.BOTTOM:
-            wall_density = pdf[:, 0, ...] @ self._pdf_prod_coef
-            wall_density /= 1. - vel[:, 0, ..., 1]
+            wall_density = pdf_pre[:, 0, ...] @ self._prod_coef_pre
+            wall_density += pdf[:, 0, ...] @ self._prod_coef_post
             self._wall_density[:, 0, ...] = wall_density[:, np.newaxis]
 
     def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
@@ -425,7 +430,7 @@ class MovingWall(BaseBoundary):
             self._precompute()
 
         pdf_post = field.pdf
-        self._compute_wall_density(field.pdf, field.velocity)
+        self._compute_wall_density(field.pdf_pre, field.pdf, field.velocity)
 
         pdf_post[self.in_boundary] = (
             field.pdf_pre[self.out_boundary]

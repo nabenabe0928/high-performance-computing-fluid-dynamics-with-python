@@ -293,15 +293,16 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
             boundary_locations=rigid_boundary_locations
         )
 
+    freq = 1000
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if not scaling and (t == 0 or (t + 1) % 500 == 0):
+        if not scaling and (t + 1) % freq == 0:
             field.save_velocity_field(t + 1 if t else 0)
 
     # run LBM
     field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
 
     if not scaling:
-        visualize_velocity_field(dir_name, save=True, end=total_time_steps, freq=500)
+        visualize_velocity_field(dir_name, save=True, end=total_time_steps, freq=freq)
 
     if scaling and grid_manager.rank == 0:
         end = time.time()

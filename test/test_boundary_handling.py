@@ -29,7 +29,7 @@ class TestBoundaryHandling(unittest.TestCase):
             DirectionIndicators.LEFT,
             DirectionIndicators.RIGHT
         ]
-        self.wall_vel = np.array([50, 0])
+        self.wall_vel = np.array([0.5, 0])
         self.init_pbc_boundary = np.zeros((X, Y))
 
     def initial_set(self, omega: float = 0.5) -> LatticeBoltzmannMethod:

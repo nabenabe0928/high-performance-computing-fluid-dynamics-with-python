@@ -52,14 +52,6 @@ class LatticeBoltzmannMethod():
                 It allows this instance to know which location
                 the current process lies and which process it should communicate.
 
-            local_density_sum (float):
-                Local density sum for the computation of global density average
-                in the parallel settings.
-
-            global_density_average (float):
-                Global density average is computed in the process with the rank of 0
-                and each process receives this value from the process.
-
             recvbuf (List[np.ndarray]):
                 The array to receive arrays from other processes.
                 Since the communication direction are three types:
@@ -88,8 +80,6 @@ class LatticeBoltzmannMethod():
         assert 0 < omega < 2
         self._omega = omega
         self._viscosity = omega2viscosity(omega)
-        self.local_density_sum = 0.0
-        self.global_density_average = 0.0
         self.recvbuf = [
             np.zeros_like(self.pdf_pre[:, 0, ...]),
             np.zeros_like(self.pdf_pre[0, ...]),
@@ -287,11 +277,8 @@ class LatticeBoltzmannMethod():
 
         if self.is_parallel():
             self._communicate_for_pdf()
-            self._communicate_for_density()
             # Wait for all the communications
             self.grid_manager.comm.Barrier()
-        else:
-            self.global_density_average = float(self.density.mean())
 
         self._pdf = deepcopy(self.pdf_pre)
         self.update_pdf()
@@ -326,35 +313,6 @@ class LatticeBoltzmannMethod():
                 self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,
                                                      recvbuf=self.recvbuf[2], source=neighbor)
                 self.pdf_pre[recvidx[0], recvidx[1], ...] = self.recvbuf[2]
-
-    def _communicate_for_density(self) -> None:
-        x_start, x_end = self.grid_manager.x_valid_slice
-        y_start, y_end = self.grid_manager.y_valid_slice
-
-        self.local_density_sum = self.density[x_start:x_end, y_start:y_end].sum()
-        self.global_density_average = 0.0
-
-        sendbuf = np.ones(1, dtype=np.float64) * self.local_density_sum
-        recvbuf = None
-        if self.grid_manager.rank == 0:  # compute average in the process of the rank 0
-            recvbuf = np.empty([self.grid_manager.size, 1], dtype=np.float64)
-
-        # gather local sums in the process of the rank 0
-        self.grid_manager.comm.Gather(sendbuf, recvbuf, root=0)
-
-        sendbuf = None
-        n_grids = self.grid_manager.global_grid_size[0] * self.grid_manager.global_grid_size[1]
-
-        if self.grid_manager.rank == 0:
-            assert recvbuf is not None
-            # compute the global average in the process of the rank 0
-            self.global_density_average = recvbuf.sum() / n_grids
-            sendbuf = np.ones([self.grid_manager.size, 1], dtype=np.float64) * self.global_density_average
-
-        recvbuf = np.empty(1, dtype=np.float64)
-        self.grid_manager.comm.Scatter(sendbuf, recvbuf, root=0)
-
-        self.global_density_average = recvbuf[0]
 
     def save_velocity_field(self, t: int) -> None:
         """
