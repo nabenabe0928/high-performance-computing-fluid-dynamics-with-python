@@ -60,6 +60,8 @@ class ExperimentVariables(AttrDict):
     init_density: np.ndarray
     init_velocity: np.ndarray
     omega: float
+    scaling_test: bool
+    save: bool
     epsilon: Optional[float]
     rho0: Optional[float]
     mode: Optional[str]
@@ -93,6 +95,7 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
     # Initialization
     lattice_grid_shape = experiment_vars.lattice_grid_shape
     mode = experiment_vars.mode
+    save = experiment_vars.save
 
     if mode == 'density':
         eps, rho0 = experiment_vars.epsilon, experiment_vars.rho0
@@ -117,7 +120,7 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
     subj = f'sinusoidal_{mode}'
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if visualize and (t == 0 or (t + 1) % 100 == 0):
+        if save and visualize and (t == 0 or (t + 1) % 100 == 0):
             make_directories_to_path(f'log/{subj}/npy/')
             np.save(f'log/{subj}/npy/density{t + 1 if t else 0:0>6}.npy', field.density)
             np.save(f'log/{subj}/npy/v_abs{t + 1 if t else 0:0>6}.npy', field.velocity[..., 0])
@@ -125,18 +128,24 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
     field = get_field(experiment_vars)
     # run LBM
     field(total_time_steps, proc=proc)
-    if visualize:
+    if save and visualize:
         visualize_velocity_plot(subj, save=True, end=total_time_steps, bounds=v_bounds)
         visualize_density_plot(subj, save=True, end=total_time_steps, bounds=d_bounds)
         return None
-    else:
-        X, Y = field.lattice_grid_shape
+    elif save:
+        X, _ = field.lattice_grid_shape
         viscs = viscosity_equation(total_time_steps, eps, field.velocity[X // 2, :, 0])
         viscs = np.array([visc for visc in viscs if 0 < visc < 10])
         return float(np.mean(viscs))
+    
+    return None
 
 
 def sinusoidal_viscosity(experiment_vars: ExperimentVariables) -> None:
+    save = experiment_vars.save
+    if not save:
+        raise ValueError("sinusoidal_viscosity() runs only when save = True.")
+
     n_runs = 20
     visc_sim, visc_truth = [], []
     subj = f'sinusoidal_{experiment_vars.mode}'
@@ -160,6 +169,7 @@ def sinusoidal_viscosity(experiment_vars: ExperimentVariables) -> None:
 
 
 def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> None:
+    save = experiment_vars.save
 
     # Initialization
     velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
@@ -176,16 +186,20 @@ def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> Non
     )
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if t == 0 or (t + 1) % 100 == 0:
+        if save and (t == 0 or (t + 1) % 100 == 0):
             make_directories_to_path('log/couette_flow/npy/')
             np.save(f'log/couette_flow/npy/v_x{t + 1 if t else 0 :0>6}.npy', field.velocity[..., 0])
 
     # run LBM
     field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
-    visualize_couette_flow(wall_vel=experiment_vars.wall_vel, save=True, end=total_time_steps)
+
+    if save:
+        visualize_couette_flow(wall_vel=experiment_vars.wall_vel, save=True, end=total_time_steps)
 
 
 def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> None:
+    save = experiment_vars.save
+
     # Initialization
     velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
     field = get_field(experiment_vars)
@@ -204,7 +218,7 @@ def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> 
     )
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if t == 0 or (t + 1) % 100 == 0:
+        if save and (t == 0 or (t + 1) % 100 == 0):
             make_directories_to_path('log/poiseuille_flow/npy/')
             np.save(f'log/poiseuille_flow/npy/v_x{t + 1 if t else 0:0>6}.npy', field.velocity[..., 0])
             np.save(f'log/poiseuille_flow/npy/density{t + 1 if t else 0:0>6}.npy', field.density)
@@ -216,10 +230,14 @@ def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> 
         out_density_factor=experiment_vars.out_density_factor,
         in_density_factor=experiment_vars.in_density_factor
     )
-    visualize_poiseuille_flow(params, save=True, end=total_time_steps)
+
+    if save:
+        visualize_poiseuille_flow(params, save=True, end=total_time_steps)
 
 
 def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
+    save = experiment_vars.save
+
     # Initialization
     velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
     X, Y = experiment_vars.lattice_grid_shape
@@ -247,7 +265,7 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
     )
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if t == 0 or (t + 1) % 100 == 0:
+        if save and (t == 0 or (t + 1) % 100 == 0):
             path = f'log/{dir_name}/npy/'
             make_directories_to_path(path)
             np.save(f'{path}v_abs{t + 1 if t else 0:0>6}.npy', np.linalg.norm(field.velocity, axis=-1))
@@ -256,10 +274,13 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
 
     # run LBM
     field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
-    visualize_velocity_field(subj=dir_name, save=True, end=total_time_steps)
+
+    if save:
+        visualize_velocity_field(subj=dir_name, save=True, end=total_time_steps)
 
 
 def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
+    save = experiment_vars.save
 
     # Initialization
     scaling = experiment_vars.scaling_test
@@ -296,13 +317,13 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
     freq = 5000
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if not scaling and (t + 1) % freq == 0:
+        if save and not scaling and (t + 1) % freq == 0:
             field.save_velocity_field(t + 1 if t else 0)
 
     # run LBM
     field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
 
-    if not scaling:
+    if save and not scaling:
         visualize_velocity_field(dir_name, save=True, start=freq, end=total_time_steps + 1, freq=freq)
 
     if scaling and grid_manager.rank == 0:
