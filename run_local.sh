@@ -1,9 +1,26 @@
-python -m run_experiment -E cf -T 1600 -S 50 -W 0.5 --omega 0.35
-python -m run_experiment -E pf -T 5000 -S 50 -I 0.301 -O 0.300 --omega 0.70
-python -m run_experiment -E se -T 3000 -S 50 --eps 0.08 --rho 0.5 --omega 1.0 -S 50 --mode d
-python -m run_experiment -E se -T 3000 -S 50 --eps 0.08 --omega 1.0 -S 50 --mode v
-python -m run_experiment -E sv -T 3000 -S 50 --eps 0.08 --omega 1.0 -S 50 --mode v
-python -m run_experiment -E sv -T 3000 -S 50 --eps 0.08 --rho 0.5 --omega 1.0 -S 50 --mode d
+cmd="python -m run_experiment -E cf -T 1600 -S 50 -W 0.5 --omega 0.35"
+echo $cmd
+$cmd
+
+cmd="python -m run_experiment -E pf -T 5000 -S 50 -I 0.301 -O 0.300 --omega 0.70"
+echo $cmd
+$cmd
+
+cmd="python -m run_experiment -E se -T 3000 -S 50 --eps 0.08 --rho 0.5 --omega 1.0 -S 50 --mode d"
+echo $cmd
+$cmd
+
+cmd="python -m run_experiment -E se -T 3000 -S 50 --eps 0.08 --omega 1.0 -S 50 --mode v"
+echo $cmd
+$cmd
+
+cmd="python -m run_experiment -E sv -T 3000 -S 50 --eps 0.08 --omega 1.0 -S 50 --mode v"
+echo $cmd
+$cmd
+
+cmd="python -m run_experiment -E sv -T 3000 -S 50 --eps 0.08 --rho 0.5 --omega 1.0 -S 50 --mode d"
+echo $cmd
+$cmd
 
 # The minimum possible viscosity
 T=100000

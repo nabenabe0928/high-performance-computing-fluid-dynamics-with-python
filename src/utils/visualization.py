@@ -252,23 +252,17 @@ def visualize_quantity_vs_time(quantities: np.ndarray, quantity_name: str,
 def visualize_proc_vs_MLUPS(save: bool = False, format: str = 'pdf') -> None:
     dir_name = "log/sliding_lid_W0.10_visc0.03_size300/"
 
-    file_names = [
-        'MLUPS_vs_proc_without_bottleneck.csv',
-        'MLUPS_vs_proc.csv'
-    ]
-    cols = ['red', 'blue']
-    labels = ['Without a bottleneck part', 'With a bottleneck part']
+    file_name = 'MLUPS_vs_proc.csv'
+    col = 'red'
 
-    for file_name, col, label in zip(file_names, cols, labels):
-        file_path = f"{dir_name}{file_name}"
+    file_path = f"{dir_name}{file_name}"
 
-        with open(file_path, 'r') as f:
-            reader = list(csv.reader(f, delimiter=','))
-            procs = np.array([int(row[0]) for row in reader])
-            mlups = np.array([float(row[1]) / 1e6 for row in reader])
+    with open(file_path, 'r') as f:
+        reader = list(csv.reader(f, delimiter=','))
+        procs = np.array([int(row[0]) for row in reader])
+        mlups = np.array([float(row[1]) / 1e6 for row in reader])
 
-        plt.plot(procs, mlups, marker='x', label=label, color=col)
-
+    plt.plot(procs, mlups, marker='x', color=col)
     plt.xlabel('# of processes')
     plt.ylabel('MLUPS')
     plt.xscale('log')

@@ -293,7 +293,7 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
             boundary_locations=rigid_boundary_locations
         )
 
-    freq = 1000
+    freq = 5000
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if not scaling and (t + 1) % freq == 0:
             field.save_velocity_field(t + 1 if t else 0)
