@@ -45,16 +45,16 @@ $ pip install -r requirements.txt
 
 ```
 # The experiments except the scaling test
-$ ./run_local.sh
+$ ./run_scripts/run_local.sh
 
 # The scaling test (computations that require only 1 node)
-$ ./run_on_cluster_manually.sh
+$ ./run_scripts/run_on_cluster_manually.sh
 
 # The scaling test (computations that require more than 1 node)
-$ ./run_on_cluster.sh
+$ ./run_scripts/run_on_cluster.sh
 ```
 
-Note that `./run_local.sh` includes the sliding lid simulation with the lattice shape of `300 x 300`
+Note that `./run_scripts/run_local.sh` includes the sliding lid simulation with the lattice shape of `300 x 300`
 and you might want to avoid these computations.
 
 # Structure
