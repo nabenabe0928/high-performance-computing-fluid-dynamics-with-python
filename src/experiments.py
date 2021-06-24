@@ -303,7 +303,7 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
     field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
 
     if not scaling:
-        visualize_velocity_field(dir_name, save=True, end=total_time_steps, freq=freq)
+        visualize_velocity_field(dir_name, save=True, start=freq, end=total_time_steps + 1, freq=freq)
 
     if scaling and grid_manager.rank == 0:
         end = time.time()
