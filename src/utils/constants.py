@@ -145,7 +145,7 @@ class DirectionIndicators(IntEnum):
             return True
         else:
             return False
-    
+
     def is_sameside(self, dir: 'DirectionIndicators') -> bool:
         if self.is_right() and dir.is_right():
             return True

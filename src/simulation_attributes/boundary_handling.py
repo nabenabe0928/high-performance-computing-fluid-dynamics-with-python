@@ -303,7 +303,7 @@ class RigidWall(BaseBoundary):
         pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
 
 
-def dir2coef(wall: DirectionIndicators, dir: DirectionIndicators, equilibrium: bool = False) -> None:
+def dir2coef(wall: DirectionIndicators, dir: DirectionIndicators, equilibrium: bool = False) -> float:
     if dir.is_opposite(wall):
         return 0.0
     elif dir.is_sameside(wall):
@@ -362,7 +362,7 @@ class MovingWall(BaseBoundary):
     def wall_vel(self) -> None:
         """ The velocity of the wall """
         raise NotImplementedError("wall_vel is not supposed to change from outside.")
-    
+
     @property
     def wall_density(self) -> np.ndarray:
         """ The density at the wall """
@@ -395,7 +395,7 @@ class MovingWall(BaseBoundary):
             self._weighted_vel_dot_wall_vel6[:, :, out_idx] = 6 * w * (v @ self.wall_vel)
 
         self._finish_precompute = True
-    
+
     def _compute_wall_density(self, pdf_pre: np.ndarray, pdf: np.ndarray, vel: np.ndarray) -> None:
         """
         The computation of the average density at the wall follows the following literatures:
