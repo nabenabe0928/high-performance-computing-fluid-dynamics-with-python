@@ -343,7 +343,7 @@ class MovingWall(BaseBoundary):
         self._weighted_vel_dot_wall_vel6 = np.array([])
         self._wall_vel = wall_vel  # shape (2, )
         self._finish_precompute = False
-        self._wall_density = np.zeros((*field.lattice_grid_shape, 9))
+        self._wall_density = np.ones((*field.lattice_grid_shape, 9))
 
         if len(boundary_locations) != 1:
             raise ValueError("Moving wall only supports one moving wall, but got {} directions".format(
@@ -426,11 +426,20 @@ class MovingWall(BaseBoundary):
             self._wall_density[:, 0, ...] = wall_density[:, np.newaxis]
 
     def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
+        """
+        There are two ways to compute the wall density:
+            1. Extrapolation as in _compute_wall_density()
+            2. Average density
+                In this case, the total mass is preverved,
+                so always the initial average density.
+        
+        We use 2. in this implementation for more stability.
+        """
         if not self._finish_precompute:
             self._precompute()
 
         pdf_post = field.pdf
-        self._compute_wall_density(field.pdf_pre, field.pdf, field.velocity)
+        # self._compute_wall_density(field.pdf_pre, field.pdf, field.velocity)
 
         pdf_post[self.in_boundary] = (
             field.pdf_pre[self.out_boundary]
