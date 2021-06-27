@@ -1,4 +1,25 @@
 \chapter{Lattice Boltzmann method}
+\vspace{-5mm}
+In this chapter, we describe how LBM is derived
+and how we implement LBM.
+More specifically, we first explain
+{\bf Boltzmann transport equation (BTE)}, i.e.
+the basic equations of the kinetic theory of gases and
+how we discretize.
+Then, we discuss each component of LBM.
+Finally, we show how LBM can be parallelized.
+
+\section{Discretization of BTE}
+
+\section{Moments update}
+
+\section{Boundary handling}
+\subsection{Rigid wall}
+
+\subsection{Moving wall}
+
+\subsection{Periodic boundary condition}
+
 
 \begin{figure}[h!]
   \begin{center}
@@ -8,44 +29,17 @@
   \end{center}
 \end{figure}
 
-\section{Section title}
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \\ Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-id convallis magna eros nec metus. Sed vel ligula justo, sit amet vestibulum dolor. Sed vitae augue sit amet magna ullamcorper suscipit. Quisque dictum ipsum a sapien egestas facilisis.
-
-\begin{table}[ht]
-\caption{Sample table} % title of Table
-\centering % used for centering table
-\begin{tabular}{c c c c}
-% centered columns (4 columns)
-\hline\hline %inserts double horizontal lines
-S. No. & Column\#1 & Column\#2 & Column\#3 \\ [0.5ex]
-% inserts table
-%heading
-\hline % inserts single horizontal line
-1 & 50 & 837 & 970 \\
-2 & 47 & 877 & 230 \\
-3 & 31 & 25 & 415 \\
-4 & 35 & 144 & 2356 \\
-5 & 45 & 300 & 556 \\ [1ex] % [1ex] adds vertical space
-\hline %inserts single line
-\end{tabular}
-\label{table:nonlin} % is used to refer this table in the text
-\end{table}
-
-\section{Code listing}
-
-here we provide a short example of code listing. For further information you can take look here:
-
-\texttt{https://www.overleaf.com/learn/latex/code\_listing}
-
-This is just meant to used if you think that there is some relevant part of code to be shown. Please do not append your whole implementation in the report.
-\begin{lstlisting}[language=Python]
-import numpy as np
-    
-def incmatrix(genl1,genl2):
-    m = len(genl1)
-    n = len(genl2)
-    M = None #to become the incidence matrix
-    VT = np.zeros((n*m,1), int)  #dummy variable
-
-\end{lstlisting}
+\begin{algorithm}[tb]
+  \caption{The name of Algorithm}
+  \label{alg:label}
+  \begin{algorithmic}[1]
+    \Statex{$f$} \Comment{objective function}
+    \Function{test}{}
+    \For{$i= 0, 1, \dots$}
+    \If{condition}
+    \State{process} \Comment{comment}
+    \EndIf
+    \EndFor
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}

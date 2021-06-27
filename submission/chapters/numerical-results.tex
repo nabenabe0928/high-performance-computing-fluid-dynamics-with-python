@@ -1,10 +1,12 @@
 \chapter{Numerical results}
+\vspace{-5mm}
 In the previous chapter, we discuss the implementation detail
 and how we implement and apply LBM to various settings.
 In this chapter, we show the visualizations and numerical results
 obtained from the series experiments.
 
-\section{Shear wave decay}
+\section{Validation experiments}
+\subsection{Shear wave decay}
 
 \begin{figure}[tb]
   \begin{center}
@@ -157,7 +159,11 @@ obtained from the series experiments.
   \end{aligned}
 \end{equation}
 
-\section{Couette flow}
+\subsection{Couette flow}
+
+\subsubsection{Problem settings}
+
+\subsubsection{Visualizations}
 
 \begin{figure}[tb]
   \begin{center}
@@ -194,7 +200,11 @@ obtained from the series experiments.
 \end{figure}
 
 
-\section{Poiseuille flow}
+\subsection{Poiseuille flow}
+
+\subsubsection{Problem settings}
+
+\subsubsection{Visualizations}
 
 \begin{figure}[tb]
   \begin{center}
@@ -235,9 +245,10 @@ obtained from the series experiments.
   \end{center}
 \end{figure}
 
-\section{Flow in box with Sliding lid}
-\subsection{}
+\section{Concrete example (lid-driven cavity)}
+\subsection{Problem settings}
 
+\subsection{Visualizations}
 \begin{figure}[tb]
   \begin{center}
     \subfloat[$t = 5000$]{
@@ -250,7 +261,7 @@ obtained from the series experiments.
       \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow050000.pdf}
     }
     \subfloat[$t = 100000$]{
-      \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow099500.pdf}
+      \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow095000.pdf}
     }\\
     \subfloat[$t = 5000$]{
       \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.20_visc0.06_size300/fig/vel_flow005000.pdf}
@@ -262,7 +273,7 @@ obtained from the series experiments.
       \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.20_visc0.06_size300/fig/vel_flow050000.pdf}
     }
     \subfloat[$t = 100000$]{
-      \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.20_visc0.06_size300/fig/vel_flow099500.pdf}
+      \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.20_visc0.06_size300/fig/vel_flow095000.pdf}
     }\\
     \subfloat[$t = 5000$]{
       \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.30_visc0.09_size300/fig/vel_flow005000.pdf}
@@ -274,7 +285,7 @@ obtained from the series experiments.
       \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.30_visc0.09_size300/fig/vel_flow050000.pdf}
     }
     \subfloat[$t = 100000$]{
-      \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.30_visc0.09_size300/fig/vel_flow099500.pdf}
+      \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.30_visc0.09_size300/fig/vel_flow095000.pdf}
     }\\
     \subfloat[$t = 5000$]{
       \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.40_visc0.12_size300/fig/vel_flow005000.pdf}
@@ -286,7 +297,7 @@ obtained from the series experiments.
       \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.40_visc0.12_size300/fig/vel_flow050000.pdf}
     }
     \subfloat[$t = 100000$]{
-      \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.40_visc0.12_size300/fig/vel_flow099500.pdf}
+      \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.40_visc0.12_size300/fig/vel_flow095000.pdf}
     }\\
     \caption{The stream plots of sliding lid
     with the lattice grid size of $(300, 300)$.
@@ -304,11 +315,14 @@ obtained from the series experiments.
   \end{center}
 \end{figure}
 
-\subsection{}
+\subsection{Scaling test}
 \begin{figure}
   \centering
   \includegraphics[width=0.68\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/scaling_test.pdf}
-  \caption{The scaling test of the sliding lid simulation. The grid size is $300 \times 300$.}
+  \caption{The scaling test of the sliding lid simulation.
+  The grid size is $300 \times 300$.
+  Note that both axes are log-scale.
+  }
   \label{fig:sliding-lid-scaling}
 \end{figure}
 

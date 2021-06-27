@@ -252,7 +252,7 @@ def visualize_quantity_vs_time(quantities: np.ndarray, quantity_name: str,
 def visualize_proc_vs_MLUPS(save: bool = False, format: str = 'pdf') -> None:
     dir_name = "log/sliding_lid_W0.10_visc0.03_size300/"
 
-    file_name = 'MLUPS_vs_proc.csv'
+    file_name = 'MLUPS_vs_proc_without_bottleneck.csv'
     col = 'red'
 
     file_path = f"{dir_name}{file_name}"
@@ -268,5 +268,5 @@ def visualize_proc_vs_MLUPS(save: bool = False, format: str = 'pdf') -> None:
     plt.xscale('log')
     plt.yscale('log')
     plt.grid()
-    plt.legend()
+    # plt.legend()
     show_or_save(path=f'log/sliding_lid_W0.10_visc0.03_size300/fig/scaling_test.{format}' if save else None)
