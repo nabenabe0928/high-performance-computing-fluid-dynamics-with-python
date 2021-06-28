@@ -22,6 +22,7 @@
 \usepackage{amsmath,tikz}
 \usepackage{lastpage}
 \usepackage{tcolorbox}
+\usepackage{cancel}
 \tcbuselibrary{breakable, skins, theorems}
 \newtheorem{theorem1}{Theorem}
 \newtheorem{theorem2}{Definition}
@@ -37,7 +38,12 @@
 \newcommand{\Break}{\textbf{break}}
 \newcommand{\Continue}{\textbf{continue}}
 
+\newcommand{\xv}{\boldsymbol{x}}
 \newcommand{\vv}{\boldsymbol{v}}
+\newcommand{\uv}{\boldsymbol{u}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\biggNorm}[1]{\biggl|\biggl| #1 \biggr|\biggr|}
+\newcommand{\pdtwo}[2]{\frac{\partial^2 #1}{\partial #2^2}}
 
 \usepackage{hyperref}
 \usepackage{graphicx}

@@ -6,7 +6,94 @@ In this chapter, we show the visualizations and numerical results
 obtained from the series experiments.
 
 \section{Validation experiments}
+In the physics simulation, it is always important
+to validate whether the implementation is correct
+\cite{}.
+Therefore, we first show how to validate the implementation
+using several examples.
+
 \subsection{Shear wave decay}
+The shear wave decay represents the time evolution of a
+velocity perturbation in the flow.
+Since the viscosity decays the velocity of the flow,
+the velocity converges to zero in the end.
+In order to obtain an analytical solution,
+we employ the following Navier-Stokes equations for incompressible fluid
+\cite{}:
+\begin{equation}
+  \begin{aligned}
+    \text{\bf
+      Navier-Stokes equation
+    }:&~ \pd{\uv}{t} = - (\uv \cdot \nabla)\uv
+    - \frac{1}{\rho} \nabla p
+    + \nu \nabla^2 \uv\\
+    \text{\bf
+      Conservation of mass
+    }: &~
+    \nabla \cdot \uv = 0
+  \end{aligned}
+\end{equation}
+where $p$ is the pressure and $\nu$ is 
+the kinematic viscosity.
+Note that we need to assume the following
+constraints to obtain the analytical solutions:
+\begin{equation}
+\begin{aligned}
+ || (\uv \cdot \nabla)\uv || \ll \biggNorm{\pd{\uv}{t}},
+  || \nabla p || \ll \biggNorm{\pd{\uv}{t}}
+\end{aligned}
+\end{equation}
+Then we can derive the following equation:
+\begin{equation}
+\begin{aligned}
+  \pd{\uv}{t} = \nu \nabla^2 \uv
+\end{aligned}
+\label{relaxed-ns-eq}
+\end{equation}
+Let $X, Y$ be the width and height of the box
+where we simulate the fluid flow
+and we set the following sinusoidal perturbation
+in the velocity as the initial condition:
+\begin{equation}
+\begin{aligned}
+  \uv(\xv, t = 0) =
+  \begin{bmatrix}
+    u_x(y, t = 0) \\
+    0 \\
+  \end{bmatrix}
+  =  
+  \begin{bmatrix}
+      a_0 \sin \frac{2\pi y}{Y} \\
+      0 \\
+    \end{bmatrix}
+\end{aligned}
+\label{shear-vel-init}
+\end{equation}
+Using Eq~(\ref{relaxed-ns-eq}) and Eq~(\ref{shear-vel-init}),
+the following analytical solution is derived:
+\begin{equation}
+\begin{aligned}
+  \pd{u_x(y, t)}{t} &= \nu \pdtwo{u_x(y, t)}{y} \\
+  \pd{a(t)}{t}v(y) &= \nu a(t) v^{(2)}(y) ~(u_x(y, t) \triangleq a(t)v(y) ) \\
+  \pd{a(t)}{t} \cancel{\sin \frac{2\pi y}{Y}}
+  &= -\nu a(t) \biggl(
+    \frac{2\pi y}{Y}
+  \biggr)^2
+  \cancel{\sin \frac{2\pi y}{Y}} ~\biggl(\because \frac{d^2 \sin bx}{dx^2} = -b^2 \sin bx
+  \biggr) \\
+  \therefore a(t) &= a_0 \exp\biggl(
+    -\nu \biggl(
+      \frac{2\pi y}{Y}
+    \biggr)^2 t
+  \biggr) \\
+  \implies u_x(y, t) &= 
+  a_0 \exp\biggl(
+    -\nu \biggl(
+      \frac{2\pi y}{Y}
+    \biggr)^2 t\biggr) \sin \frac{2\pi y}{Y}
+\end{aligned}
+\end{equation}
+
 
 \begin{figure}[tb]
   \begin{center}
