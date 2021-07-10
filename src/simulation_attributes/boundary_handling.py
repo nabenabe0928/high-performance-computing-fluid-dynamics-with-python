@@ -432,7 +432,7 @@ class MovingWall(BaseBoundary):
             2. Average density
                 In this case, the total mass is preverved,
                 so always the initial average density.
-        
+
         We use 2. in this implementation for more stability.
         """
         if not self._finish_precompute:

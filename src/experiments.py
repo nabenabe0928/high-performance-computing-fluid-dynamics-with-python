@@ -137,7 +137,7 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
         viscs = viscosity_equation(total_time_steps, eps, field.velocity[X // 2, :, 0])
         viscs = np.array([visc for visc in viscs if 0 < visc < 10])
         return float(np.mean(viscs))
-    
+
     return None
 
 
