@@ -275,6 +275,7 @@ def visualize_proc_vs_MLUPS(save: bool = False, format: str = 'pdf') -> None:
     plt.plot(procs, mlups, marker='x', color=col)
     plt.xlabel('# of processes')
     plt.ylabel('MLUPS')
+    plt.ylim(1., 100)
     plt.xscale('log')
     plt.yscale('log')
     plt.grid()
