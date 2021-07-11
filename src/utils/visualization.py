@@ -131,22 +131,32 @@ def visualize_density_plot(subject: str, save: bool = False, format: str = 'pdf'
         show_or_save(path=f'log/{subject}/fig/density{t:0>6}.{format}' if save else None)
 
 
-def visualize_velocity_plot(subject: str, save: bool = False, format: str = 'pdf', start: int = 0,
-                            freq: int = 100, end: int = 100001, cmap: Optional[str] = None,
+def visualize_velocity_plot(subject: str, epsilon: float, visc: float, save: bool = False,
+                            format: str = 'pdf', start: int = 0, freq: int = 100,
+                            end: int = 100001, cmap: Optional[str] = None, 
                             bounds: Optional[np.ndarray] = None) -> None:
 
     assert bounds is not None
     buf = (bounds[1] - bounds[0]) * 0.1
+
+    def analytical_sol(t: int, y: np.ndarray, Y: int) -> float:
+        ly = 2.0 * np.pi / Y
+        return epsilon * np.exp(- visc * ly ** 2 * t) * np.sin(ly * y)
+
     for t in range(start, end, freq):
         v_abs_file_name = f'log/{subject}/npy/v_abs{t:0>6}.npy'
         v = np.load(v_abs_file_name)
         X, Y = v.shape
+        y = np.arange(Y)
 
         plt.close('all')
         plt.figure(figsize=(5, 3))
         plt.xlim(0, Y)
         plt.ylim(bounds[0] - buf, bounds[1] + buf)
-        plt.plot(np.arange(Y), v[X // 2, :])
+        plt.plot(y, v[X // 2, :], label='Simulated Result')
+        plt.plot(y, analytical_sol(t, y, Y), label='Analytical Solution')
+        if t == 0:
+            plt.legend()
         show_or_save(path=f'log/{subject}/fig/vel{t:0>6}.{format}' if save else None)
 
 
