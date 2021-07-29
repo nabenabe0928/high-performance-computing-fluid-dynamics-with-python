@@ -1,0 +1,243 @@
+\chapter{Implementation}
+\vspace{-5mm}
+In this chapter, we describe how the LBM is implemented in Python
+and how to compute the LBM in parallel.
+All the implementation is assuming that
+the physical domain is discretized by D2Q9
+and the horizontal axis is $x$ and 
+the vertical axis is $y$, respectively.
+Since the most important
+Note that entire codes are based on
+Numpy\footnote{Numpy: https://numpy.org/}
+and mpi4py\footnote{mpi4py: https://mpi4py.readthedocs.io/en/stable/}.
+
+\section{Main routine}
+Algorithm~\ref{alg:lattice-boltzmann-method-algorithm}
+shows the pseudocode of the main processing in the LBM.
+Recall that $f(\xv, t)$.shape = $(X, Y, 9)$,
+$\rho(\xv, 0)$.shape = $(X, Y)$ and $\uv(\cdot, 0)$.shape = $(X, Y, 2)$, 
+Note that the order of each step might vary depending on literature\cite{}.
+First, we provide the initial values for the density and the velocity.
+Then, we compute the probability function and equillibrium and
+apply the collision step.
+The equillibrium implementation is shown in Algorithm~\ref{alg:equillibrium-algorithm}.
+After applying equillibrium, we perform
+streaming operation shown in Algorithm~\ref{alg:streaming-algorithm}
+and slide each quantity to the adjacent cells.
+Finally, we apply the boundary handling at each boundary cell as 
+described in Algorithm~\ref{alg:boundary-conditions-algorithm}
+and update the density and the velocity as in Eq~\ref{}.
+Note that we use as much slicing as possible in 
+Algorithms to speed up the runtime as much as possible.
+
+The Algorithm~\ref{alg:streaming-algorithm} uses
+the numpy.roll operation that enables
+to handle periodic boundary conditions automatically.
+This function rolls the array in the following manner:
+\begin{equation}
+\begin{aligned}
+  \text{np.roll}(f[x][y][i], \text{shift}=\cv_i, \text{axis}=(0, 1)) =
+  f[nx][ny][i] \\
+  \text{where }
+  nx = (x + \cv_i[0]) \% X,
+  ny = (y + \cv_i[1]) \% Y
+\end{aligned}
+\end{equation}
+where $i$ is the direction index in D2Q9 and $\cv_i$ is the vector
+that specifies the $i$-th direction in D2Q9.
+In the Algorithm~\ref{alg:boundary-conditions-algorithm},
+we use boolean matrices in\_boundary and out\_boundary
+that have the shape of $(X, Y, 9)$ so that 
+we can refer to only elements that have bounce back or collision
+with the boundary.
+Additionally, we compute $\rho_w$ by the average density in Eq~\ref{}.
+Note that the domain is extended with virtual nodes 
+at both edges of the periodic boundary in the PBC with pressure variation
+so that the implementation is more straightforward. 
+
+
+\begin{algorithm}[tb]
+  \caption{The main routine of the lattice Boltzmann method}
+  \label{alg:lattice-boltzmann-method-algorithm}
+  \begin{algorithmic}[1]
+    \Statex{The grid size: $X, Y$,
+    Relaxation factor : $\omega$,
+    Initial velocity: $\uv_0$,
+    Initial density: $\rho_0$
+    } \Comment{Inputs}
+    \Statex{Boundary conditions}
+    \Function{lattice boltzmann method}{}
+    \State{$\rho(\xv, 0) = \rho_0, \uv(\xv, 0) = \uv_0$ for all $\xv \in [0, X) \times [0, Y)$}
+    \For{$t= 0, 1, \dots$}
+    \State{$\feq(\cdot, t),f^\star(\cdot, t)$ = equillibrium($f(\cdot, t), \rho(\cdot, t), \uv(\cdot, t)$)}
+    \Comment{Eq~\ref{}}
+    \State{$f^\star$ = $f + \omega (\feq - f)$}
+    \Comment{Eq~\ref{}}
+    \State{$f^\star(\cdot + \cv \dt, t)$ =streaming($f(\cdot, t), \feq(\cdot, t)$)}
+    \Comment{Eq~\ref{}}
+    \State{$f(\cdot, t + 1)$ = boundary\_handling($f^\star(\cdot, t),\feq(\cdot, t),\text{**kwargs}$)}
+    \Comment{Eq~\ref{}}
+    \State{$\rho(\cdot, t + 1), \uv(\cdot, t + 1)$=moments\_update($f(\cdot, t + 1)$)}
+    \Comment{Eq~\ref{}}
+    \EndFor
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[tb]
+  \caption{Equillibrium}
+  \label{alg:equillibrium-algorithm}
+  \begin{algorithmic}[1]
+    \Statex{w = $ \text{np.array([}
+    \frac{4}{9}, \frac{1}{9}, \frac{1}{9}, 
+    \frac{1}{9}, \frac{1}{9}, \frac{1}{36}, 
+    \frac{1}{36}, \frac{1}{36}, \frac{1}{36}
+    \text{])}$, c = $\cv$ in Eq~\ref{}}
+    \Function{equillibrium}{$\rho$ = $\rho(\cdot, t)$, u = $\uv(\cdot, t)$}
+    \Comment{$\uv$.shape = $(X, Y, 2)$, $\rho$.shape = $(X, Y)$}
+    \State{u\_norm2 = (u ** 2).sum(axis=-1)[..., None]}
+    \State{u\_at\_c = u @ c.T}
+    \Comment{u\_at\_c.shape = $(X, Y, 9)$}
+    \State{w\_tmp, $\rho$\_{tmp} = w[None, None, ...], $\rho$[..., None]}
+    \Comment{Adapt the shapes to u\_at\_c}
+    \State{$\feq$ = w\_tmp * $\rho$\_tmp * (1 + 3 * u\_at\_c + 4.5 * (u\_at\_c) ** 2)-1.5 * u\_norm2}
+    \State{{\bf return} $\feq$}
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[tb]
+  \caption{Streaming operation}
+  \label{alg:streaming-algorithm}
+  \begin{algorithmic}[1]
+    \Statex{c = $\cv$ in Eq~\ref{}}
+    \Function{streaming}{$f^\star$ = $f^\star(\cdot, t)$}
+    \State{$f^{\rm post}$ = np.zeros\_like($f^\star$)}
+    \For{$i= 0, 1, \dots, 8$}
+    \State{$f^{\rm post}[..., i]$=np.roll($f^\star$[..., i], shift=c[i], axis=(0, 1))}
+    \Comment{Slide $f^\star$ one step to c[i]}
+    \EndFor
+    \State{{\bf return} $f^{\rm post}$}
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[tb]
+  \caption{Boundary conditions}
+  \label{alg:boundary-conditions-algorithm}
+  \begin{algorithmic}[1]
+    \Statex{
+      Boolean matrix that represents
+      where we have the bounce back: in\_boundary
+    }
+    \Statex{
+      Boolean matrix that represents
+      where we have the collision: out\_boundary
+    }
+    \Statex{
+      The indices in D2Q9 s.t. the flow comes in
+      given boundaries: in\_indices
+    }
+    \Statex{
+      The indices in D2Q9 s.t. the flow goes out
+      given boundaries: out\_indices
+    }
+    \Function{boundary handlling}{$f^\star$ = $f^\star(\cdot, t)$,
+      $\feq$ = $\feq(\cdot, t)$}
+    \If{Rigid wall}
+    \State{$f$[in\_boundary] = $f^\star$[out\_boundary]}
+    \EndIf
+    \If{Moving wall}
+    \State{coef = np.zeros\_like(out\_boundary)}
+    \State{{\bf for} out\_idx, ci, wi in zip(out\_indices, c, w) {\bf do}}
+    \Indent
+    \State{coef[:, :, out\_idx] = 2 * wi * (ci @ $\uv_w$)} / c\_s ** 2
+    \EndIndent
+    \State{$f$[in\_boundary] = $f^\star$[out\_boundary]-$\rho_w$[out\_boundary] * coef[out\_boundary]}
+    \EndIf
+    \If{PBC with pressure variation}
+    \Comment{fluid flows from $x = 0$ to $X - 1$}
+    \State{$\feq_{\rm in}, \feq_{\rm out}$ = equilibrium($\rho_{\rm in}$, $\uv$[-2]), equilibrium($\rho_{\rm out}$, $\uv$[1])}
+    \State{$f^{\rm post}$[0][:,out\_indices]=$\feq_{\rm in}$[:,out\_indices]+($f$[-2][:,out\_indices]-$\feq$[-2][:,out\_indices])}
+    \State{$f^{\rm post}$[-1][:, in\_indices]=$\feq_{\rm out}$[:, in\_indices]+($f$[1][:, in\_indices] - $\feq$[1][:, in\_indices])}
+    \EndIf
+    \State{{\bf return} $f$}
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
+\section{Parallel computation by MPI}
+In order to process the LBM in parallel,
+we employ the spatial domain decomposition and
+the messaging passing interface (MPI)
+so that we can compute collision step of the LBM
+in parallel.
+Note that the collision step does not require
+any communication between processes.
+When we are provided the number of processes of $P$,
+we first factorize $P$ such that $P = P_0 \times P_1$
+where $P_0, P_1 \in \mathbb{Z}^{+}$
+and $P_0, P_1 = \text{arg} \min_{P_0, P_1}(|| P_1 - P_0 ||)$.
+Then, we divide the $x$-axis into $P_0$ intervals and
+$y$-axis into $P_1$ intervals where
+any pairs of intervals $I_{i}, I_{j}$ in a direction satisfies
+$-1 \leq || I_{i} || - ||I_{j}|| \leq 1$.
+Note that $||I||$ is the size of the interval $I$.
+This split of the domain achieves the most balanced distribution of
+the computation.
+For the streaming step, we need to consider particles
+moving from one process to another.
+We implement it using so-called {\bf ghost cells}
+around the actual computational domain.
+Figure~\ref{} shows the conceptual visualization of
+how each process communicate and ghost cells work.
+Since each process requires the four edges of adjacent
+processes, the commnications are required four times
+for each process.
+The Algorithm~\ref{alg:mpi-algorithm}
+shows the implementation using mpi4py.
+grid\_manager is our self-developed module
+that allows to get useful information related to
+process location, the adjacent relation and so on.
+Sendrecv function is used for the commnication and
+each process receives an array from dest that is sent
+by neighbor and sends sendbuf to neighbor.
+Note that buf is the abbreviation of buffer and
+it is literally used for the buffer to communicate data.
+
+
+\begin{algorithm}[tb]
+  \caption{The communication of
+  the particle probability density function}
+  \label{alg:mpi-algorithm}
+  \begin{algorithmic}[1]
+    \Statex{Process and lattice grids management: grid\_manager}
+    \Function{communication}{}
+    \State{{\bf for} dir in grid\_manager.neighbor\_directions {\bf do}}
+    \Comment{Iterate over the D2Q9 index}
+    \Indent
+    \State{dx, dy = $\cv_i$}
+    \State{sendidx = grid\_manager.step\_to\_idx(dx, dy, send=True)}
+    \State{recvidx = grid\_manager.step\_to\_idx(dx, dy, send=False)}
+    \State{neighbor = grid\_manager.get\_neighbor\_rank(dir)}
+    \If{dx == 0} \Comment{send to top and bottom}
+    \State{sendbuf = $f$[:, sendidx, ...].copy()}
+    \State{grid\_manager.rank\_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,}
+    \State{\hspace{56mm} recvbuf=recvbuf, source=neighbor)}
+    \State{$f$[:, recvidx, ...] = recvbuf}
+    \ElsIf{dy == 0} \Comment{send to left and right}
+    \State{sendbuf = $f$[sendidx, ...].copy()}
+    \State{grid\_manager.rank\_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,}
+    \State{\hspace{56mm} recvbuf=recvbuf, source=neighbor)}
+    \State{$f$[recvidx, ...] = recvbuf}
+    \Else
+    \State{sendbuf = $f$[sendidx[0], sendidx[1] ...].copy()}
+    \State{grid\_manager.rank\_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,}
+    \State{\hspace{56mm} recvbuf=recvbuf, source=neighbor)}
+    \State{$f$[recvidx[0], recvidx[1], ...] = recvbuf}
+    \EndIf
+    \EndIndent
+    \State{{\bf return} $f$}
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}

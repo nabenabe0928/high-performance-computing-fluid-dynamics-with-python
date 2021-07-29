@@ -234,11 +234,11 @@ either of the followings\cite{}:
 \end{enumerate}
 For the simplicity, we {\bf take the first solution}.
 
-\subsection{Periodic boundary conditions}
+\subsection{Periodic boundary conditions (PBC)}
 In this section, we assume that we have
 boundary at $x = 0~(\text{inlet}), X~(\text{outlet})$
 where $X$ is the number of the lattice grid in the $x$-axis.
-The most basic periodic boundary condition assumes that
+The most basic PBC assumes that
 the flow from outlet comes in from inlet as follows: 
 \begin{equation}
 \begin{aligned}
@@ -247,7 +247,7 @@ the flow from outlet comes in from inlet as follows:
 \end{equation}
 This condition is implicitly implemented during the streaming operation.
 
-Another periodic boundary condition handles
+Another PBC handles
 the pressure variation $\Delta p$ between inlet and outlet.
 Since the density $\rho$ is computed using the pressure $p$
 as $\rho = \frac{p}{c_s^2}$ where $c_s$ is the speed of sound,

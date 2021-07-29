@@ -36,8 +36,20 @@
 \algtext*{EndIf}
 \algtext*{EndProcedure}
 \algtext*{EndFunction}
+\algdef{SE}[SUBALG]{Indent}{EndIndent}{}{\algorithmicend\ }%
+\algtext*{Indent}
+\algtext*{EndIndent}
 \newcommand{\Break}{\textbf{break}}
 \newcommand{\Continue}{\textbf{continue}}
+
+\setlength{\textwidth}{160mm}
+\setlength{\textheight}{220mm}
+\setlength{\oddsidemargin}{-1mm}
+\setlength{\voffset}{-15mm}
+\setlength{\headsep}{10mm}
+
+\renewcommand{\_}{{\tiny \textunderscore}}
+% \renewcommand{\_}{{\fontsize{1pt}{1pt}\selectfont \textunderscore}}
 
 \newcommand{\xv}{\boldsymbol{x}}
 \newcommand{\vv}{\boldsymbol{v}}
@@ -133,6 +145,8 @@
 \input{chapters/introduction.tex}
 
 \input{chapters/lattice-boltzmann-method.tex}
+
+\input{chapters/implementation.tex}
 
 \input{chapters/numerical-results.tex}
 
