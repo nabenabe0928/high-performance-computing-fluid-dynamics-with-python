@@ -109,7 +109,7 @@ This simulation uses the sinusoidal density in $x$-direction:
 \end{aligned}
 \end{equation}
 
-\begin{figure}[tb]
+\begin{figure}[H]
   \begin{center}
     \subfloat[$t = 0$]{
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel000000.pdf}
@@ -153,53 +153,6 @@ This simulation uses the sinusoidal density in $x$-direction:
       set to $0.08$ and $1.0$ respectively.
       The relaxation term $\omega$ are set to $1.0$.
       \label{fig:sinusoidal-velocity}}
-  \end{center}
-\end{figure}
-
-\begin{figure}[tb]
-  \begin{center}
-    \subfloat[$t = 0$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density000000.pdf}
-    }
-    \subfloat[$t = 200$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density000200.pdf}
-    }
-    \subfloat[$t = 400$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density000400.pdf}
-    }
-    \subfloat[$t = 600$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density000600.pdf}
-    }\\
-    \subfloat[$t = 800$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density000800.pdf}
-    }
-    \subfloat[$t = 1000$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001000.pdf}
-    }
-    \subfloat[$t = 1200$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001200.pdf}
-    }
-    \subfloat[$t = 1400$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001400.pdf}
-    }\\
-    \subfloat[$t = 1600$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001600.pdf}
-    }
-    \subfloat[$t = 1800$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001800.pdf}
-    }
-    \subfloat[$t = 2000$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density002000.pdf}
-    }
-    \subfloat[$t = 2200$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density002200.pdf}
-    }\\
-    \caption{The density evolution for the sinusoidal density at
-      the $Y = 25$ in the lattice grid size of $(50, 50)$.
-      The coefficients $\epsilon$ and $\rho_0$ are 
-      set to $0.08$ and $0.5$ respectively.
-      The relaxation term $\omega$ are set to $1.0$.
-      \label{fig:sinusoidal-density}}
   \end{center}
 \end{figure}
 
@@ -256,7 +209,54 @@ Based on the results, smaller and larger $\omega$ lead to numerical instability.
 Otherwise, the simulated results and analytical solution fit perfectly.
 Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurate results.
 
-\begin{figure}[tb]
+\begin{figure}[H]
+  \begin{center}
+    \subfloat[$t = 0$]{
+      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density000000.pdf}
+    }
+    \subfloat[$t = 200$]{
+      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density000200.pdf}
+    }
+    \subfloat[$t = 400$]{
+      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density000400.pdf}
+    }
+    \subfloat[$t = 600$]{
+      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density000600.pdf}
+    }\\
+    \subfloat[$t = 800$]{
+      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density000800.pdf}
+    }
+    \subfloat[$t = 1000$]{
+      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001000.pdf}
+    }
+    \subfloat[$t = 1200$]{
+      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001200.pdf}
+    }
+    \subfloat[$t = 1400$]{
+      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001400.pdf}
+    }\\
+    \subfloat[$t = 1600$]{
+      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001600.pdf}
+    }
+    \subfloat[$t = 1800$]{
+      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001800.pdf}
+    }
+    \subfloat[$t = 2000$]{
+      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density002000.pdf}
+    }
+    \subfloat[$t = 2200$]{
+      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density002200.pdf}
+    }\\
+    \caption{The density evolution for the sinusoidal density at
+      the $Y = 25$ in the lattice grid size of $(50, 50)$.
+      The coefficients $\epsilon$ and $\rho_0$ are 
+      set to $0.08$ and $0.5$ respectively.
+      The relaxation term $\omega$ are set to $1.0$.
+      \label{fig:sinusoidal-density}}
+  \end{center}
+\end{figure}
+
+\begin{figure}[H]
   \begin{center}
     \subfloat[Sinusoidal density]{
       \includegraphics[width=0.48\textwidth]{../log/sinusoidal_density/fig/omega_vs_visc.pdf}
@@ -269,16 +269,25 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
   \end{center}
 \end{figure}
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.98\textwidth]{imgs/couette_and_poiseuille.pdf}
+  \caption{The conceptual visualizations of the Couette flow (Left) and
+  Poiseuille flow (Right).}
+  \label{couette-and-poiseuille-conceptual}
+\end{figure}
+
+
 \subsection{Couette flow}
-The Couette flow is the flow between two walls:
+The Couette flow is the flow between two walls as shown in Figure~\ref{couette-and-poiseuille-conceptual}:
 One is fixed and the other moves horizontally at the velocity of $U_w$.
 The flow is caused by the viscous drag force acting on the fluid.
 Since the Couette flow also has an analytical solution,
 we can validate the implementation of the moving wall.
-The analytical solution is given by:
+The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by:
 \begin{equation}
 \begin{aligned}
-  u_x(y) = - U_w \frac{y}{Y}
+  u_x(y) =\frac{Y - y}{Y}U_w
 \end{aligned}
 \end{equation}
 where $Y$ is the distance between the two walls
@@ -292,7 +301,8 @@ As shown in the figures, the flow velocity iteratively approaches
 the analytical solution and it perfectly fits in the end.
 From this experiment, the moving wall can be validated.
 
-\begin{figure}[tb]
+\newpage
+\begin{figure}[H]
   \begin{center}
     \subfloat[$t = 0$]{
       \includegraphics[width=0.44\textwidth]{../log/couette_flow/fig/couette_flow000000.pdf}
@@ -327,14 +337,15 @@ From this experiment, the moving wall can be validated.
   \end{center}
 \end{figure}
 
+\newpage
 \subsection{Poiseuille flow}
-The Poiseuille flow is the flow between two non-moving walls.
+The Poiseuille flow is the flow between two non-moving walls as shown in Figure~\ref{couette-and-poiseuille-conceptual}.
 The flow is caused by a constant pressure difference $\od{p}{x}$
 in the horizontal direction of the two walls.
 The Poiseuille flow also has the analytical solution
 and we can validate the implementation of the periodic boundary conditions
 with pressure variation.
-The analytical solution is given by:
+The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by:
 \begin{equation}
 \begin{aligned}
   u_x(y) = - \frac{1}{2\rho \nu} \od{p}{x} y (Y - y)
@@ -347,7 +358,7 @@ Figure~\ref{fig:poiseuille-velocity-evolution} presents the results
 and the simulated results approaches the analytical solutions as in the Couette flow.
 In the end, it fits completely.
 
-\begin{figure}[tb]
+\begin{figure}[H]
   \begin{center}
     \subfloat[$t = 0$]{
       \includegraphics[width=0.31\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow000000.pdf}
@@ -387,9 +398,10 @@ In the end, it fits completely.
   \end{center}
 \end{figure}
 
+\newpage
 \section{Lid-driven cavity}
 Finally, we handle a concrete example.
-In this paper, the lid-driven cavity are simulated.
+In this paper, the lid-driven cavity shown in Figure~\ref{lid-driven-cavity-conceptual} are simulated.
 The lid-driven cavity simulates the flow inside a box with
 three rigid walls and one moving wall, i.e. a lid.
 In this simulation, it is known that the turbulence is caused 
@@ -404,15 +416,22 @@ of the body and $U$ is the stream flow velocity.
 One key property of the Reynolds number is that two flow system
 is dynamically similar if the Reynolds number and the geometry are similar.
 Therefore, we present the results with various 
-viscosity $\nu$ and the wall velocity $U_w$ that 
-satisfy the Reynolds number of $1000$ under $L = 300$
+viscosity $\nu$ and the wall velocity $U = U_w$ that 
+satisfy the Reynolds number of $1000$ under $L = X = Y = 300$
 in Figure~\ref{fig:sliding-lid-velocity-evolution}.
 As the viscosity and velocity becomes larger,
 the convergence becomes quicker.
 On the other hand, all the settings converge to the similar flow in the end
 as indicated in the key property of the Reynolds number.
 
-\begin{figure}[tb]
+\begin{figure}
+  \centering
+  \includegraphics[width=0.68\textwidth]{imgs/lid-driven-cavity.pdf}
+  \caption{The conceptual visualizations of the lid-driven cavity.}
+  \label{lid-driven-cavity-conceptual}
+\end{figure}
+
+\begin{figure}[H]
   \begin{center}
     \subfloat[$t = 5000$]{
       \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow005000.pdf}
@@ -480,7 +499,8 @@ as indicated in the key property of the Reynolds number.
 \end{figure}
 
 This experiment requires long time to complete the experiments.
-For example, it takes 1 hour to finish one simulation in my local environment.
+For example, it takes 1 hour to finish one simulation using
+intel core i7--10700 and 32GB RAM.
 Recall that the advantage of LBM is that it allows us to compute the simulation in
 parallel easily.
 For this reason, we test the scalability of this simulation using
@@ -492,12 +512,12 @@ Ideally, the MLUPS grows linearly with respect to the number of processors.
 However, it does not happen because of the latency of the communication
 and the waiting for the synchronization.
 Such slow down is also seen in the results.
-
 \begin{figure}
   \centering
-  \includegraphics[width=0.68\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/scaling_test.pdf}
+  \includegraphics[width=0.58\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/scaling_test.pdf}
   \caption{The scaling test of the sliding lid simulation.
   The grid size is $300 \times 300$.
+  The number of processes are $1 ,4 ,9 ,16 ,25 ,36 ,100 ,144 ,225 ,400$ respectively.
   Note that both axes are log-scale.
     The viscosity and the wall velocity are set to $\nu = 0.03$ and $0.1$.
     The initial density is $\rho(\xv) = 1.0$ and the initial velocity is $\uv(\xv) = (0, 0)$.

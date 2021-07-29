@@ -1,0 +1,28 @@
+\chapter{Conclusions}
+In this paper, we describe what LBM is
+and how we implement it.
+Chapter 1 describes the motivation behind the numerical integrations
+and mentions that the advantages of LBM, i.e.
+simple implementation and the scalability with respect to the computational
+resources.
+
+Chapter 2 explains the theoretical aspects of LBM
+and how those equations are pluged in the simulation.
+Additionally, we show the algorithms of each component.
+Each algorithm in our implementation
+is tested using pytest and abstracted as much as possible
+so that each component can be reused and we can reduce
+the bugs over the whole implementations.
+
+Chapter 3 presents the validations of each component
+using the comparison between the analytical solutions
+and visualizes how LBM works in the lid-driven cavity
+example.
+For the validations, we use the shear wave decay, 
+the Couette flow and the Poissuille flow
+and show the analytical solutions for each phenomenon.
+After the validations, we show the lid-driven cavity simulation
+exhibits the similar dynamics when we have a constant Reynolds number.
+Furthermore, we test the scalability of 
+LBM in the lid-driven cavity simulation
+and show about the 30 times speed up using 100 processes.
