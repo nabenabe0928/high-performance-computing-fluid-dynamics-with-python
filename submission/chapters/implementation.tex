@@ -1,12 +1,11 @@
 \chapter{Implementation}
-\vspace{-5mm}
+\vspace{-8mm}
 In this chapter, we describe how the LBM is implemented in Python
 and how to compute the LBM in parallel.
 All the implementation is assuming that
 the physical domain is discretized by D2Q9
 and the horizontal axis is $x$ and 
 the vertical axis is $y$, respectively.
-Since the most important
 Note that entire codes are based on
 Numpy\footnote{Numpy: https://numpy.org/}
 and mpi4py\footnote{mpi4py: https://mpi4py.readthedocs.io/en/stable/}.
@@ -15,9 +14,8 @@ Throughout the chapter, {\tt numpy} is imported as {\tt np}.
 \section{Main routine}
 Algorithm~\ref{alg:lattice-boltzmann-method-algorithm}
 shows the pseudocode of the main processing in the LBM.
-Recall that $f(\xv, t)$.shape = $(X, Y, 9)$,
-$\rho(\xv, 0)$.shape = $(X, Y)$ and $\uv(\cdot, 0)$.shape = $(X, Y, 2)$, 
-Note that the order of each step might vary depending on literature\cite{}.
+Recall that $f(\cdot, t)$.shape = $(X, Y, 9)$,
+$\rho(\cdot, 0)$.shape = $(X, Y)$ and $\uv(\cdot, 0)$.shape = $(X, Y, 2)$.
 First, we provide the initial values for the density and the velocity.
 Then, we compute the probability function and equillibrium and
 apply the collision step.
@@ -28,8 +26,9 @@ and slide each quantity to the adjacent cells.
 Finally, we apply the boundary handling at each boundary cell as 
 described in Algorithm~\ref{alg:boundary-conditions-algorithm}
 and update the density and the velocity as in Eq~\ref{}.
-Note that we use as much slicing as possible in 
-Algorithms to speed up the runtime as much as possible.
+Note that the order of each step might vary depending on literature\cite{timm2016lattice, succi2018lattice}.
+Additionally, we use as much slicing as possible in the Algorithms
+in order to speed up the runtime.
 
 The Algorithm~\ref{alg:streaming-algorithm} uses
 the {\tt np.roll} operation that enables
@@ -51,7 +50,7 @@ we use boolean matrices {\tt in\_boundary} and {\tt out\_boundary}
 that have the shape of $(X, Y, 9)$ so that 
 we can refer to only elements that have bounce back or collision
 with the boundary.
-Additionally, we compute $\rho_w$ by the average density in Eq~\ref{}.
+Additionally, we compute $\rho_w$ by the average density\cite{khajepor2019study}.
 Note that the domain is extended with virtual nodes 
 at both edges of the periodic boundary in the PBC with pressure variation
 so that the implementation is more straightforward. 
@@ -70,16 +69,16 @@ so that the implementation is more straightforward.
     \Function{lattice boltzmann method}{}
     \State{$\rho(\xv, 0) = \rho_0, \uv(\xv, 0) = \uv_0$ for all $\xv \in [0, X) \times [0, Y)$}
     \For{$t= 0, 1, \dots$}
-    \State{$\feq(\cdot, t),f^\star(\cdot, t)$ = equillibrium($f(\cdot, t), \rho(\cdot, t), \uv(\cdot, t)$)}
-    \Comment{Eq~\ref{}}
+    \State{$\feq(\cdot, t)$ = equillibrium($\rho(\cdot, t), \uv(\cdot, t)$)}
+    \Comment{Eq~(\ref{discretized-eq})}
     \State{$f^\star$ = $f + \omega (\feq - f)$}
-    \Comment{Eq~\ref{}}
-    \State{$f^\star(\cdot + \cv \dt, t)$ =streaming($f(\cdot, t), \feq(\cdot, t)$)}
-    \Comment{Eq~\ref{}}
-    \State{$f(\cdot, t + 1)$ = boundary\_handling($f^\star(\cdot, t),\feq(\cdot, t),\text{**kwargs}$)}
-    \Comment{Eq~\ref{}}
+    \Comment{Eq~(\ref{discretized-streaming})}
+    \State{$f^\star(\cdot, t)$ =streaming($f^\star(\cdot, t)$)}
+    \Comment{Eq~(\ref{discretized-streaming})}
+    \State{$f(\cdot, t + 1)$ = boundary\_handling($f^\star(\cdot, t),\feq(\cdot, t)$)}
+    \Comment{Eq~(\ref{discretized-rigid-wall}), (\ref{discretized-moving-wall}), (\ref{discretized-pbc-pressure})}
     \State{$\rho(\cdot, t + 1), \uv(\cdot, t + 1)$=moments\_update($f(\cdot, t + 1)$)}
-    \Comment{Eq~\ref{}}
+    \Comment{Eq~(\ref{discretized-density}), (\ref{discretized-velocity})}
     \EndFor
     \EndFunction
   \end{algorithmic}
@@ -89,17 +88,17 @@ so that the implementation is more straightforward.
   \caption{Equillibrium}
   \label{alg:equillibrium-algorithm}
   \begin{algorithmic}[1]
-    \Statex{w = $ \text{np.array([}
+    \Statex{$\wv = \text{np.array([}
     \frac{4}{9}, \frac{1}{9}, \frac{1}{9}, 
     \frac{1}{9}, \frac{1}{9}, \frac{1}{36}, 
     \frac{1}{36}, \frac{1}{36}, \frac{1}{36}
-    \text{])}$, c = $\cv$ in Eq~\ref{}}
-    \Function{equillibrium}{$\rho$ = $\rho(\cdot, t)$, u = $\uv(\cdot, t)$}
+    \text{])}$, $\cv$ in Eq~\ref{d2q9-velocity}}
+    \Function{equillibrium}{$\rho$ = $\rho(\cdot, t)$, $\uv$ = $\uv(\cdot, t)$}
     \Comment{$\uv$.shape = $(X, Y, 2)$, $\rho$.shape = $(X, Y)$}
-    \State{u\_norm2 = (u ** 2).sum(axis=-1)[..., None]}
-    \State{u\_at\_c = u @ c.T}
+    \State{u\_norm2 = ($\uv$ ** 2).sum(axis=-1)[..., None]}
+    \State{u\_at\_c = $\uv$ @ $\cv^\top$}
     \Comment{u\_at\_c.shape = $(X, Y, 9)$}
-    \State{w\_tmp, $\rho$\_{tmp} = w[None, None, ...], $\rho$[..., None]}
+    \State{w\_tmp, $\rho$\_{tmp} = $\wv$[None, None, ...], $\rho$[..., None]}
     \Comment{Adapt the shapes to u\_at\_c}
     \State{$\feq$ = w\_tmp * $\rho$\_tmp * (1 + 3 * u\_at\_c + 4.5 * (u\_at\_c) ** 2)-1.5 * u\_norm2}
     \State{{\bf return} $\feq$}
@@ -111,11 +110,11 @@ so that the implementation is more straightforward.
   \caption{Streaming operation}
   \label{alg:streaming-algorithm}
   \begin{algorithmic}[1]
-    \Statex{c = $\cv$ in Eq~\ref{}}
+    \Statex{$\cv$ in Eq~(\ref{d2q9-velocity})}
     \Function{streaming}{$f^\star$ = $f^\star(\cdot, t)$}
     \State{$f^{\rm post}$ = np.zeros\_like($f^\star$)}
     \For{$i= 0, 1, \dots, 8$}
-    \State{$f^{\rm post}[..., i]$=np.roll($f^\star$[..., i], shift=c[i], axis=(0, 1))}
+    \State{$f^{\rm post}[..., i]$=np.roll($f^\star$[..., i], shift=$\cv_i$, axis=(0, 1))}
     \Comment{Slide $f^\star$ one step to c[i]}
     \EndFor
     \State{{\bf return} $f^{\rm post}$}
@@ -123,7 +122,7 @@ so that the implementation is more straightforward.
   \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}[tb]
+\begin{algorithm}[t]
   \caption{Boundary conditions}
   \label{alg:boundary-conditions-algorithm}
   \begin{algorithmic}[1]
@@ -173,15 +172,16 @@ we employ the spatial domain decomposition and
 the messaging passing interface (MPI)
 so that we can compute collision step of the LBM
 in parallel.
-Note that the collision step does not require
-any communication between processes.
-When we are provided the number of processes of $P$,
+This is possible because the collision step does not require
+any communication between processes\cite{pastewka2019hpc}.
+Then, we explain how we divide the domain.
+Suppose we are provided the number of processes of $P$,
 we first factorize $P$ such that $P = P_0 \times P_1$
 where $P_0, P_1 \in \mathbb{Z}^{+}$
 and $P_0, P_1 = \text{arg} \min_{P_0, P_1}(|| P_1 - P_0 ||)$.
 Then, we divide the $x$-axis into $P_0$ intervals and
 $y$-axis into $P_1$ intervals where
-any pairs of intervals $I_{i}, I_{j}$ in a direction satisfies
+any pairs of intervals $I_{i}, I_{j}$ in the same direction satisfy
 $-1 \leq || I_{i} || - ||I_{j}|| \leq 1$.
 Note that $||I||$ is the size of the interval $I$.
 This split of the domain achieves the most balanced distribution of
@@ -190,8 +190,8 @@ For the streaming step, we need to consider particles
 moving from one process to another.
 We implement it using so-called {\bf ghost cells}
 around the actual computational domain.
-Figure~\ref{} shows the conceptual visualization of
-how each process communicate and ghost cells work.
+Figure~\ref{mpi-conceptual} shows the conceptual visualization of
+how each process communicates and ghost cells work.
 Since each process requires the four edges of adjacent
 processes, the commnications are required four times
 for each process.
@@ -207,8 +207,23 @@ by {\tt neighbor} and sends an array {\tt sendbuf} to
 Note that {\tt buf} is the abbreviation of buffer and
 it is literally used for the buffer to communicate data.
 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.48\textwidth]{imgs/mpi-conceptual.pdf}
+  \caption{
+    Domain decomposition and communication strategy in MPI.
+    As described in the main text, we first divide each axis
+    into $P_0$ and $P_1$ intervals and divide by the intervals.
+    Each rank has green lattice points and this area is the active physical domain.
+    Then we add an additional ghost cells for buffer (gray lattice points).
+    During each communication step, the outermost green active lattice
+    sends the data to the adjacent outermost ghost lattice (blue arrows).
+    The figure is cited from Figure~2 in \cite{pastewka2019hpc}.
+  }
+  \label{mpi-conceptual}
+\end{figure}
 
-\begin{algorithm}[tb]
+\begin{algorithm}[b]
   \caption{The communication of
   the particle probability density function}
   \label{alg:mpi-algorithm}
@@ -232,11 +247,6 @@ it is literally used for the buffer to communicate data.
     \State{grid\_manager.rank\_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,}
     \State{\hspace{56mm} recvbuf=recvbuf, source=neighbor)}
     \State{$f$[recvidx, ...] = recvbuf}
-    \Else
-    \State{sendbuf = $f$[sendidx[0], sendidx[1] ...].copy()}
-    \State{grid\_manager.rank\_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,}
-    \State{\hspace{56mm} recvbuf=recvbuf, source=neighbor)}
-    \State{$f$[recvidx[0], recvidx[1], ...] = recvbuf}
     \EndIf
     \EndIndent
     \State{{\bf return} $f$}

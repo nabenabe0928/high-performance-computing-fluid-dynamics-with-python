@@ -1,20 +1,20 @@
 \chapter{Lattice Boltzmann method}
-\vspace{-5mm}
+\vspace{-8mm}
 In this chapter, we describe how the equations used in LBM
 are derived.
-More specifically, we first explain
-{\bf Boltzmann transport equation (BTE)}, i.e.
+More specifically, we explain
+{\bf Boltzmann transport equation (BTE)}\cite{mcnamara1988use}, i.e.
 the basic equations of the kinetic theory of gases and
 how to handle the boundary conditions.
 
 \section{The Boltzmann transport equation (BTE)}
-The BTE formulates the the time evolution of the 
+The BTE formulates the time evolution of the 
 particle probability density $f(\xv, \uv, t)$ given
 the velocity $\uv$ and the position $\xv$ of particles.
 The BTE relaxes the particle distribution to
 the Maxwell velocity distribution
-function\cite{} and the approximation of the relaxation of
-$f$ towards $f^{\rm eq}$ is described as follows\cite{}:
+function\cite{huang1963statistical} and the approximation of the relaxation of
+$f$ towards $f^{\rm eq}$ is described as follows\cite{bhatnagar1954model}:
 \begin{equation}
   \begin{aligned}
     \od{f(\xv, \uv, t)}{t} &= 
@@ -27,18 +27,18 @@ $f$ towards $f^{\rm eq}$ is described as follows\cite{}:
 where $f^{\rm eq}$ is statistical equilibrium,
 $T(\xv, t)$ is the temperature at $\xv$
 of time step $t$ and
-$\tau$ is a characteristic time\cite{}.
+$\tau$ is a characteristic time.
 The characteristic time determines how quickly
 the fluid converges towards the equilibrium.
 The higher $\tau$ yields the slower 
 convergence towards the equilibrium.
 Eq~(\ref{analytical-eq}) is used for the update 
 of the particle probability density function.
-Furthermore, this particle probability function
+Furthermore, this particle probability density function
 $f(\xv, \uv, t)$ is used for computing
 the physical states of the fluid,
-such as density and velocity,
-through the moments as follows:
+such as density and velocity.
+The momentum updates are performed via\cite{caroli1984non}:
 \begin{equation}
   \begin{aligned}
     \rho(\xv, t) &= \int f(\xv, \uv, t) d\uv 
@@ -51,7 +51,7 @@ through the moments as follows:
 \end{aligned}
 \label{velocity-analytical-update}
 \end{equation}
-Those underlying equations allow us to simulate
+The underlying equations allow to simulate
 fluid flow as seen in the latter parts of this paper.
 
 \section{Time-step update of the BTE}
@@ -65,7 +65,7 @@ in the two dimensional space.
 The discretization for the space and time
 is performed so that the equality condition of 
 the following inequality
-(Courant-Friedrichs-Lewy condition) holds:
+(Courant-Friedrichs-Lewy condition) holds\cite{peyretcomputational, sterling1996stability}:
 \begin{equation}
 \begin{aligned}
   \cv_i \dt \leq || \Delta \xv_i ||
@@ -82,32 +82,34 @@ of $\cv_i$ that is defined:
     0 & 0 & 1 & 0 & -1 & 1 & 1 & -1 & -1 \\
   \end{bmatrix}^\top
 \end{aligned}
+\label{d2q9-velocity}
 \end{equation}
 Note that this specific discretization in two-dimensional
 space with nine direction shown in 
-Figure~\ref{} is called D2Q9.
+Figure~\ref{fig:d2q9} is called D2Q9.
 In this setting, 
-we first discretize the
-the particle probability
-in the nine directions by subscripting 
+we first discretize
+the particle probability density function
+in nine directions by subscripting 
 as $f_i(\xv, t)$.
-Then Eq~(\ref{density-analytical-update})
-and Eq~(\ref{velocity-analytical-update})
+Then Eq~(\ref{density-analytical-update}), (\ref{velocity-analytical-update})
 become the follwoings:
 \begin{equation}
   \begin{aligned}
     \rho(\xv, t) &= \sum_i f_i(\xv, t) \\
   \end{aligned}
+  \label{discretized-density}
 \end{equation}
 \begin{equation}
 \begin{aligned}
   \uv(\xv, t) &= 
   \frac{1}{\rho(\xv, t)} \sum_i \cv_i f_i(\xv) \\
 \end{aligned}
+\label{discretized-velocity}
 \end{equation}
 Note that we regard the density as
-unit molecular mass in this equation.
-Additionally, the equilibrium in Eq~(\ref{}) is computed as:
+unit molecular mass in Eq~(\ref{discretized-density}).
+Additionally, the equilibrium in Eq~(\ref{analytical-eq}) is computed as:
 \begin{equation}
 \begin{aligned}
   \underbrace{f_i(\xv + \cv_i\dt , t + \dt) - f_i(\xv, t)}_{
@@ -121,10 +123,10 @@ Additionally, the equilibrium in Eq~(\ref{}) is computed as:
     \text{collision}
   }
 \end{aligned}
-\label{discretized-eq}
+\label{discretized-streaming}
 \end{equation}
 where $\omega = \dt / \tau$ is the relaxation parameter.
-The equilibrium is computed as\cite{}:
+The equilibrium is computed as\cite{zhao2002non}:
 \begin{equation}
 \begin{aligned}
   \feq_i(\xv, t) &=
@@ -134,8 +136,10 @@ The equilibrium is computed as\cite{}:
     -\frac{3}{2} || \uv(\xv, t) ||^2
   \biggr] \\
 \end{aligned}
+\label{discretized-eq}
 \end{equation}
-where 
+where the index $i$ corresponds to Figure~\ref{fig:d2q9}
+and the weights are 
 \begin{eqnarray}
   w_i = \left\{
   \begin{array}{cl}
@@ -145,7 +149,6 @@ where
   \end{array}
   \right.
 \end{eqnarray}
-as shown in Figure~\ref{}.
 In the streaming step, the grid receives 
 the particle flow $f_i(\xv + \cv_i \dt, \cdot)$
 from its nine adjacent grids.
@@ -154,27 +157,23 @@ we relax the probability density function
 towards the equilibrium $f_i^{\rm eq}$
 by considering the effects of the particle collision.
 
-
 \begin{figure}[h!]
   \begin{center}
    \includegraphics[width=10cm]{logos/Gitter_LBM.png}
    \caption{
-      The left figure describes
-      the discretization on the velocity space according to D2Q9.
-      The right figure describes the
-      uniform two-dimensional grid for
+      (a) The discretization on the velocity space according to D2Q9.
+      (b) The uniform two-dimensional grids for
       the discretization in the physical space.
    }
   \label{fig:d2q9}
   \end{center}
 \end{figure}
 
-
 \section{Boundary handling}
 In this section, we briefly discuss how we handle
 the particles that bump into boundaries.
 Note that the boundary handling is performed
-after the streaming discussed in the previous section
+after the streaming step that is discussed in the previous section
 and we usually use the direction that is opposite to
 the direction $i$ for the bounce back.
 For this reason, we will denote
@@ -184,10 +183,10 @@ after the streaming step
 and $i^\star$ as the direction opposite,
 i.e. {\bf reflected direction}, to $i$.
 Those directions follow D2Q9 illustrated
-in Figure~\ref{}.
+in Figure~\ref{fig:d2q9}.
 Additionally, there are the following
 two ways to
-implement the boundary conditions:
+implement the boundary conditions\cite{liu2014lattice}:
 \begin{enumerate}
   \item {\bf Dry nodes}:
   The boundaries are located on the link between nodes
@@ -198,23 +197,23 @@ Since the boundary handling will be tedious when
 the boundaries are placed on the lattice nodes,
 and this is the case for wet nodes,
 we use {\bf dry nodes} for the implementation.
-For more details, see \ref{}.
 
 \subsection{Bounce-back from objects}
 The most basic boundary condition is 
 {\bf rigid wall} or the {\bf bounce-back boundary condition}.
 In this condition, we apply the process without
 slip condition at the boundary.
-The equation at the boundary is computed as\cite{}:
+The equation at the boundary is computed as\cite{succi2018lattice}:
 \begin{equation}
 \begin{aligned}
   f_i(\xv_b, t + \dt) = f_{i^\star}^\star(\xv_b, t)
 \end{aligned}
+\label{discretized-rigid-wall}
 \end{equation}
-When the {\bf boundary moving} with the velocity of
+When the {\bf boundary moves} with the velocity of
 $\uv_w$, the variation in the momentum of particles
 must be taken into consideration and the equation is
-modified as follows\cite{}:
+modified as follows\cite{succi2018lattice}:
 \begin{equation}
   \begin{aligned}
     f_i(\xv_b, t + \dt) = f_{i^\star}^\star (\xv_b, t) - 
@@ -222,31 +221,31 @@ modified as follows\cite{}:
       \cv_i \cdot \uv_w
     }{c_s^2}
   \end{aligned}
-  \end{equation}
+  \label{discretized-moving-wall}
+\end{equation}
 where $c_s$ is the speed of sound and 
 $\rho_w$ is the density at the wall.
 The computation of $\rho_w$ is usually performed by
-either of the followings\cite{}:
+either of the followings\cite{zou1997pressure, khajepor2019study}:
 \begin{enumerate}
   \item Take the average density $\bar{\rho}$ of the simulated field
-  \item Extrapolate the density $\rho_w$ using 
-  the particle probability density function inside the wall at the boundary 
+  \item Extrapolate $\rho_w$ using 
+  the particle probability density function in the physical domain
 \end{enumerate}
 For the simplicity, we {\bf take the first solution}.
 
 \subsection{Periodic boundary conditions (PBC)}
 In this section, we assume that we have
-boundary at $x = 0~(\text{inlet}), X~(\text{outlet})$
+boundary at $x = 0~(\text{inlet}), X - 1~(\text{outlet})$
 where $X$ is the number of the lattice grid in the $x$-axis.
 The most basic PBC assumes that
-the flow from outlet comes in from inlet as follows: 
+the flow from outlet comes in from inlet as follows\cite{succi2018lattice}: 
 \begin{equation}
 \begin{aligned}
-  f((0, y), t) = f((X, y), t)
+  f((0, y), t) = f((X - 1, y), t)
 \end{aligned}
 \end{equation}
 This condition is implicitly implemented during the streaming operation.
-
 Another PBC handles
 the pressure variation $\Delta p$ between inlet and outlet.
 Since the density $\rho$ is computed using the pressure $p$
@@ -256,19 +255,15 @@ that at the outlet $\rho_{\rm out}$ can be computed
 accordingly given the constant pressure $p_{\rm out}$
 at the outlet.
 Then the particle probability density functions at 
-the inlet and the outlet are computed as follows\cite{}:
+the inlet and the outlet are computed as follows\cite{succi2018lattice}:
 \begin{equation}
 \begin{aligned}
   f_i^\star(0, y, t) &=
-  f_i^{\rm eq}(\rho_{\rm in}, \uv(X, y, t))
-  + (f_i^\star(X, y, t) - f_i^{\rm eq}(X, y, t))\\
-  f_i^\star(X, y, t) &=
+  f_i^{\rm eq}(\rho_{\rm in}, \uv(X - 1, y, t))
+  + (f_i^\star(X - 1, y, t) - f_i^{\rm eq}(X - 1, y, t))\\
+  f_i^\star(X - 1, y, t) &=
   f_i^{\rm eq}(\rho_{\rm out}, \uv(0, y, t))
   + (f_i^\star(0, y, t) - f_i^{\rm eq}(0, y, t))\\
 \end{aligned}
+\label{discretized-pbc-pressure}
 \end{equation}
-
-\begin{comment}
-  The paper for the boundary handling
-  https://aip.scitation.org/doi/pdf/10.1063/1.868961?casa_token=a6kA8FFrbIYAAAAA:XjO3ps2W-P7qMh1Yb7zmXzbAkPlTLkNJMOlkZ_Bi63fTXLCnhWZ6KrVNSfPimlvdgyVxQM-lu6A
-\end{comment}

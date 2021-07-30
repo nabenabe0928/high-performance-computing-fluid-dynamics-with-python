@@ -1,25 +1,26 @@
 \chapter{Introduction}
-\vspace{-5mm}
+\vspace{-8mm}
 Large-scale physics experiments often require large budgets
 and it is hard to perform experiments with several different parameters.
 For this reason, many research has been performed to simulate real-world 
 phenomenon.
-One of the phenomenon is the fluid flow
-and fluid flow simulations allow us to deeply understand
+One of the phenomenon is the fluid flow.
+For example, fluid flow simulations allow us to deeply understand
 how the car body shape relates to the aerodynamic drag
 and to optimize the car design through the simulations with
-various designs rather than making real cars\cite{}.
+various designs rather than making real cars\cite{padagannavar2016automotive}.
 % Computational study of flow around a simplified car body
 
 Such simulations require scheme to simulate the physical states
 at each time step
-and the lattice Boltzmann method (LBM) \cite{} is one of the well-known
+and the lattice Boltzmann method (LBM) \cite{timm2016lattice}
+is one of the well-known
 schemes for the fluid flow simulation method.
 LBM approximates the physical states of a myriad of microscopic particles,
 i.e. usually obtained by solving Navier-Stokes equation,
 by mesoscale physical states at each lattice grid.
 The physical states or {\bf moments} are iteratively simulated based on
-the Maxwell velocity distribution function\cite{} and
+the Maxwell velocity distribution function\cite{huang1963statistical} and
 the fluid flow at each time step is derived from the moments.
 
 The major advantages of LBM are the followings:
@@ -27,7 +28,7 @@ The major advantages of LBM are the followings:
   \item {\bf Simple implementation}: The governing equations of each moment
   is simple and the collision handling only considers the adjacent lattices. 
   \item {\bf Parallelization}: The parallelization scales well due to
-  the local dynamics nature of LBM\cite{}
+  the local dynamics nature of LBM\cite{raabe2004overview}
 \end{itemize}
 For those reasons, LBM is one of the most successful methods and
 we would like to introduce LBM in detail in this paper.
