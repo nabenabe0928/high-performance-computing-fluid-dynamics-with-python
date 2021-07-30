@@ -17,88 +17,44 @@ The shear wave decay represents the time evolution of a
 velocity perturbation in the flow.
 Since the viscosity decays the velocity of the flow,
 the velocity converges to zero in the end.
-In order to obtain an analytical solution,
-we employ the following Navier-Stokes equations for incompressible fluid
-\cite{}:
+When we set the following sinusoidal perturbation in the velocity
+as the initial condition:
 \begin{equation}
   \begin{aligned}
-    \text{\bf
-      Navier-Stokes equation
-    }:&~ \pd{\uv}{t} = - (\uv \cdot \nabla)\uv
-    - \frac{1}{\rho} \nabla p
-    + \nu \nabla^2 \uv\\
-    \text{\bf
-      Conservation of mass
-    }: &~
-    \nabla \cdot \uv = 0
-  \end{aligned}
-\end{equation}
-where $p$ is the pressure and $\nu$ is 
-the kinematic viscosity.
-Note that we need to assume the following
-constraints to obtain the analytical solutions:
-\begin{equation}
-\begin{aligned}
- || (\uv \cdot \nabla)\uv || \ll \biggNorm{\pd{\uv}{t}},
-  || \nabla p || \ll \biggNorm{\pd{\uv}{t}}
-\end{aligned}
-\end{equation}
-Then we can derive the following equation:
-\begin{equation}
-\begin{aligned}
-  \pd{\uv}{t} = \nu \nabla^2 \uv
-\end{aligned}
-\label{relaxed-ns-eq}
-\end{equation}
-Let $X, Y$ be the width and height of the box
-where we simulate the fluid flow
-and we set the following sinusoidal perturbation
-in the velocity as the initial condition:
-\begin{equation}
-\begin{aligned}
-  \uv(\xv, t = 0) =
-  \begin{bmatrix}
-    u_x(y, t = 0) \\
-    0 \\
-  \end{bmatrix}
-  =  
-  \begin{bmatrix}
-    \epsilon \sin \frac{2\pi y}{Y} \\
+    \uv(\xv, t = 0) =
+    \begin{bmatrix}
+      u_x(y, t = 0) \\
       0 \\
     \end{bmatrix}
-\end{aligned}
-\label{shear-vel-init}
+    =  
+    \begin{bmatrix}
+      \epsilon \sin \frac{2\pi y}{Y} \\
+        0 \\
+      \end{bmatrix}
+  \end{aligned}
+  \label{shear-vel-init}
 \end{equation}
-Using Eq~(\ref{relaxed-ns-eq}) and Eq~(\ref{shear-vel-init}),
-the following analytical solution is derived:
+Then the analytical solution for the time evolution of 
+the velocity is calculated as follows\cite{}:
 \begin{equation}
-\begin{aligned}
-  \pd{u_x(y, t)}{t} &= \nu \pdtwo{u_x(y, t)}{y} \\
-  \pd{a(t)}{t}v(y) &= \nu a(t) v^{(2)}(y) ~(u_x(y, t) \triangleq a(t)v(y) ) \\
-  \pd{a(t)}{t} \cancel{\sin \frac{2\pi y}{Y}}
-  &= -\nu a(t) \biggl(
-    \frac{2\pi}{Y}
-  \biggr)^2
-  \cancel{\sin \frac{2\pi y}{Y}} ~\biggl(\because \frac{d^2 \sin bx}{dx^2} = -b^2 \sin bx
-  \biggr) \\
-  \therefore a(t) &= \epsilon \exp\biggl(
-    -\nu \biggl(
-      \frac{2\pi}{Y}
-    \biggr)^2 t
-  \biggr) \\
-  \implies u_x(y, t) &= 
-  \epsilon \exp\biggl(
-    -\nu \biggl(
-      \frac{2\pi}{Y}
-    \biggr)^2 t\biggr) \sin \frac{2\pi y}{Y}
-\end{aligned}
-\label{sinusoidal-vel-analytical-solution}
+  \begin{aligned}
+    u_x(y, t) &= 
+    \epsilon \exp\biggl(
+      -\nu \biggl(
+        \frac{2\pi}{Y}
+      \biggr)^2 t\biggr) \sin \frac{2\pi y}{Y}
+  \end{aligned}
+  \label{sinusoidal-vel-analytical-solution}
 \end{equation}
+Note that this result is obtained using Navier-Stokes equations for incompressible fluid
+and the assumptions that the pressure term $\nabla p$ and
+the convection term $(\uv \cdot \nabla) \uv$ are negligible 
+compared to the viscosity term $\nu \nabla^2 \uv$.
 In Figure~\ref{fig:sinusoidal-velocity}, we show the plot of both
 simulated results and the analytical solutions of sinusoidal velocity.
 Note that the initial condition follows Eq~(\ref{shear-vel-init}). 
 As seen in the figure, the simulated results and the analytical solutions
-perfectly fit and thus we could validate our implementation of
+{\bf perfectly fit} and thus we could validate our implementation of
 rigid wall and moments updates.
 Figure~\ref{fig:sinusoidal-density} shows the density distribution
 over time.
@@ -149,6 +105,9 @@ This simulation uses the sinusoidal density in $x$-direction:
     }\\
     \caption{The velocity evolution for the sinusoidal velocity at
       the $x = 25$ in the lattice grid size of $(50, 50)$.
+      The $x$-axis shows the location in the $y$ direction
+      and the $x$-axis shows the magnitude of velocity at 
+      the corresponding location.
       The coefficients $\epsilon$ and the initial density $\rho_0$ are 
       set to $0.08$ and $1.0$ respectively.
       The relaxation term $\omega$ are set to $1.0$.
@@ -160,19 +119,18 @@ Additionally, we obtain the following equation regarding the viscosity by
 transforming Eq~\ref{sinusoidal-vel-analytical-solution}:
 \begin{equation}
   \begin{aligned}
-    u_x(y, t) & = \epsilon \exp
+    u_x(y, t) = \epsilon \exp
     \Biggl(
     -\nu
     \biggl(
       \frac{2\pi}{Y}
       \biggr)^2 t
     \Biggr) 
-    \sin 
-      \frac{2\pi y}{Y} \\
+      \Longleftrightarrow 
     \frac{u_x(y, t)}{
       \epsilon
       \sin  \frac{2\pi y}{Y}
-    } & =  \exp
+    }  &=  \exp
     \Biggl(
     -\nu
     \biggl(
@@ -187,7 +145,7 @@ transforming Eq~\ref{sinusoidal-vel-analytical-solution}:
     \log \frac{u_x(y, t)}{
       \epsilon
       \sin  \frac{2\pi y}{Y}
-    } \\
+    }~(\text{Take log of both sides}) \\
     \nu
       &=
       - \frac{1}{t}
@@ -199,8 +157,10 @@ transforming Eq~\ref{sinusoidal-vel-analytical-solution}:
       \sin  \frac{2\pi y}{Y}
     } \\
   \end{aligned}
+  \label{viscosity-analytical}
 \end{equation}
-We perform the experiments to validate this equation using 
+Note that we assume that $\epsilon\sin \frac{2\pi y}{Y} \neq 0$.
+We perform the experiments to validate Eq~\ref{viscosity-analytical} using 
 the exact experiment settings for Figure~\ref{fig:sinusoidal-velocity} and Figure~\ref{fig:sinusoidal-density}
 except the relaxation term $\omega$.
 Note that the viscosity is computed as $\nu = \frac{1}{3} (\frac{1}{\omega} - \frac{1}{2})$
@@ -249,6 +209,9 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
     }\\
     \caption{The density evolution for the sinusoidal density at
       the $Y = 25$ in the lattice grid size of $(50, 50)$.
+      The $x$-axis shows the location in the $x$ direction
+      and the $y$-axis shows the magnitude of density at 
+      the corresponding location.
       The coefficients $\epsilon$ and $\rho_0$ are 
       set to $0.08$ and $0.5$ respectively.
       The relaxation term $\omega$ are set to $1.0$.
@@ -265,7 +228,12 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
       \includegraphics[width=0.48\textwidth]{../log/sinusoidal_velocity/fig/omega_vs_visc.pdf}
     }
     \caption{The simulated viscosity value 
-    over various relaxation values $\omega$.\label{fig:omega-vs-visc}}
+    over various relaxation values $\omega$.
+    The analytical solution uses $\nu = \frac{1}{3}(\frac{1}{\omega} - \frac{1}{2})$
+    and the simulated result uses Eq~\ref{viscosity-analytical}.
+    For the simulated results, we take the results at $t = 3000$
+    and compute the average of $\nu$ at $X = 25$ over the $y$-axis. 
+    \label{fig:omega-vs-visc}}
   \end{center}
 \end{figure}
 
@@ -298,46 +266,23 @@ at the moving wall and the rigid wall
 and the periodic boundary conditions at the inlet and outlet.
 The results are shown in Figure~\ref{fig:couette-velocity-evolution}.
 As shown in the figures, the flow velocity iteratively approaches
-the analytical solution and it perfectly fits in the end.
+the analytical solution and it perfectly fits in the end
+and the velocity stops growing as seen at $t=1600, 2000$.
 From this experiment, the moving wall can be validated.
 
-\newpage
 \begin{figure}[H]
-  \begin{center}
-    \subfloat[$t = 0$]{
-      \includegraphics[width=0.44\textwidth]{../log/couette_flow/fig/couette_flow000000.pdf}
-    }
-    \subfloat[$t = 200$]{
-      \includegraphics[width=0.44\textwidth]{../log/couette_flow/fig/couette_flow000200.pdf}
-    }\\
-    \subfloat[$t = 400$]{
-      \includegraphics[width=0.44\textwidth]{../log/couette_flow/fig/couette_flow000400.pdf}
-    }
-    \subfloat[$t = 600$]{
-      \includegraphics[width=0.44\textwidth]{../log/couette_flow/fig/couette_flow000600.pdf}
-    }\\
-    \subfloat[$t = 800$]{
-      \includegraphics[width=0.44\textwidth]{../log/couette_flow/fig/couette_flow000800.pdf}
-    }
-    \subfloat[$t = 1000$]{
-      \includegraphics[width=0.44\textwidth]{../log/couette_flow/fig/couette_flow001000.pdf}
-    }\\
-    \subfloat[$t = 1200$]{
-      \includegraphics[width=0.44\textwidth]{../log/couette_flow/fig/couette_flow001200.pdf}
-    }
-    \subfloat[$t = 1400$]{
-      \includegraphics[width=0.44\textwidth]{../log/couette_flow/fig/couette_flow001400.pdf}
-    }
-    \caption{The velocity evolution at
-      the $x = 25$ in the lattice grid size of $(50, 50)$.
-      The wall velocity $U_w$ and the relaxation term $\omega$ are set
-      to $50$ and $0.3$ respectively.
-      The initial density is $\rho(\xv) = 1.0$ and the initial velocity is $\uv(\xv) = (0, 0)$. 
-      \label{fig:couette-velocity-evolution}}
-  \end{center}
+  \vspace{-1mm}
+  \centering
+  \includegraphics[width=0.58\textwidth]{../log/couette_flow/fig/couette_flow_joint.pdf}
+  \vspace{-5mm}
+  \caption{The velocity evolution at
+  the $x = 25$ in the lattice grid size of $(50, 50)$.
+  The wall velocity $U_w$ at the bottom and the relaxation term $\omega$ are set
+  to $50$ and $0.3$ respectively.
+  The initial density is $\rho(\xv) = 1.0$ and the initial velocity is $\uv(\xv) = (0, 0)$. 
+  \label{fig:couette-velocity-evolution}}
 \end{figure}
 
-\newpage
 \subsection{Poiseuille flow}
 The Poiseuille flow is the flow between two non-moving walls as shown in Figure~\ref{couette-and-poiseuille-conceptual}.
 The flow is caused by a constant pressure difference $\od{p}{x}$
@@ -356,49 +301,22 @@ at the moving wall and the rigid wall
 and the periodic boundary condition with pressure variation at the inlet and outlet.
 Figure~\ref{fig:poiseuille-velocity-evolution} presents the results
 and the simulated results approaches the analytical solutions as in the Couette flow.
-In the end, it fits completely.
+In the end, it fits completely
+and the velocity stops growing as seen at $t=4000, 5000$.
 
 \begin{figure}[H]
-  \begin{center}
-    \subfloat[$t = 0$]{
-      \includegraphics[width=0.31\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow000000.pdf}
-    }
-    \subfloat[$t = 500$]{
-      \includegraphics[width=0.31\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow000500.pdf}
-    }
-    \subfloat[$t = 1000$]{
-      \includegraphics[width=0.31\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow001000.pdf}
-    }\\
-    \subfloat[$t = 1500$]{
-      \includegraphics[width=0.31\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow001500.pdf}
-    }
-    \subfloat[$t = 2000$]{
-      \includegraphics[width=0.31\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow002000.pdf}
-    }
-    \subfloat[$t = 2500$]{
-      \includegraphics[width=0.31\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow002500.pdf}
-    }\\
-    \subfloat[$t = 3000$]{
-      \includegraphics[width=0.31\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow003000.pdf}
-    }
-    \subfloat[$t = 3500$]{
-      \includegraphics[width=0.31\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow003500.pdf}
-    }
-    \subfloat[$t = 4000$]{
-      \includegraphics[width=0.31\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow004000.pdf}
-    }
-    \caption{The velocity evolution at
-      the $x = 25$ in the lattice grid size of $(50, 50)$.
-      The relaxation term $\omega$ are is
-      to $0.7$.
-      The density factor at the inlet and the density factor
-      at the outlet are set to $0.3$ and $0.301$ respectively.
-      The initial density is $\rho(\xv) = 1.0$ and the initial velocity is $\uv(\xv) = (0, 0)$.
-      \label{fig:poiseuille-velocity-evolution}}
-  \end{center}
+  \centering
+  \includegraphics[width=0.58\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow_joint.pdf}
+  \caption{The velocity evolution at
+  the $x = 25$ in the lattice grid size of $(50, 50)$.
+  The relaxation term $\omega$ are is
+  to $0.7$.
+  The density factor at the inlet and the density factor
+  at the outlet are set to $0.3$ and $0.301$ respectively.
+  The initial density is $\rho(\xv) = 1.0$ and the initial velocity is $\uv(\xv) = (0, 0)$.
+  \label{fig:poiseuille-velocity-evolution}}
 \end{figure}
 
-\newpage
 \section{Lid-driven cavity}
 Finally, we handle a concrete example.
 In this paper, the lid-driven cavity shown in Figure~\ref{lid-driven-cavity-conceptual} are simulated.
@@ -424,14 +342,14 @@ the convergence becomes quicker.
 On the other hand, all the settings converge to the similar flow in the end
 as indicated in the key property of the Reynolds number.
 
-\begin{figure}
+\begin{figure}[t]
   \centering
-  \includegraphics[width=0.68\textwidth]{imgs/lid-driven-cavity.pdf}
+  \includegraphics[width=0.48\textwidth]{imgs/lid-driven-cavity.pdf}
   \caption{The conceptual visualizations of the lid-driven cavity.}
   \label{lid-driven-cavity-conceptual}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[t]
   \begin{center}
     \subfloat[$t = 5000$]{
       \includegraphics[width=0.23\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow005000.pdf}
@@ -498,23 +416,27 @@ as indicated in the key property of the Reynolds number.
   \end{center}
 \end{figure}
 
-This experiment requires long time to complete the experiments.
+This experiment requires long time to complete.
 For example, it takes 1 hour to finish one simulation using
 intel core i7--10700 and 32GB RAM.
-Recall that the advantage of LBM is that it allows us to compute the simulation in
+Recall that the advantage of LBM is to allow us to compute the simulation in
 parallel easily.
 For this reason, we test the scalability of this simulation using
 various number of processors.
+Note that all the experiments related to the scaling test
+are performed on {\bf BWUniCluster}
+\footnote{https://wiki.bwhpc.de/e/Category:BwUniCluster\_2.0}.
+The implementation follows Section~\ref{section-mpi}.
 Figure~\ref{fig:sliding-lid-scaling} shows the plot of
 MLUPS, a.k.a. million lattice updates per second, and
 the number of processors.
 Ideally, the MLUPS grows linearly with respect to the number of processors.
 However, it does not happen because of the latency of the communication
-and the waiting for the synchronization.
-Such slow down is also seen in the results.
-\begin{figure}
+and the waiting for the synchronization as described in Amdahl's law\cite{}.
+Such slow down is also seen in Figure~\ref{fig:sliding-lid-scaling}.
+\begin{figure}[b]
   \centering
-  \includegraphics[width=0.58\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/scaling_test.pdf}
+  \includegraphics[width=0.48\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/scaling_test.pdf}
   \caption{The scaling test of the sliding lid simulation.
   The grid size is $300 \times 300$.
   The number of processes are $1 ,4 ,9 ,16 ,25 ,36 ,100 ,144 ,225 ,400$ respectively.

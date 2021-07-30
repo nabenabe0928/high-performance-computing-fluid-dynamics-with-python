@@ -1,4 +1,4 @@
-cmd="python -m run_experiment -E cf -T 1600 -S 50 -W 0.5 --omega 0.35"
+cmd="python -m run_experiment -E cf -T 2400 -S 50 -W 0.5 --omega 0.35"
 echo $cmd
 $cmd
 

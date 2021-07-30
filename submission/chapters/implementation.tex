@@ -10,6 +10,7 @@ Since the most important
 Note that entire codes are based on
 Numpy\footnote{Numpy: https://numpy.org/}
 and mpi4py\footnote{mpi4py: https://mpi4py.readthedocs.io/en/stable/}.
+Throughout the chapter, {\tt numpy} is imported as {\tt np}.
 
 \section{Main routine}
 Algorithm~\ref{alg:lattice-boltzmann-method-algorithm}
@@ -31,7 +32,7 @@ Note that we use as much slicing as possible in
 Algorithms to speed up the runtime as much as possible.
 
 The Algorithm~\ref{alg:streaming-algorithm} uses
-the numpy.roll operation that enables
+the {\tt np.roll} operation that enables
 to handle periodic boundary conditions automatically.
 This function rolls the array in the following manner:
 \begin{equation}
@@ -46,7 +47,7 @@ This function rolls the array in the following manner:
 where $i$ is the direction index in D2Q9 and $\cv_i$ is the vector
 that specifies the $i$-th direction in D2Q9.
 In the Algorithm~\ref{alg:boundary-conditions-algorithm},
-we use boolean matrices in\_boundary and out\_boundary
+we use boolean matrices {\tt in\_boundary} and {\tt out\_boundary}
 that have the shape of $(X, Y, 9)$ so that 
 we can refer to only elements that have bounce back or collision
 with the boundary.
@@ -166,7 +167,7 @@ so that the implementation is more straightforward.
   \end{algorithmic}
 \end{algorithm}
 
-\section{Parallel computation by MPI}
+\section{Parallel computation by MPI}\label{section-mpi}
 In order to process the LBM in parallel,
 we employ the spatial domain decomposition and
 the messaging passing interface (MPI)
@@ -196,13 +197,14 @@ processes, the commnications are required four times
 for each process.
 The Algorithm~\ref{alg:mpi-algorithm}
 shows the implementation using mpi4py.
-grid\_manager is our self-developed module
+{\tt grid\_manager} is our self-developed module
 that allows to get useful information related to
 process location, the adjacent relation and so on.
-Sendrecv function is used for the commnication and
-each process receives an array from dest that is sent
-by neighbor and sends sendbuf to neighbor.
-Note that buf is the abbreviation of buffer and
+{\tt Sendrecv} function is used for the commnication and
+each process receives an array from {\tt dest} that is sent
+by {\tt neighbor} and sends an array {\tt sendbuf} to
+{\tt neighbor}.
+Note that {\tt buf} is the abbreviation of buffer and
 it is literally used for the buffer to communicate data.
 
 

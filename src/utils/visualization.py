@@ -183,33 +183,48 @@ def visualize_velocity_field(subj: str, save: bool = False, format: str = 'pdf',
 
 
 def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str = 'pdf', start: int = 0,
-                           freq: int = 100, end: int = 100001, cmap: Optional[str] = None) -> None:
+                           freq: int = 400, end: int = 100001, cmap: Optional[str] = None, joint: bool = True) -> None:
     """ we assume the wall slides to x-direction. """
+    plt.figure(figsize=(5, 3))
+
     for t in range(start, end, freq):
         vx_file_name = f'log/couette_flow/npy/v_x{t:0>6}.npy'
         vx = np.load(vx_file_name)
         X, Y = vx.shape
-        x, y = np.meshgrid(np.arange(X), np.arange(Y))
-
-        plt.close('all')
-        plt.figure(figsize=(5, 3))
-        plt.xlim(-0.01 * wall_vel[0], wall_vel[0])
-        plt.ylim(-0.5, Y)
-        simulated_arrows(vx, X, Y, wall_vel[0] * (Y - np.arange(Y + 1)) / Y)
+        analy_sol = wall_vel[0] * (Y - np.arange(Y + 1)) / Y
         vmax = int(max(wall_vel[0], np.ceil(vx[X // 2, :].max()))) + 1
-        plt.plot(np.arange(vmax), np.ones(vmax) * (Y - 1) + 0.5, label="Rigid wall", color='black', linewidth=3.0)
-        plt.plot(np.arange(vmax), np.zeros(vmax), label='Moving wall', color='blue', linewidth=3.0)
 
-        if t == 0:
-            plt.rc('legend', fontsize=16)
-            plt.legend(loc='upper right')
+        if not joint:
+            plt.close('all')
+            plt.figure(figsize=(5, 3))
+            plt.xlim(-0.01 * wall_vel[0], wall_vel[0])
+            plt.ylim(-0.5, Y)
+            simulated_arrows(vx, X, Y, analy_sol)
+            plt.plot(np.arange(vmax), np.ones(vmax) * (Y - 1) + 0.5, label="Rigid wall", color='black', linewidth=3.0)
+            plt.plot(np.arange(vmax), np.zeros(vmax), label='Moving wall', color='blue', linewidth=3.0)
 
-        show_or_save(path=f'log/couette_flow/fig/couette_flow{t:0>6}.{format}' if save else None)
+            if t == start:
+                plt.rc('legend', fontsize=16)
+                plt.legend(loc='upper right')
+
+            show_or_save(path=f'log/couette_flow/fig/couette_flow{t:0>6}.{format}' if save else None)
+        else:
+            if t == start:
+                plt.xlim(-0.01 * wall_vel[0], wall_vel[0])
+                plt.ylim(-0.5, Y)
+                plt.plot(analy_sol, np.arange(Y + 1) - 0.5, label="Analytical velocity")
+
+            plt.plot(vx[X // 2, :], np.arange(Y), label=f"$t = {t}$", linestyle=":", linewidth=2)
+
+    if joint:
+        plt.rc('legend', fontsize=10)
+        plt.legend(loc='upper right')
+        show_or_save(path=f'log/couette_flow/fig/couette_flow_joint.{format}' if save else None)
 
 
 def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = False, format: str = 'pdf',
-                              start: int = 0, freq: int = 500, end: int = 100001, cmap: Optional[str] = None
-                              ) -> None:
+                              start: int = 0, freq: int = 1000, end: int = 100001, cmap: Optional[str] = None,
+                              joint: bool = True) -> None:
 
     """ we assume the wall slides to x-direction. """
     viscosity = params.viscosity
@@ -221,22 +236,37 @@ def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = Fa
         density_file_name = f'log/poiseuille_flow/npy/density{t:0>6}.npy'
         vx, density = np.load(vx_file_name), np.load(density_file_name)
         X, Y = density.shape
-        x, y = np.meshgrid(np.arange(X), np.arange(Y))
+        _, y = np.meshgrid(np.arange(X), np.arange(Y))
         average_density = viscosity * density[X // 2, :].mean()
         deriv_density_x = (out_density_factor - in_density_factor) / X
         y = np.arange(Y + 1)
+        analy_sol = - 0.5 * deriv_density_x * y * (Y - y) / average_density
 
-        plt.close('all')
-        plt.figure(figsize=(5, 3))
-        plt.xlim(0, 0.023)
-        plt.ylim(-0.5, Y)
-        simulated_arrows(vx, X, Y, - 0.5 * deriv_density_x * y * (Y - y) / average_density)
+        if not joint:
+            plt.close('all')
+            plt.figure(figsize=(5, 3))
+            plt.xlim(0, 0.023)
+            plt.ylim(-0.5, Y)
+            simulated_arrows(vx, X, Y, analy_sol)
 
-        if t == 0:
-            plt.rc('legend', fontsize=16)
-            plt.legend(loc='upper right')
+            if t == start:
+                plt.rc('legend', fontsize=16)
+                plt.legend(loc='upper right')
 
-        show_or_save(path=f'log/poiseuille_flow/fig/poiseuille_flow{t:0>6}.{format}' if save else None)
+            show_or_save(path=f'log/poiseuille_flow/fig/poiseuille_flow{t:0>6}.{format}' if save else None)
+        else:
+            if t == start:
+                plt.figure(figsize=(5, 3))
+                plt.xlim(0, 0.023)
+                plt.ylim(-0.5, Y)
+
+            plt.plot(vx[X // 2, :], np.arange(Y), label=f"$t = {t}$", linestyle=":", linewidth=2)
+
+    if joint:
+        plt.plot(analy_sol, np.arange(Y + 1) - 0.5, label="Analytical velocity")
+        plt.rc('legend', fontsize=10)
+        plt.legend(loc='lower left')
+        show_or_save(path=f'log/poiseuille_flow/fig/poiseuille_flow_joint.{format}' if save else None)
 
 
 def visualize_quantity_vs_time(quantities: np.ndarray, quantity_name: str,
