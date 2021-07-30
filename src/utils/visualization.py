@@ -133,7 +133,7 @@ def visualize_density_plot(subject: str, save: bool = False, format: str = 'pdf'
 
 def visualize_velocity_plot(subject: str, epsilon: float, visc: float, save: bool = False,
                             format: str = 'pdf', start: int = 0, freq: int = 100,
-                            end: int = 100001, cmap: Optional[str] = None, 
+                            end: int = 100001, cmap: Optional[str] = None,
                             bounds: Optional[np.ndarray] = None) -> None:
 
     assert bounds is not None
