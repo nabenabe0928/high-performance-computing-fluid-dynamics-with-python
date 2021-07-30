@@ -5,6 +5,7 @@
 
 \usepackage{amsmath,amssymb,bm,bbm}
 \usepackage{graphicx}
+\usepackage{here}
 % \usepackage{subcaption}
 \usepackage{ascmac}
 \usepackage{fancyhdr}
@@ -22,6 +23,7 @@
 \usepackage{amsmath,tikz}
 \usepackage{lastpage}
 \usepackage{tcolorbox}
+\usepackage{cancel}
 \tcbuselibrary{breakable, skins, theorems}
 \newtheorem{theorem1}{Theorem}
 \newtheorem{theorem2}{Definition}
@@ -34,10 +36,34 @@
 \algtext*{EndIf}
 \algtext*{EndProcedure}
 \algtext*{EndFunction}
+\algdef{SE}[SUBALG]{Indent}{EndIndent}{}{\algorithmicend\ }%
+\algtext*{Indent}
+\algtext*{EndIndent}
 \newcommand{\Break}{\textbf{break}}
 \newcommand{\Continue}{\textbf{continue}}
 
+\setlength{\textwidth}{160mm}
+\setlength{\textheight}{220mm}
+\setlength{\oddsidemargin}{-1mm}
+\setlength{\voffset}{-15mm}
+\setlength{\headsep}{10mm}
+
+\renewcommand{\_}{{\tiny \textunderscore}}
+% \renewcommand{\_}{{\fontsize{1pt}{1pt}\selectfont \textunderscore}}
+
+\newcommand{\xv}{\boldsymbol{x}}
 \newcommand{\vv}{\boldsymbol{v}}
+\newcommand{\uv}{\boldsymbol{u}}
+\newcommand{\Uv}{\boldsymbol{U}}
+\newcommand{\wv}{\boldsymbol{w}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\od}[2]{\frac{d #1}{d #2}}
+\newcommand{\biggNorm}[1]{\biggl|\biggl| #1 \biggr|\biggr|}
+\newcommand{\pdtwo}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+
+\newcommand{\cv}{\boldsymbol{c}}
+\newcommand{\feq}{f^{\rm eq}}
+\newcommand{\dt}{\Delta t}
 
 \usepackage{hyperref}
 \usepackage{graphicx}
@@ -85,11 +111,43 @@
 
 \tableofcontents
 
+\begin{comment}
+    https://publikationen.uni-tuebingen.de/xmlui/bitstream/handle/10900/87663/bwHPC2018-25-Pastewka-Lattice_Boltzmann_with_Python.pdf?sequence=1&isAllowed=y
+    Criterion
+    o 1. Shear wave decay
+        o 1.1. Density evolution plot
+        o 1.2. Velocity evolution plot
+        o 1.3. Measured viscosity
+    o 2. Couette flow
+        o 2.1. velocity evolution
+    o 3. Poissuille flow
+        o 3.1. velocity evolution
+    o 4. Flow in box with sliding lid
+        o 4.1. stable simulation for long times
+    o 5. Parallelization
+        o 5.1. scaling plot
+    
+    Paper structure
+    o 1. Overall structure
+    o 2. Clarity of language
+    o 3. Complete bibliography
+    4. Clarity of figures
+    o 5. Mathematical precision
+    o 6. Reproducibility
+
+    potential outline
+    1. Introduction
+    2. Methods
+    3. Implementation
+    4. Results
+    5. Conclusion
+\end{comment}
+
 \input{chapters/introduction.tex}
 
 \input{chapters/lattice-boltzmann-method.tex}
 
-\input{chapters/implementation-details.tex}
+\input{chapters/implementation.tex}
 
 \input{chapters/numerical-results.tex}
 
@@ -97,4 +155,5 @@
 
 \bibliographystyle{unsrt}
 \bibliography{biblio}
+
 \end{document}

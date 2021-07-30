@@ -129,7 +129,8 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
     # run LBM
     field(total_time_steps, proc=proc)
     if save and visualize:
-        visualize_velocity_plot(subj, save=True, end=total_time_steps, bounds=v_bounds)
+        visc = 1. / 3. * (1. / experiment_vars.omega - 0.5)
+        visualize_velocity_plot(subj, epsilon=eps, visc=visc, save=True, end=total_time_steps, bounds=v_bounds)
         visualize_density_plot(subj, save=True, end=total_time_steps, bounds=d_bounds)
         return None
     elif save:
@@ -137,7 +138,7 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
         viscs = viscosity_equation(total_time_steps, eps, field.velocity[X // 2, :, 0])
         viscs = np.array([visc for visc in viscs if 0 < visc < 10])
         return float(np.mean(viscs))
-    
+
     return None
 
 

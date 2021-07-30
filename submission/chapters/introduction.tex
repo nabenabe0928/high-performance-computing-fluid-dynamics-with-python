@@ -1,27 +1,50 @@
 \chapter{Introduction}
+\vspace{-8mm}
+Large-scale physics experiments often require large budgets
+and it is hard to perform experiments with several different parameters.
+For this reason, many research has been performed to simulate real-world 
+phenomenon.
+One of the phenomenon is the fluid flow.
+For example, fluid flow simulations allow us to deeply understand
+how the car body shape relates to the aerodynamic drag
+and to optimize the car design through the simulations with
+various designs rather than making real cars~\cite{padagannavar2016automotive}.
+% Computational study of flow around a simplified car body
 
-This is an example of a citation \cite{timm2016lattice}. The corresponding paper can be found in the bibliography section at the end of this document.
+Such simulations require scheme to simulate the physical states
+at each time step
+and the lattice Boltzmann method (LBM) ~\cite{timm2016lattice}
+is one of the well-known
+schemes for the fluid flow simulation method.
+LBM approximates the physical states of a myriad of microscopic particles,
+i.e. usually obtained by solving Navier-Stokes equation,
+by mesoscale physical states at each lattice grid.
+The physical states or {\bf moments} are iteratively simulated based on
+the Maxwell velocity distribution function~\cite{huang1963statistical} and
+the fluid flow at each time step is derived from the moments.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis risus ante, auctor et pulvinar non, posuere ac lacus. Praesent egestas nisi id metus rhoncus ac lobortis sem hendrerit. Etiam et sapien eget lectus interdum posuere sit amet ac urna.
-
-Example of normal equation
-\begin{equation}\label{eq:LBE}
-f_i(\mathbf{x}_j+\mathbf{c}_i\cdot\Delta t,t+\Delta t)=f_i(\mathbf{x}_j,t)
--\omega \left( f_i(\mathbf{x}_j,t)-f_i^\text{eq}(\mathbf{x}_j,t) \right)
-\end{equation}
-
-Example of aligned equation:
-\begin{align}
-  \rho(\mathbf{x}_j, t) &= \sum_i f_i(\mathbf{x}_j, t) \\
-  \mathbf{u}(\mathbf{x}_j, t) &= \frac{1}{ \rho(\mathbf{x}_j, t)}
-    \sum_i \mathbf{c}_i f_i(\mathbf{x}_j, t)
-\end{align}
-
-\section{section title}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis risus ante, auctor et pulvinar non, posuere ac lacus. Praesent egestas nisi id metus rhoncus ac lobortis sem hendrerit. Etiam et sapien eget lectus interdum posuere sit amet ac urna. Aliquam pellentesque imperdiet erat, eget consectetur felis malesuada quis. Pellentesque sollicitudin, odio sed dapibus eleifend, magna sem luctus turpis.
-
+The major advantages of LBM are the followings:
 \begin{itemize}
-  \item Example of a list
-  \item Example of a list
-  \item Example of a list
+  \item {\bf Simple implementation}: The governing equations of each moment
+  is simple and the collision handling only considers the adjacent lattices. 
+  \item {\bf Parallelization}: The parallelization scales well due to
+  the local dynamics nature of LBM~\cite{raabe2004overview}
 \end{itemize}
+For those reasons, LBM is one of the most successful methods and
+we would like to introduce LBM in detail in this paper.
+The paper structure is as follows:
+\begin{enumerate}
+  \item {\bf Lattice boltzmann method}; Show the governing equations and 
+  provide pseudocodes to promote the understandings
+  \item {\bf Numerical results}\footnote{
+  The code is available at:
+    https://github.com/nabenabe0928/high-performance-computing-fluid-dynamics-with-python
+  }: Provide how we can validate the implementations,
+  and how effective the parallel computation is
+\end{enumerate}
+All the codes follow the pep8 style
+\footnote{https://www.python.org/dev/peps/pep-0008/} and 
+are tested using
+unittest\footnote{https://docs.python.org/3/library/unittest.html}.
+Furthermore, {\bf the step-by-step reproduction instruction is available}
+in {\tt README.md} on this repository.

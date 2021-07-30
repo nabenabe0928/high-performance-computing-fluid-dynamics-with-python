@@ -1,0 +1,251 @@
+\documentclass[dvipdfmx]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,bm,bbm}
+\usepackage{graphicx}
+\usepackage{ascmac}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{algorithm, algpseudocode}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usepackage{ulem}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[caption=false]{subfig}
+\usepackage{comment}
+\usepackage{listings}
+\usetikzlibrary{chains}
+\usetikzlibrary{calc}
+\usepackage{amsmath,tikz}
+\usepackage{lastpage}
+\usepackage{tcolorbox}
+\usepackage{cancel}
+\tcbuselibrary{breakable, skins, theorems}
+\newtheorem{theorem1}{Theorem}
+\newtheorem{theorem2}{Definition}
+\newtheorem{theorem3}{Assumption}
+\def\qed{\hfill $\Box$}
+
+% remove the end from algorithm
+\algdef{SE}[SUBALG]{Indent}{EndIndent}{}{\algorithmicend\ }%
+\algtext*{Indent}
+\algtext*{EndIndent}
+\algtext*{EndFor}
+\algtext*{EndWhile}
+\algtext*{EndIf}
+\algtext*{EndProcedure}
+\algtext*{EndFunction}
+\newcommand{\Break}{\textbf{break}}
+\newcommand{\Continue}{\textbf{continue}}
+
+\newcommand{\xv}{\boldsymbol{x}}
+\newcommand{\vv}{\boldsymbol{v}}
+\newcommand{\uv}{\boldsymbol{u}}
+\newcommand{\wv}{\boldsymbol{w}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\od}[2]{\frac{d #1}{d #2}}
+\newcommand{\pdtwo}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\biggNorm}[1]{\biggl|\biggl| #1 \biggr|\biggr|}
+
+\newcommand{\cv}{\boldsymbol{c}}
+\newcommand{\feq}{f^{\rm eq}}
+\newcommand{\dt}{\Delta t}
+
+\setlength{\textwidth}{156mm}
+\setlength{\textheight}{220mm}
+\setlength{\oddsidemargin}{5mm}
+\setlength{\voffset}{-15mm}
+\setlength{\headsep}{10mm}
+\pagestyle{fancy}
+\rhead{\thepage/\pageref{LastPage}}
+\cfoot{ }
+
+\lhead[The Subject name / Shuhei Watanabe]{The subject name / Shuhei Watanabe}
+
+\title{\vspace{-15mm} The Subject name}
+\author{Shuhei Watanabe}
+\date{\today}
+
+\begin{document}
+\maketitle
+\thispagestyle{fancy}
+
+\begin{comment}
+                 init_pdf: Optional[np.ndarray] = None,
+                 init_density: Optional[np.ndarray] = None,
+                 init_vel
+\end{comment}
+
+\begin{algorithm}[tb]
+  \caption{The main routine of the lattice Boltzmann method}
+  \label{alg:lattice-boltzmann-method-algorithm}
+  \begin{algorithmic}[1]
+    \Statex{The grid size: $X, Y$,
+    Relaxation factor : $\omega$,
+    Initial velocity: $\uv_0$,
+    Initial density: $\rho_0$
+    } \Comment{Inputs}
+    \Statex{Boundary conditions}
+    \Function{lattice boltzmann method}{}
+    \State{$\rho(\xv, 0) = \rho_0, \uv(\xv, 0) = \uv_0$ for all
+    $\xv \in [0, X) \times [0, Y)$}
+    \For{$t= 0, 1, \dots$}
+    \State{$\feq(\cdot, t),
+    f^\star(\cdot, t)
+    $ = equillibrium($f(\cdot, t), \rho(\cdot, t), \uv(\cdot, t)$)}
+    \Comment{Eq~\ref{}}
+    \State{$f^\star$ = $f + \omega (\feq - f)$}
+    \Comment{Eq~\ref{}}
+    \State{$f^\star(\cdot + \cv \dt, t)$ =
+    streaming($f(\cdot, t), \feq(\cdot, t)$)}
+    \Comment{Eq~\ref{}}
+    \State{$f(\cdot, t + 1)$ = 
+    boundary\_handling($
+    f^\star(\cdot, t),
+    \feq(\cdot, t),
+    \text{**kwargs}
+    $)}
+    \Comment{Eq~\ref{}}
+    \State{$\rho(\cdot, t + 1), \uv(\cdot, t + 1)$ =
+    moments\_update($f(\cdot, t + 1)$)}
+    \Comment{Eq~\ref{}}
+    \EndFor
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[tb]
+  \caption{Equillibrium}
+  \label{alg:equillibrium-algorithm}
+  \begin{algorithmic}[1]
+    \Statex{w = $ \text{np.array([}
+    \frac{4}{9}, \frac{1}{9}, \frac{1}{9}, 
+    \frac{1}{9}, \frac{1}{9}, \frac{1}{36}, 
+    \frac{1}{36}, \frac{1}{36}, \frac{1}{36}
+    \text{])}$, c = $\cv$ in Eq~\ref{}}
+    \Function{equillibrium}{$\rho$ = $\rho(\cdot, t)$, u = $\uv(\cdot, t)$}
+    \Comment{$\uv$.shape = $(X, Y, 2)$, $\rho$.shape = $(X, Y)$}
+    \State{u\_norm2 = (u ** 2).sum(axis=-1)[..., None]}
+    \State{u\_at\_c = u @ c.T}
+    \Comment{u\_at\_c.shape = $(X, Y, 9)$}
+    \State{w\_tmp, $\rho$\_{tmp} = w[None, None, ...], $\rho$[..., None]}
+    \Comment{Adapt the shapes to u\_at\_c}
+    \State{$\feq$ = w\_tmp * $\rho$\_tmp * 
+    (1 + 3 * u\_at\_c + 4.5 * (u\_at\_c) ** 2)
+    -1.5 * u\_norm2
+    }
+    \State{{\bf return} $\feq$}
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[tb]
+  \caption{Streaming operation}
+  \label{alg:streaming-algorithm}
+  \begin{algorithmic}[1]
+    \Statex{c = $\cv$ in Eq~\ref{}}
+    \Function{streaming}{$f^\star$ = $f^\star(\cdot, t)$}
+    \State{$f^{\rm post}$ = np.zeros\_like($f^\star$)}
+    \For{$i= 0, 1, \dots, 8$}
+    \State{$f^{\rm post}[..., i]$ =
+    np.roll($f^\star$[..., i], shift=c[i], axis=(0, 1))}
+    \Comment{Slide $f^\star$ one step to c[i]}
+    \EndFor
+    \State{{\bf return} $f^{\rm post}$}
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[tb]
+  \caption{Boundary conditions}
+  \label{alg:boundary-conditions-algorithm}
+  \begin{algorithmic}[1]
+    \Statex{
+      Boolean matrix that represents
+      where we have the bounce back: in\_boundary
+    }
+    \Statex{
+      Boolean matrix that represents
+      where we have the collision: out\_boundary
+    }
+    \Statex{
+      The indices in D2Q9 s.t. the flow comes in
+      given boundaries: in\_indices
+    }
+    \Statex{
+      The indices in D2Q9 s.t. the flow goes out
+      given boundaries: out\_indices
+    }
+    \Function{boundary handlling}{$f^\star$ = $f^\star(\cdot, t)$,
+      $\feq$ = $\feq(\cdot, t)$}
+    \If{Rigid wall}
+    \State{$f$[in\_boundary] = $f^\star$[out\_boundary]}
+    \EndIf
+    \If{Moving wall}
+    \State{coef = np.zeros\_like(out\_boundary)}
+    \State{{\bf for} out\_idx, ci, wi in zip(out\_indices, c, w) {\bf do}}
+    \Indent
+    \State{coef[:, :, out\_idx] = 2 * wi * (ci @ $\uv_w$)} / c\_s ** 2
+    \EndIndent
+    \State{$f$[in\_boundary] = $f^\star$[out\_boundary]
+    - $\rho_w$[out\_boundary] * coef[out\_boundary]}
+    \EndIf
+    \If{PBC with pressure variation}
+    \Comment{fluid flows from $x = 0$ to $X - 1$}
+    \State{$\feq_{\rm in}, \feq_{\rm out}$ = equilibrium($\rho_{\rm in}$, $\uv$[-2]), equilibrium($\rho_{\rm out}$, $\uv$[1])}
+    \State{
+      $f^{\rm post}$[0][:, out\_indices] = 
+      $\feq_{\rm in}$[:, out\_indices] + 
+      ($f$[-2][:, out\_indices] - $\feq$[-2][:, out\_indices])
+    }
+    \State{
+      $f^{\rm post}$[-1][:, in\_indices] = 
+      $\feq_{\rm out}$[:, in\_indices] + 
+      ($f$[1][:, in\_indices] - $\feq$[1][:, in\_indices])
+    }
+    \EndIf
+    \State{{\bf return} $f$}
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[tb]
+  \caption{The communication of
+  the particle probability density function}
+  \label{alg:mpi-algorithm}
+  \begin{algorithmic}[1]
+    \Statex{Process and lattice grids management: grid\_manager}
+    \Function{communication}{}
+    \State{{\bf for} dir in grid\_manager.neighbor\_directions {\bf do}}
+    \Comment{Iterate over the D2Q9 index}
+    \Indent
+    \State{dx, dy = $\cv_i$}
+    \State{sendidx = grid\_manager.step\_to\_idx(dx, dy, send=True)}
+    \State{recvidx = grid\_manager.step\_to\_idx(dx, dy, send=False)}
+    \State{neighbor = grid\_manager.get\_neighbor\_rank(dir)}
+    \If{dx == 0} \Comment{send to top and bottom}
+    \State{sendbuf = $f$[:, sendidx, ...].copy()}
+    \State{grid\_manager.rank\_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,}
+    \State{\hspace{50mm} recvbuf=recvbuf, source=neighbor)}
+    \State{$f$[:, recvidx, ...] = recvbuf}
+    \ElsIf{dy == 0} \Comment{send to left and right}
+    \State{sendbuf = $f$[sendidx, ...].copy()}
+    \State{grid\_manager.rank\_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,}
+    \State{\hspace{50mm} recvbuf=recvbuf, source=neighbor)}
+    \State{$f$[recvidx, ...] = recvbuf}
+    \Else
+    \State{sendbuf = $f$[sendidx[0], sendidx[1] ...].copy()}
+    \State{grid\_manager.rank\_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,}
+    \State{\hspace{50mm} recvbuf=recvbuf, source=neighbor)}
+    \State{$f$[recvidx[0], recvidx[1], ...] = recvbuf}
+    \EndIf
+    \EndIndent
+    \State{{\bf return} $f$}
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
+
+\bibliographystyle{splncs04}
+\bibliography{ref}
+\end{document}

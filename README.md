@@ -3,31 +3,25 @@ This repository is created for the final submission of
 the course `high performance computing fluid dynamics with python`
 at the University of Freiburg 2021 Summer semester.
 
-The following figures are the visualization of the velocity field of sliding lid at every 1000 time steps from 1000 to 16000 time steps.
+The following figures are the visualization of the velocity field of sliding lid at every 4000 time steps from 1000 to 45000 time steps.
 <table>
     <tr>
         <td><img src="README_media/vel_flow001000.png" alt=""></td>
-        <td><img src="README_media/vel_flow002000.png" alt=""></td>
-        <td><img src="README_media/vel_flow003000.png" alt=""></td>
-        <td><img src="README_media/vel_flow004000.png" alt=""></td>
-    </tr>
-    <tr>
         <td><img src="README_media/vel_flow005000.png" alt=""></td>
-        <td><img src="README_media/vel_flow006000.png" alt=""></td>
-        <td><img src="README_media/vel_flow007000.png" alt=""></td>
-        <td><img src="README_media/vel_flow008000.png" alt=""></td>
-    </tr>
-    <tr>
         <td><img src="README_media/vel_flow009000.png" alt=""></td>
-        <td><img src="README_media/vel_flow010000.png" alt=""></td>
-        <td><img src="README_media/vel_flow011000.png" alt=""></td>
-        <td><img src="README_media/vel_flow012000.png" alt=""></td>
+        <td><img src="README_media/vel_flow013000.png" alt=""></td>
     </tr>
     <tr>
-        <td><img src="README_media/vel_flow013000.png" alt=""></td>
-        <td><img src="README_media/vel_flow014000.png" alt=""></td>
-        <td><img src="README_media/vel_flow015000.png" alt=""></td>
-        <td><img src="README_media/vel_flow016000.png" alt=""></td>
+        <td><img src="README_media/vel_flow017000.png" alt=""></td>
+        <td><img src="README_media/vel_flow021000.png" alt=""></td>
+        <td><img src="README_media/vel_flow025000.png" alt=""></td>
+        <td><img src="README_media/vel_flow029000.png" alt=""></td>
+    </tr>
+    <tr>
+        <td><img src="README_media/vel_flow033000.png" alt=""></td>
+        <td><img src="README_media/vel_flow037000.png" alt=""></td>
+        <td><img src="README_media/vel_flow041000.png" alt=""></td>
+        <td><img src="README_media/vel_flow045000.png" alt=""></td>
     </tr>
 </table>
 
