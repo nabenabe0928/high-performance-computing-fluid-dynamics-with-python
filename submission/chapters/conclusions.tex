@@ -1,28 +1,35 @@
 \chapter{Conclusions}
-In this paper, we describe what LBM is
+In this paper, we describe what the LBM is
 and how we implement it.
 Chapter 1 describes the motivation behind the numerical integrations
-and mentions that the advantages of LBM, i.e.
+and mentions the advantages of the LBM, i.e.
 simple implementation and the scalability with respect to the computational
 resources.
 
 Chapter 2 explains the theoretical aspects of LBM
-and how those equations are pluged in the simulation.
-Additionally, we show the algorithms of each component.
-Each algorithm in our implementation
+and how those equations are pluged in the computational simulations.
+More specifically, the discretization of each equation and
+the boundary handlings are presented.
+
+Chapter 3 shows the algorithms of each component.
+Especially, we focus on the descriptions how
+the simulation should be implemented using numpy
+which is effective to speed up Python implementations.
+Additionally, the MPI usage and the domain division method
+is described. 
+Note that each algorithm in our implementation
 is tested using pytest and abstracted as much as possible
 so that each component can be reused and we can reduce
 the bugs over the whole implementations.
 
-Chapter 3 presents the validations of each component
+Chapter 4 presents the validations of each component
 using the comparison between the analytical solutions
-and visualizes how LBM works in the lid-driven cavity
+and visualizes how the LBM works in the lid-driven cavity
 example.
 For the validations, we use the shear wave decay, 
 the Couette flow and the Poissuille flow
 and show the analytical solutions for each phenomenon.
 After the validations, we show the lid-driven cavity simulation
 exhibits the similar dynamics when we have a constant Reynolds number.
-Furthermore, we test the scalability of 
-LBM in the lid-driven cavity simulation
+Furthermore, we test the scalability of the LBM in the lid-driven cavity simulation
 and show about the 30 times speed up using 100 processes.

@@ -151,7 +151,7 @@ so that the implementation is more straightforward.
     \State{coef = np.zeros\_like(out\_boundary)}
     \State{{\bf for} out\_idx, ci, wi in zip(out\_indices, c, w) {\bf do}}
     \Indent
-    \State{coef[:, :, out\_idx] = 2 * wi * (ci @ $\uv_w$)} / c\_s ** 2
+    \State{coef[:, :, out\_idx] = 2 * wi * (ci @ $\Uv_w$)} / c\_s ** 2
     \EndIndent
     \State{$f$[in\_boundary] = $f^\star$[out\_boundary]-$\rho_w$[out\_boundary] * coef[out\_boundary]}
     \EndIf

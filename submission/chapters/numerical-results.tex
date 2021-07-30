@@ -1,14 +1,13 @@
 \chapter{Numerical results}
 \vspace{-8mm}
-In the previous chapter, we discuss the implementation detail
+In the previous chapter, we discuss the implementation details
 and how we implement and apply LBM to various settings.
 In this chapter, we show the visualizations and numerical results
 obtained from the series experiments.
 
 \section{Validation experiments}
 In the physics simulation, it is always important
-to validate whether the implementation is correct
-\cite{}.
+to validate whether the implementation is correct.
 Therefore, we first show how to validate the implementation
 using several examples.
 
@@ -35,7 +34,7 @@ as the initial condition:
   \label{shear-vel-init}
 \end{equation}
 Then the analytical solution for the time evolution of 
-the velocity is calculated as follows\cite{}:
+the velocity is calculated as follows\cite{fei2018three}:
 \begin{equation}
   \begin{aligned}
     u_x(y, t) &= 
@@ -79,6 +78,7 @@ This simulation uses the sinusoidal density in $x$-direction:
     \subfloat[$t = 600$]{
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel000600.pdf}
     }\\
+    \vspace{-3mm}
     \subfloat[$t = 800$]{
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel000800.pdf}
     }
@@ -91,6 +91,7 @@ This simulation uses the sinusoidal density in $x$-direction:
     \subfloat[$t = 1400$]{
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel001400.pdf}
     }\\
+    \vspace{-3mm}
     \subfloat[$t = 1600$]{
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel001600.pdf}
     }
@@ -106,7 +107,7 @@ This simulation uses the sinusoidal density in $x$-direction:
     \caption{The velocity evolution for the sinusoidal velocity at
       the $x = 25$ in the lattice grid size of $(50, 50)$.
       The $x$-axis shows the location in the $y$ direction
-      and the $x$-axis shows the magnitude of velocity at 
+      and the $y$-axis shows the magnitude of velocity at 
       the corresponding location.
       The coefficients $\epsilon$ and the initial density $\rho_0$ are 
       set to $0.08$ and $1.0$ respectively.
@@ -159,11 +160,12 @@ transforming Eq~\ref{sinusoidal-vel-analytical-solution}:
   \end{aligned}
   \label{viscosity-analytical}
 \end{equation}
-Note that we assume that $\epsilon\sin \frac{2\pi y}{Y} \neq 0$.
+Note that we assume that $\epsilon\sin \frac{2\pi y}{Y} \neq 0$
+and the assumptions for Eq~\ref{sinusoidal-vel-analytical-solution} hold.
 We perform the experiments to validate Eq~\ref{viscosity-analytical} using 
 the exact experiment settings for Figure~\ref{fig:sinusoidal-velocity} and Figure~\ref{fig:sinusoidal-density}
 except the relaxation term $\omega$.
-Note that the viscosity is computed as $\nu = \frac{1}{3} (\frac{1}{\omega} - \frac{1}{2})$
+Note that the viscosity is computed as $\nu = \frac{1}{3} (\frac{1}{\omega} - \frac{1}{2})$.
 The results are shown in Figure~\ref{fig:omega-vs-visc}.
 Based on the results, smaller and larger $\omega$ lead to numerical instability.
 Otherwise, the simulated results and analytical solution fit perfectly.
@@ -183,6 +185,7 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
     \subfloat[$t = 600$]{
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density000600.pdf}
     }\\
+    \vspace{-3mm}
     \subfloat[$t = 800$]{
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density000800.pdf}
     }
@@ -195,6 +198,7 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
     \subfloat[$t = 1400$]{
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001400.pdf}
     }\\
+    \vspace{-3mm}
     \subfloat[$t = 1600$]{
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001600.pdf}
     }
@@ -232,7 +236,9 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
     The analytical solution uses $\nu = \frac{1}{3}(\frac{1}{\omega} - \frac{1}{2})$
     and the simulated result uses Eq~\ref{viscosity-analytical}.
     For the simulated results, we take the results at $t = 3000$
-    and compute the average of $\nu$ at $X = 25$ over the $y$-axis. 
+    and compute the average of $\nu$ at $X = 25$ over the $y$-axis.
+    Note that (a) uses the same parameters as in Figure~\ref{fig:sinusoidal-density}
+    and (a) uses the same parameters as in Figure~\ref{fig:sinusoidal-velocity}.
     \label{fig:omega-vs-visc}}
   \end{center}
 \end{figure}
@@ -247,12 +253,13 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
 
 
 \subsection{Couette flow}
-The Couette flow is the flow between two walls as shown in Figure~\ref{couette-and-poiseuille-conceptual}:
-One is fixed and the other moves horizontally at the velocity of $U_w$.
+The Couette flow is the flow between two walls as shown in
+Figure~\ref{couette-and-poiseuille-conceptual}:
+One is fixed and the other moves horizontally with the velocity of $U_w$.
 The flow is caused by the viscous drag force acting on the fluid.
 Since the Couette flow also has an analytical solution,
 we can validate the implementation of the moving wall.
-The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by:
+The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by\cite{nagy2019graphical}:
 \begin{equation}
 \begin{aligned}
   u_x(y) =\frac{Y - y}{Y}U_w
@@ -290,7 +297,7 @@ in the horizontal direction of the two walls.
 The Poiseuille flow also has the analytical solution
 and we can validate the implementation of the periodic boundary conditions
 with pressure variation.
-The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by:
+The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by\cite{mendiburu2009analytical}:
 \begin{equation}
 \begin{aligned}
   u_x(y) = - \frac{1}{2\rho \nu} \od{p}{x} y (Y - y)
@@ -323,7 +330,7 @@ In this paper, the lid-driven cavity shown in Figure~\ref{lid-driven-cavity-conc
 The lid-driven cavity simulates the flow inside a box with
 three rigid walls and one moving wall, i.e. a lid.
 In this simulation, it is known that the turbulence is caused 
-when the following Reynolds number is larger than 1000:
+when the following Reynolds number is larger than 1000\cite{chiang1998effect}:
 \begin{equation}
 \begin{aligned}
   \text{Re} = \frac{LU}{\nu}
@@ -332,7 +339,7 @@ when the following Reynolds number is larger than 1000:
 where $L$ is the characteristic length parameter
 of the body and $U$ is the stream flow velocity.
 One key property of the Reynolds number is that two flow system
-is dynamically similar if the Reynolds number and the geometry are similar.
+is dynamically similar if the Reynolds number and the geometry are similar\cite{kundu2008fluid}.
 Therefore, we present the results with various 
 viscosity $\nu$ and the wall velocity $U = U_w$ that 
 satisfy the Reynolds number of $1000$ under $L = X = Y = 300$
@@ -422,17 +429,17 @@ intel core i7--10700 and 32GB RAM.
 Recall that the advantage of LBM is to allow us to compute the simulation in
 parallel easily.
 For this reason, we test the scalability of this simulation using
-various number of processors.
+various number of processes.
 Note that all the experiments related to the scaling test
 are performed on {\bf BWUniCluster}
 \footnote{https://wiki.bwhpc.de/e/Category:BwUniCluster\_2.0}.
 The implementation follows Section~\ref{section-mpi}.
 Figure~\ref{fig:sliding-lid-scaling} shows the plot of
 MLUPS, a.k.a. million lattice updates per second, and
-the number of processors.
-Ideally, the MLUPS grows linearly with respect to the number of processors.
+the number of processes.
+Ideally, the MLUPS grows linearly with respect to the number of processes.
 However, it does not happen because of the latency of the communication
-and the waiting for the synchronization as described in Amdahl's law\cite{}.
+and the waiting for the synchronization as described in Amdahl's law\cite{amdahl1967validity}.
 Such slow down is also seen in Figure~\ref{fig:sliding-lid-scaling}.
 \begin{figure}[b]
   \centering
