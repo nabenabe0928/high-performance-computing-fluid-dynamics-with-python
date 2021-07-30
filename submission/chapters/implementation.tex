@@ -25,8 +25,8 @@ streaming operation shown in Algorithm~\ref{alg:streaming-algorithm}
 and slide each quantity to the adjacent cells.
 Finally, we apply the boundary handling at each boundary cell as 
 described in Algorithm~\ref{alg:boundary-conditions-algorithm}
-and update the density and the velocity as in Eq~\ref{}.
-Note that the order of each step might vary depending on literature\cite{timm2016lattice, succi2018lattice}.
+and update the density and the velocity as in Eq~\ref{discretized-density}, \ref{discretized-velocity}.
+Note that the order of each step might vary depending on literature~\cite{timm2016lattice, succi2018lattice}.
 Additionally, we use as much slicing as possible in the Algorithms
 in order to speed up the runtime.
 
@@ -50,7 +50,7 @@ we use boolean matrices {\tt in\_boundary} and {\tt out\_boundary}
 that have the shape of $(X, Y, 9)$ so that 
 we can refer to only elements that have bounce back or collision
 with the boundary.
-Additionally, we compute $\rho_w$ by the average density\cite{khajepor2019study}.
+Additionally, we compute $\rho_w$ by the average density~\cite{khajepor2019study}.
 Note that the domain is extended with virtual nodes 
 at both edges of the periodic boundary in the PBC with pressure variation
 so that the implementation is more straightforward. 
@@ -173,7 +173,7 @@ the messaging passing interface (MPI)
 so that we can compute collision step of the LBM
 in parallel.
 This is possible because the collision step does not require
-any communication between processes\cite{pastewka2019hpc}.
+any communication between processes~\cite{pastewka2019hpc}.
 Then, we explain how we divide the domain.
 Suppose we are provided the number of processes of $P$,
 we first factorize $P$ such that $P = P_0 \times P_1$
@@ -218,7 +218,7 @@ it is literally used for the buffer to communicate data.
     Then we add an additional ghost cells for buffer (gray lattice points).
     During each communication step, the outermost green active lattice
     sends the data to the adjacent outermost ghost lattice (blue arrows).
-    The figure is cited from Figure~2 in \cite{pastewka2019hpc}.
+    The figure is cited from Figure~2 in ~\cite{pastewka2019hpc}.
   }
   \label{mpi-conceptual}
 \end{figure}

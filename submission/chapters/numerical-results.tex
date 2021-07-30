@@ -34,7 +34,7 @@ as the initial condition:
   \label{shear-vel-init}
 \end{equation}
 Then the analytical solution for the time evolution of 
-the velocity is calculated as follows\cite{fei2018three}:
+the velocity is calculated as follows~\cite{fei2018three}:
 \begin{equation}
   \begin{aligned}
     u_x(y, t) &= 
@@ -259,7 +259,7 @@ One is fixed and the other moves horizontally with the velocity of $U_w$.
 The flow is caused by the viscous drag force acting on the fluid.
 Since the Couette flow also has an analytical solution,
 we can validate the implementation of the moving wall.
-The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by\cite{nagy2019graphical}:
+The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by~\cite{nagy2019graphical}:
 \begin{equation}
 \begin{aligned}
   u_x(y) =\frac{Y - y}{Y}U_w
@@ -297,7 +297,7 @@ in the horizontal direction of the two walls.
 The Poiseuille flow also has the analytical solution
 and we can validate the implementation of the periodic boundary conditions
 with pressure variation.
-The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by\cite{mendiburu2009analytical}:
+The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by~\cite{mendiburu2009analytical}:
 \begin{equation}
 \begin{aligned}
   u_x(y) = - \frac{1}{2\rho \nu} \od{p}{x} y (Y - y)
@@ -330,7 +330,7 @@ In this paper, the lid-driven cavity shown in Figure~\ref{lid-driven-cavity-conc
 The lid-driven cavity simulates the flow inside a box with
 three rigid walls and one moving wall, i.e. a lid.
 In this simulation, it is known that the turbulence is caused 
-when the following Reynolds number is larger than 1000\cite{chiang1998effect}:
+when the following Reynolds number is larger than 1000~\cite{chiang1998effect}:
 \begin{equation}
 \begin{aligned}
   \text{Re} = \frac{LU}{\nu}
@@ -339,7 +339,7 @@ when the following Reynolds number is larger than 1000\cite{chiang1998effect}:
 where $L$ is the characteristic length parameter
 of the body and $U$ is the stream flow velocity.
 One key property of the Reynolds number is that two flow system
-is dynamically similar if the Reynolds number and the geometry are similar\cite{kundu2008fluid}.
+is dynamically similar if the Reynolds number and the geometry are similar~\cite{kundu2008fluid}.
 Therefore, we present the results with various 
 viscosity $\nu$ and the wall velocity $U = U_w$ that 
 satisfy the Reynolds number of $1000$ under $L = X = Y = 300$
@@ -439,7 +439,7 @@ MLUPS, a.k.a. million lattice updates per second, and
 the number of processes.
 Ideally, the MLUPS grows linearly with respect to the number of processes.
 However, it does not happen because of the latency of the communication
-and the waiting for the synchronization as described in Amdahl's law\cite{amdahl1967validity}.
+and the waiting for the synchronization as described in Amdahl's law~\cite{amdahl1967validity}.
 Such slow down is also seen in Figure~\ref{fig:sliding-lid-scaling}.
 \begin{figure}[b]
   \centering

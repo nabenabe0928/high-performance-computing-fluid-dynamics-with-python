@@ -3,7 +3,7 @@
 In this chapter, we describe how the equations used in LBM
 are derived.
 More specifically, we explain
-{\bf Boltzmann transport equation (BTE)}\cite{mcnamara1988use}, i.e.
+{\bf Boltzmann transport equation (BTE)}~\cite{mcnamara1988use}, i.e.
 the basic equations of the kinetic theory of gases and
 how to handle the boundary conditions.
 
@@ -13,8 +13,8 @@ particle probability density $f(\xv, \uv, t)$ given
 the velocity $\uv$ and the position $\xv$ of particles.
 The BTE relaxes the particle distribution to
 the Maxwell velocity distribution
-function\cite{huang1963statistical} and the approximation of the relaxation of
-$f$ towards $f^{\rm eq}$ is described as follows\cite{bhatnagar1954model}:
+function~\cite{huang1963statistical} and the approximation of the relaxation of
+$f$ towards $f^{\rm eq}$ is described as follows~\cite{bhatnagar1954model}:
 \begin{equation}
   \begin{aligned}
     \od{f(\xv, \uv, t)}{t} &= 
@@ -38,7 +38,7 @@ Furthermore, this particle probability density function
 $f(\xv, \uv, t)$ is used for computing
 the physical states of the fluid,
 such as density and velocity.
-The momentum updates are performed via\cite{caroli1984non}:
+The momentum updates are performed via~\cite{caroli1984non}:
 \begin{equation}
   \begin{aligned}
     \rho(\xv, t) &= \int f(\xv, \uv, t) d\uv 
@@ -65,7 +65,7 @@ in the two dimensional space.
 The discretization for the space and time
 is performed so that the equality condition of 
 the following inequality
-(Courant-Friedrichs-Lewy condition) holds\cite{peyretcomputational, sterling1996stability}:
+(Courant-Friedrichs-Lewy condition) holds~\cite{peyretcomputational, sterling1996stability}:
 \begin{equation}
 \begin{aligned}
   \cv_i \dt \leq || \Delta \xv_i ||
@@ -126,7 +126,7 @@ Additionally, the equilibrium in Eq~(\ref{analytical-eq}) is computed as:
 \label{discretized-streaming}
 \end{equation}
 where $\omega = \dt / \tau$ is the relaxation parameter.
-The equilibrium is computed as\cite{zhao2002non}:
+The equilibrium is computed as~\cite{zhao2002non}:
 \begin{equation}
 \begin{aligned}
   \feq_i(\xv, t) &=
@@ -186,7 +186,7 @@ Those directions follow D2Q9 illustrated
 in Figure~\ref{fig:d2q9}.
 Additionally, there are the following
 two ways to
-implement the boundary conditions\cite{liu2014lattice}:
+implement the boundary conditions~\cite{liu2014lattice}:
 \begin{enumerate}
   \item {\bf Dry nodes}:
   The boundaries are located on the link between nodes
@@ -203,7 +203,7 @@ The most basic boundary condition is
 {\bf rigid wall} or the {\bf bounce-back boundary condition}.
 In this condition, we apply the process without
 slip condition at the boundary.
-The equation at the boundary is computed as\cite{succi2018lattice}:
+The equation at the boundary is computed as~\cite{succi2018lattice}:
 \begin{equation}
 \begin{aligned}
   f_i(\xv_b, t + \dt) = f_{i^\star}^\star(\xv_b, t)
@@ -213,7 +213,7 @@ The equation at the boundary is computed as\cite{succi2018lattice}:
 When the {\bf boundary moves} with the velocity of
 $\Uv_w$, the variation in the momentum of particles
 must be taken into consideration and the equation is
-modified as follows\cite{succi2018lattice}:
+modified as follows~\cite{succi2018lattice}:
 \begin{equation}
   \begin{aligned}
     f_i(\xv_b, t + \dt) = f_{i^\star}^\star (\xv_b, t) - 
@@ -226,7 +226,7 @@ modified as follows\cite{succi2018lattice}:
 where $c_s$ is the speed of sound and 
 $\rho_w$ is the density at the wall.
 The computation of $\rho_w$ is usually performed by
-either of the followings\cite{zou1997pressure, khajepor2019study}:
+either of the followings~\cite{zou1997pressure, khajepor2019study}:
 \begin{enumerate}
   \item Take the average density $\bar{\rho}$ of the simulated field
   \item Extrapolate $\rho_w$ using 
@@ -239,7 +239,7 @@ In this section, we assume that we have
 boundary at $x = 0~(\text{inlet}), X - 1~(\text{outlet})$
 where $X$ is the number of the lattice grid in the $x$-axis.
 The most basic PBC assumes that
-the flow from outlet comes in from inlet as follows\cite{succi2018lattice}: 
+the flow from outlet comes in from inlet as follows~\cite{succi2018lattice}: 
 \begin{equation}
 \begin{aligned}
   f((0, y), t) = f((X - 1, y), t)
@@ -255,7 +255,7 @@ that at the outlet $\rho_{\rm out}$ can be computed
 accordingly given the constant pressure $p_{\rm out}$
 at the outlet.
 Then the particle probability density functions at 
-the inlet and the outlet are computed as follows\cite{succi2018lattice}:
+the inlet and the outlet are computed as follows~\cite{succi2018lattice}:
 \begin{equation}
 \begin{aligned}
   f_i^\star(0, y, t) &=
