@@ -299,27 +299,29 @@ def visualize_quantity_vs_time(quantities: np.ndarray, quantity_name: str,
 
 
 def visualize_proc_vs_MLUPS(save: bool = False, format: str = 'pdf') -> None:
-    dir_name = "log/sliding_lid_W0.10_visc0.03_size300/"
+    plt.figure(figsize=(15, 5))
 
-    file_name = 'MLUPS_vs_proc_without_bottleneck.csv'
-    col = 'red'
+    for size, col in zip([100, 300, 1000], ['blue', 'red', 'black']):
+        dir_name = "log/sliding_lid_W0.10_visc0.03_size{0}x{0}/".format(size)
+        file_name = 'MLUPS_vs_proc.csv'
 
-    file_path = f"{dir_name}{file_name}"
+        file_path = f"{dir_name}{file_name}"
 
-    with open(file_path, 'r') as f:
-        reader = list(csv.reader(f, delimiter=','))
-        procs = np.array([int(row[0]) for row in reader])
-        mlups = np.array([float(row[1]) / 1e6 for row in reader])
+        with open(file_path, 'r') as f:
+            reader = list(csv.reader(f, delimiter=','))
+            procs = np.array([int(row[0]) for row in reader])
+            mlups = np.array([float(row[1]) / 1e6 for row in reader])
 
-    plt.figure(figsize=(15, 3))
-    plt.plot(procs, mlups, marker='x', color=col)
+        plt.plot(procs, mlups, marker='x', color=col, label='$X \\times Y = {0} \\times {0}$'.format(size))
+
     plt.xlabel('# of processes', fontsize=28)
     plt.ylabel('MLUPS', fontsize=28)
-    plt.ylim(1., 100)
+    plt.ylim(1., 1000)
     plt.xscale('log')
     plt.yscale('log')
     plt.xticks(fontsize=28)
     plt.yticks(fontsize=28)
+    plt.legend()
     plt.grid()
     # plt.legend()
-    show_or_save(path=f'log/sliding_lid_W0.10_visc0.03_size300/fig/scaling_test.{format}' if save else None)
+    show_or_save(path=f'log/scaling_test.{format}' if save else None)

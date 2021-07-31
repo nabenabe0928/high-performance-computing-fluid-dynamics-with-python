@@ -169,7 +169,7 @@ except the relaxation term $\omega$.
 Note that the viscosity is computed as $\nu = \frac{1}{3} (\frac{1}{\omega} - \frac{1}{2})$.
 The results are shown in Figure~\ref{fig:omega-vs-visc}.
 Based on the results, smaller and larger $\omega$ lead to numerical instability.
-Otherwise, the simulated results and analytical solution fit perfectly.
+Otherwise, the simulated results and analytical solution fits perfectly.
 Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurate results.
 
 \begin{figure}[H]
@@ -346,10 +346,13 @@ Therefore, we present the results with various
 viscosity $\nu$ and the wall velocity $U = U_w$ that 
 satisfy the Reynolds number of $1000$ under $L = X = Y = 300$
 in Figure~\ref{fig:sliding-lid-velocity-evolution}.
-As the viscosity and velocity becomes larger,
-the convergence becomes quicker.
-On the other hand, all the settings converge to the similar flow in the end
+All the settings converge to the similar flow in the end
 as indicated in the key property of the Reynolds number.
+Note that all the experiments for Figure~\ref{fig:sliding-lid-velocity-evolution}
+are {\bf performed using MPI of 9 processes}
+and {\bf the absolute error of the velocity in each grid between the serial implementation
+and the parallel implementation is smaller than 1e-6}.
+Therefore, it is obvious that our parallel implementation is correct.
 
 \begin{figure}[t]
   \centering
@@ -391,25 +394,36 @@ various number of processes.
 Note that all the experiments related to the scaling test
 are performed on {\bf BWUniCluster}
 \footnote{https://wiki.bwhpc.de/e/Category:BwUniCluster\_2.0}.
-The implementation follows Section~\ref{section-mpi}.
+The implementation follows Section~\ref{section-mpi}
+and each thread is bound to one processor.
 Figure~\ref{fig:sliding-lid-scaling} shows the plot of
 MLUPS, a.k.a. million lattice updates per second, and
 the number of processes.
+As seen in the figure, the larger grid size leads to
+less MLUPS with the smaller number of processes.
+This is due to the heavy load on small number of processors.
+On the other hand, as the number of processes
+becomes larger, the simulation with larger domain exhibits
+higher efficiency.
 Ideally, the MLUPS grows linearly with respect to the number of processes.
 However, it does not happen because of the latency of the communication
 and the waiting for the synchronization as described in Amdahl's law~\cite{amdahl1967validity}.
-Such slow down is also seen in Figure~\ref{fig:sliding-lid-scaling}.
+It explains why the larger domain leads to more scalability with respect to
+the number of processes.
+
+
 \begin{figure}[b]
   \centering
-  \includegraphics[width=0.88\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/scaling_test.pdf}
+  \includegraphics[width=0.88\textwidth]{../log/scaling_test.pdf}
   \vspace{-3mm}
   \caption{The scaling test of the sliding lid simulation.
-  The grid size is $300 \times 300$.
+  The grid size is either $100 \times 100, 300 \times 300 \text{ or } 1000 \times 1000$.
   The number of processes are $1 ,4 ,9 ,16 ,25 ,36 ,100 ,144 ,225 ,400$ respectively.
   Note that both axes are log-scale.
-    The viscosity and the wall velocity are set to $\nu = 0.03$ and $0.1$.
+    The viscosity and the wall velocity are set to $\nu = 0.03$ and $0.1$
+    and we perform the update $T = 10000$ times.
     The initial density is $\rho(\xv) = 1.0$ and the initial velocity is $\uv(\xv) = (0, 0)$.
   }
   \label{fig:sliding-lid-scaling}
 \end{figure}
-
+% write how many steps we performed
