@@ -39,7 +39,8 @@ def run() -> None:
     parser.add_argument('-E', '--experiment', type=str, choices=name2func.keys(), required=True,
                         help=f'The experiment name. {name2func}.')
     parser.add_argument('-T', '--total_time_steps', type=int, required=True, help='The total time steps.')
-    parser.add_argument('-S', type=int, required=True, help='The lattice size.')
+    parser.add_argument('-X', type=int, required=True, help='The lattice size in the x direction.')
+    parser.add_argument('-Y', type=int, required=True, help='The lattice size in the y direction.')
     parser.add_argument('--omega', type=float, help='The relaxation factor.')
     parser.add_argument('--visc', type=float, help='The viscosity.')
     parser.add_argument('-I', '--indensity', type=float, help='The density factor at the inlet.')
@@ -59,7 +60,7 @@ def run() -> None:
 
     experiment_vars = ExperimentVariables(
         total_time_steps=args.total_time_steps,
-        lattice_grid_shape=(args.S, args.S),
+        lattice_grid_shape=(args.X, args.Y),
         omega=args.omega if args.omega is not None else viscosity2omega(args.visc),
         scaling_test=eval(args.scaling),
         save=eval(args.save)

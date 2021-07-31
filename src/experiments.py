@@ -245,7 +245,7 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
     visc = omega2viscosity(experiment_vars.omega)
 
     assert experiment_vars.wall_vel is not None
-    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}'
+    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}x{Y}'
 
     field = get_field(experiment_vars, dir_name=dir_name)
     total_time_steps = experiment_vars.total_time_steps
@@ -291,7 +291,7 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
     visc = omega2viscosity(experiment_vars.omega)
 
     assert experiment_vars.wall_vel is not None
-    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}'
+    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}x{Y}'
 
     field = get_field(experiment_vars, grid_manager=grid_manager, dir_name=dir_name)
     start, total_time_steps = time.time(), experiment_vars.total_time_steps
