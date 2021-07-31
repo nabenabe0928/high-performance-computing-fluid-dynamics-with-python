@@ -153,8 +153,8 @@ def visualize_velocity_plot(subject: str, epsilon: float, visc: float, save: boo
         plt.figure(figsize=(5, 3))
         plt.xlim(0, Y)
         plt.ylim(bounds[0] - buf, bounds[1] + buf)
-        plt.plot(y, v[X // 2, :], label='Simulated Result')
-        plt.plot(y, analytical_sol(t, y, Y), label='Analytical Solution')
+        plt.plot(y, analytical_sol(t, y, Y), color='blue', lw=4.5, label='Analytical Solution')
+        plt.plot(y, v[X // 2, :], color='red', label='Simulated Result')
         if t == 0:
             plt.legend()
         show_or_save(path=f'log/{subject}/fig/vel{t:0>6}.{format}' if save else None)
@@ -212,7 +212,7 @@ def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str
             if t == start:
                 plt.xlim(-0.01 * wall_vel[0], wall_vel[0])
                 plt.ylim(-0.5, Y)
-                plt.plot(analy_sol, np.arange(Y + 1) - 0.5, label="Analytical velocity")
+                plt.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', lw=4.5, label="Analytical velocity")
 
             plt.plot(vx[X // 2, :], np.arange(Y), label=f"$t = {t}$", linestyle=":", linewidth=2)
 
@@ -230,6 +230,7 @@ def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = Fa
     viscosity = params.viscosity
     out_density_factor = params.out_density_factor
     in_density_factor = params.in_density_factor
+    V = []
 
     for t in range(start, end, freq):
         vx_file_name = f'log/poiseuille_flow/npy/v_x{t:0>6}.npy'
@@ -260,11 +261,17 @@ def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = Fa
                 plt.xlim(0, 0.023)
                 plt.ylim(-0.5, Y)
 
-            plt.plot(vx[X // 2, :], np.arange(Y), label=f"$t = {t}$", linestyle=":", linewidth=2)
+            V.append(vx[X // 2, :])
 
     if joint:
-        plt.plot(analy_sol, np.arange(Y + 1) - 0.5, label="Analytical velocity")
+        plt.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', lw=4.5, label="Analytical velocity")
         plt.rc('legend', fontsize=10)
+        idx = 0
+        Y = np.arange(V[0].size)
+        for t in range(start, end, freq):
+            plt.plot(V[idx], Y, label=f"$t = {t}$", linestyle=":", linewidth=2)
+            idx += 1
+
         plt.legend(loc='lower left')
         show_or_save(path=f'log/poiseuille_flow/fig/poiseuille_flow_joint.{format}' if save else None)
 
@@ -302,12 +309,15 @@ def visualize_proc_vs_MLUPS(save: bool = False, format: str = 'pdf') -> None:
         procs = np.array([int(row[0]) for row in reader])
         mlups = np.array([float(row[1]) / 1e6 for row in reader])
 
+    plt.figure(figsize=(15, 3))
     plt.plot(procs, mlups, marker='x', color=col)
-    plt.xlabel('# of processes')
-    plt.ylabel('MLUPS')
+    plt.xlabel('# of processes', fontsize=28)
+    plt.ylabel('MLUPS', fontsize=28)
     plt.ylim(1., 100)
     plt.xscale('log')
     plt.yscale('log')
+    plt.xticks(fontsize=28)
+    plt.yticks(fontsize=28)
     plt.grid()
     # plt.legend()
     show_or_save(path=f'log/sliding_lid_W0.10_visc0.03_size300/fig/scaling_test.{format}' if save else None)
