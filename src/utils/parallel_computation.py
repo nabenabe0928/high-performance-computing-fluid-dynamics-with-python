@@ -208,6 +208,7 @@ class ChunkedGridManager():
         return self._neighbor_directions
 
     def _compute_rank_grid_size(self, X_global: int, Y_global: int) -> Tuple[int, int]:
+        """ Compute how many intervals there exist in each direction """
         lower, upper = 1, self.size
         for i in range(2, int(np.sqrt(self.size)) + 1):
             if self.size % i == 0:
@@ -216,6 +217,7 @@ class ChunkedGridManager():
         return (lower, upper) if X_global <= Y_global else (upper, lower)
 
     def _compute_local_grid_size(self, X_global: int, Y_global: int) -> Tuple[int, int]:
+        """ Compute the # of grid size in each direction in this process """
         (X_rank, Y_rank) = self.rank_grid_size
         (x_rank, y_rank) = self.rank_loc
         X_small, X_large = X_global // X_rank, (X_global + X_rank - 1) // X_rank
@@ -229,7 +231,7 @@ class ChunkedGridManager():
 
     def _compute_local_range(self, X_global: int, Y_global: int
                              ) -> Tuple[Tuple[int, int], Tuple[int, int]]:
-
+        """ Compute the start and the end of global position that this process is responsible for """
         (X_rank, Y_rank) = self.rank_grid_size
         (x_rank, y_rank) = self.rank_loc
         X_small, X_large = X_global // X_rank, (X_global + X_rank - 1) // X_rank
@@ -253,9 +255,11 @@ class ChunkedGridManager():
         return (x_local_lower, x_local_upper), (y_local_lower, y_local_upper)
 
     def _compute_neighbor_directions(self) -> List[DirectionIndicators]:
+        """ Compute which directions the neighbors exist """
         return [dir for dir in DirectionIndicators if self.exist_neighbor(dir)]
 
     def _compute_buffer_grid_size(self) -> Tuple[int, int]:
+        """ Compute how much size the buffer array needs """
         gx, gy = self.local_grid_size
         x_start, y_start = 0, 0
         x_end, y_end = self.local_grid_size
@@ -304,12 +308,15 @@ class ChunkedGridManager():
             return (x_nxt, y_nxt)
 
     def x_in_process(self, x_global: int) -> bool:
+        """ Whether the given global position x is in this process or not """
         return self.x_local_range[0] <= x_global <= self.x_local_range[1]
 
     def y_in_process(self, y_global: int) -> bool:
+        """ Whether the given global position y is in this process or not """
         return self.y_local_range[0] <= y_global <= self.y_local_range[1]
 
     def location_in_process(self, x_global: int, y_global: int) -> bool:
+        """ Whether the given global position is in this process or not """
         return self.x_in_process(x_global) and self.y_in_process(y_global)
 
     def global_to_local(self, x_global: int, y_global: int) -> Tuple[int, int]:
@@ -338,6 +345,7 @@ class ChunkedGridManager():
             raise ValueError("dir must be either {TOP, BOTTOM, LEFT, RIGHT}.")
 
     def exist_neighbor(self, dir: DirectionIndicators) -> bool:
+        """ Return whether there exists a neighbor in the direction `dir` """
         if not isinstance(dir, DirectionIndicators):
             raise ValueError(f"Args `dir` must be DirectionIndicators type, but got {type(dir)}.")
 

@@ -93,6 +93,7 @@ def sinusoidal_density(lattice_grid_shape: Tuple[int, int], epsilon: float,
 
 
 class DirectionIndicators(IntEnum):
+    """ Enumerator for the D2Q9 directions """
     CENTER: int = 0
     RIGHT: int = 1
     TOP: int = 2
@@ -117,8 +118,13 @@ class DirectionIndicators(IntEnum):
 
     def is_center(self, axis: int) -> bool:
         """
-        axis == 0: x axis
-        axis == 1: y axis
+        Return if the direction indicator is at the center
+        given an axis
+
+        Args:
+            axis (int):
+                axis == 0: x axis
+                axis == 1: y axis
         """
         if axis == 0:
             return self in [
