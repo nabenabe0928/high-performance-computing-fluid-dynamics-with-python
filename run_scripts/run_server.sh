@@ -19,4 +19,4 @@ echo "Use ${N} threads."
 
 # visc = 0.04 => the possible minimum viscosity
 # Use only half of them for performance
-time mpirun -n $N python -m run_experiment -E sm -T 100000 -S 300 --visc 0.04 -W 0.1 --scaling True
+time mpirun -n $N python -m run_experiment -E sm -T 100000 -X 300 -Y 300 --visc 0.04 -W 0.1 --scaling True

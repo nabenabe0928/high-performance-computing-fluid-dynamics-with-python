@@ -82,7 +82,7 @@ def sinusoidal_density(lattice_grid_shape: Tuple[int, int], epsilon: float,
         density := rho(x, y, 0) = rho0 + eps * sin(2PI x/X)
         v(x, y, 0) = 0
     """
-    assert rho0 + epsilon < 1
+    assert rho0 + epsilon < 2
     assert rho0 - epsilon > 0
     X, Y = lattice_grid_shape
     vel = np.zeros((*lattice_grid_shape, 2))

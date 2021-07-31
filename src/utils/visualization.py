@@ -210,6 +210,8 @@ def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str
             show_or_save(path=f'log/couette_flow/fig/couette_flow{t:0>6}.{format}' if save else None)
         else:
             if t == start:
+                plt.plot(np.arange(vmax), np.ones(vmax) * (Y - 1) + 0.5, label="Rigid wall", color='black', linewidth=3.0)
+                plt.plot(np.arange(vmax), np.zeros(vmax), label='Moving wall', color='red', linewidth=3.0)
                 plt.xlim(-0.01 * wall_vel[0], wall_vel[0])
                 plt.ylim(-0.5, Y)
                 plt.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', lw=4.5, label="Analytical velocity")

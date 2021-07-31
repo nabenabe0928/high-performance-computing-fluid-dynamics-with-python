@@ -1,3 +1,8 @@
+# Lid-driven cavity using lattice boltzmann method
+<p align="middle">
+    <img src="/README_media/lid-driven-cavity-w0.1-visc0.03-small.gif" width="96%" />
+</p>
+
 # Preface
 This repository is created for the final submission of 
 the course `high performance computing fluid dynamics with python`
@@ -30,8 +35,8 @@ The following figures are the visualization of the velocity field of sliding lid
 
 First, setup the environment using the following commands:
 ```
-$ conda create -n hpc-fluid-dyn -c conda-forge python=3.6
-$ conda activate hpc-fluid-dyn
+$ conda create -n hpc-fluid -c conda-forge python=3.6
+$ conda activate hpc-fluid
 $ pip install -r requirements.txt
 ```
 
