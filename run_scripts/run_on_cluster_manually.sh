@@ -12,6 +12,6 @@ for N_THREADS in ${N_THREADS_LIST[@]}; do
     NODES=$((${N_THREADS}/20+1))
     echo "Use ${N_THREADS} threads on ${NODES} nodes."
     echo sbatch --nodes=$NODES --ntasks-per-node=40 run_server.sh -N $N_THREADS
-    mpirun -n $N_THREADS python -m run_experiment -E sm -T 100000 -X $S -Y $S --visc 0.04 -W 0.1 --scaling True
+    mpirun -n $N_THREADS python -m run_experiment -E sm -T 10000 -X $S -Y $S --visc 0.04 -W 0.1 --scaling True
     echo ""
 done
