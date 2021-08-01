@@ -1,6 +1,6 @@
 # Lid-driven cavity using lattice boltzmann method
 <p align="middle">
-    <img src="/README_media/lid-driven-cavity-w0.1-visc0.03-small.gif" width="96%" />
+    <img src="/media/lid-driven-cavity-w0.1-visc0.03-small.gif" width="96%" />
 </p>
 
 # Preface
@@ -11,22 +11,22 @@ at the University of Freiburg 2021 Summer semester.
 The following figures are the visualization of the velocity field of sliding lid at every 4000 time steps from 1000 to 45000 time steps.
 <table>
     <tr>
-        <td><img src="README_media/vel_flow001000.png" alt=""></td>
-        <td><img src="README_media/vel_flow005000.png" alt=""></td>
-        <td><img src="README_media/vel_flow009000.png" alt=""></td>
-        <td><img src="README_media/vel_flow013000.png" alt=""></td>
+        <td><img src="media/vel_flow001000.png" alt=""></td>
+        <td><img src="media/vel_flow005000.png" alt=""></td>
+        <td><img src="media/vel_flow009000.png" alt=""></td>
+        <td><img src="media/vel_flow013000.png" alt=""></td>
     </tr>
     <tr>
-        <td><img src="README_media/vel_flow017000.png" alt=""></td>
-        <td><img src="README_media/vel_flow021000.png" alt=""></td>
-        <td><img src="README_media/vel_flow025000.png" alt=""></td>
-        <td><img src="README_media/vel_flow029000.png" alt=""></td>
+        <td><img src="media/vel_flow017000.png" alt=""></td>
+        <td><img src="media/vel_flow021000.png" alt=""></td>
+        <td><img src="media/vel_flow025000.png" alt=""></td>
+        <td><img src="media/vel_flow029000.png" alt=""></td>
     </tr>
     <tr>
-        <td><img src="README_media/vel_flow033000.png" alt=""></td>
-        <td><img src="README_media/vel_flow037000.png" alt=""></td>
-        <td><img src="README_media/vel_flow041000.png" alt=""></td>
-        <td><img src="README_media/vel_flow045000.png" alt=""></td>
+        <td><img src="media/vel_flow033000.png" alt=""></td>
+        <td><img src="media/vel_flow037000.png" alt=""></td>
+        <td><img src="media/vel_flow041000.png" alt=""></td>
+        <td><img src="media/vel_flow045000.png" alt=""></td>
     </tr>
 </table>
 
