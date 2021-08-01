@@ -56,6 +56,31 @@ $ ./run_scripts/run_on_cluster.sh
 Note that `./run_scripts/run_local.sh` includes the sliding lid simulation with the lattice shape of `300 x 300`
 and you might want to avoid these computations.
 
+# Options for running experiments
+```
+-E (str): The experiment name
+    [Options]
+    cf: The time evolution of the velocity in the Couette flow,
+    pf: The time evolution of the velocity in the Poiseuille flow
+    se: The time evolution of physical quantities given an initial sinusoidal
+    sv: The measurement of viscosity by sinusoidal settings versus the analytical viscosity
+    ss: The sliding lid (or lid-driven cavity) experiment by the serial implementation
+    sm: The sliding lid (or lid-driven cavity) experiment by the parallel implementation
+-T (int): Total time steps in the experiments
+-X (int): The lattice grid size in the x-direction
+-Y (int): The lattice grid size in the y-direction
+--omega (float): The relaxation factor
+--visc (float): The viscosity of fluid (--omega and --visc cannot co-exist)
+-I (float): The density factor at the inlet
+-O (float): The density factor at the outlet
+-W, --wall_vel (float): The velocity of the wall along the x-axis
+--eps (float): The amplitude of swinging in sinusoidal
+--rho (float): The offset of the density in sinusoidal or rho_0
+--mode (Literal[v, d]): Either sinusoidal [v]elocity or [d]ensity
+--scaling (Literal[True, False]): Whether performing scaling test
+--save (Literal[True, False]): Whether saving data or not
+```
+
 # Structure
 
 This repository is composed of three main parts:
