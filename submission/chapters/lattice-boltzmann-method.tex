@@ -3,7 +3,7 @@
 In this chapter, we describe how the equations used in LBM
 are derived.
 More specifically, we explain
-{\bf Boltzmann transport equation (BTE)}~\cite{mcnamara1988use}, i.e.
+the {\bf Boltzmann transport equation (BTE)}~\cite{mcnamara1988use}, i.e.
 the basic equations of the kinetic theory of gases and
 how to handle the boundary conditions.
 
@@ -29,7 +29,7 @@ $T(\xv, t)$ is the temperature at $\xv$
 of time step $t$ and
 $\tau$ is a characteristic time.
 The characteristic time determines how quickly
-the fluid converges towards the equilibrium.
+the fluid converges towards equilibrium.
 The higher $\tau$ yields the slower 
 convergence towards the equilibrium.
 Eq~(\ref{analytical-eq}) is used for the update 
@@ -51,18 +51,18 @@ The momentum updates are performed via~\cite{caroli1984non}:
 \end{aligned}
 \label{velocity-analytical-update}
 \end{equation}
-The underlying equations allow to simulate
+The underlying equations allow simulating
 fluid flow as seen in the latter parts of this paper.
 
 \section{Time-step update of the BTE}
 The aforementioned BTE is formulated in the 
 continuous domain; therefore,
-we need to discretize sptially and 
+we need to discretize spatially and 
 temporally to make the computation 
 feasible by simulations.
-In this paper, we focus on the discretization
-in the two dimensional space.
-The discretization for the space and time
+In this paper, we focus on discretization
+in two-dimensional space.
+The discretization for space and time
 is performed so that the equality condition of 
 the following inequality
 (Courant-Friedrichs-Lewy condition) holds~\cite{peyretcomputational, sterling1996stability}:
@@ -85,7 +85,7 @@ of $\cv_i$ that is defined:
 \label{d2q9-velocity}
 \end{equation}
 Note that this specific discretization in two-dimensional
-space with nine direction shown in 
+space with nine directions shown in 
 Figure~\ref{fig:d2q9} is called D2Q9.
 In this setting, 
 we first discretize
@@ -93,7 +93,7 @@ the particle probability density function
 in nine directions by subscripting 
 as $f_i(\xv, t)$.
 Then Eq~(\ref{density-analytical-update}), (\ref{velocity-analytical-update})
-become the follwoings:
+become the followings:
 \begin{equation}
   \begin{aligned}
     \rho(\xv, t) &= \sum_i f_i(\xv, t) \\
@@ -108,7 +108,7 @@ become the follwoings:
 \label{discretized-velocity}
 \end{equation}
 Note that we regard the density as
-unit molecular mass in Eq~(\ref{discretized-density}).
+a unit molecular mass in Eq~(\ref{discretized-density}).
 Additionally, the equilibrium in Eq~(\ref{analytical-eq}) is computed as:
 \begin{equation}
 \begin{aligned}
@@ -175,7 +175,7 @@ the particles that bump into boundaries.
 Note that the boundary handling is performed
 after the streaming step that is discussed in the previous section
 and we usually use the direction that is opposite to
-the direction $i$ for the bounce back.
+the direction $i$ for the bounce-back.
 For this reason, we will denote
 $f^\star_i$ as the $i$-th direction
 particle probability density function
@@ -198,7 +198,7 @@ the boundaries are placed on the lattice nodes,
 and this is the case for wet nodes,
 we use {\bf dry nodes} for the implementation.
 
-\subsection{Bounce-back from objects}
+\subsection{Bounce-back from objects}\label{boundary-wall-settings}
 The most basic boundary condition is 
 {\bf rigid wall} or the {\bf bounce-back boundary condition}.
 In this condition, we apply the process without
@@ -232,11 +232,11 @@ either of the followings~\cite{zou1997pressure, khajepor2019study}:
   \item Extrapolate $\rho_w$ using 
   the particle probability density function in the physical domain
 \end{enumerate}
-For the simplicity, we {\bf take the first solution}.
+For simplicity, we {\bf take the first solution}.
 
 \subsection{Periodic boundary conditions (PBC)}
 In this section, we assume that we have
-boundary at $x = 0~(\text{inlet}), X - 1~(\text{outlet})$
+boundaries at $x = 0~(\text{inlet}), X - 1~(\text{outlet})$
 where $X$ is the number of the lattice grid in the $x$-axis.
 The most basic PBC assumes that
 the flow from outlet comes in from inlet as follows~\cite{succi2018lattice}: 

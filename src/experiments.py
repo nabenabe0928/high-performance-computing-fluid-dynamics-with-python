@@ -280,8 +280,9 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
         ]
     )
 
+    freq = 5000
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if save and (t == 0 or (t + 1) % 100 == 0):
+        if save and (t == 0 or (t + 1) % freq == 0):
             path = f'log/{dir_name}/npy/'
             make_directories_to_path(path)
             np.save(f'{path}v_abs{t + 1 if t else 0:0>6}.npy', np.linalg.norm(field.velocity, axis=-1))

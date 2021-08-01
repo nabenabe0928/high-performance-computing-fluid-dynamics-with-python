@@ -1,14 +1,14 @@
 \chapter{Implementation}
 \vspace{-8mm}
-In this chapter, we describe how the LBM is implemented in Python
+In this chapter, we describe how the LBM is implemented in {\tt Python}
 and how to compute the LBM in parallel.
 All the implementation is assuming that
 the physical domain is discretized by D2Q9
 and the horizontal axis is $x$ and 
 the vertical axis is $y$, respectively.
 Note that entire codes are based on
-Numpy\footnote{Numpy: https://numpy.org/}
-and mpi4py\footnote{mpi4py: https://mpi4py.readthedocs.io/en/stable/}.
+{\tt Numpy}~\footnote{Numpy: https://numpy.org/}
+and {\tt mpi4py}~\footnote{mpi4py: https://mpi4py.readthedocs.io/en/stable/}.
 Throughout the chapter, {\tt numpy} is imported as {\tt np}.
 
 \section{Main routine}
@@ -17,20 +17,23 @@ shows the pseudocode of the main processing in the LBM.
 Recall that $f(\cdot, t)$.shape = $(X, Y, 9)$,
 $\rho(\cdot, 0)$.shape = $(X, Y)$ and $\uv(\cdot, 0)$.shape = $(X, Y, 2)$.
 First, we provide the initial values for the density and the velocity.
-Then, we compute the probability function and equillibrium and
+Then, we compute the probability function and equilibrium and
 apply the collision step.
-The equillibrium implementation is shown in Algorithm~\ref{alg:equillibrium-algorithm}.
-After applying equillibrium, we perform
+The equilibrium implementation is shown in Algorithm~\ref{alg:equilibrium-algorithm}.
+After applying equilibrium, we perform the
 streaming operation shown in Algorithm~\ref{alg:streaming-algorithm}
 and slide each quantity to the adjacent cells.
 Finally, we apply the boundary handling at each boundary cell as 
 described in Algorithm~\ref{alg:boundary-conditions-algorithm}
 and update the density and the velocity as in Eq~\ref{discretized-density}, \ref{discretized-velocity}.
 Note that the order of each step might vary depending on literature~\cite{timm2016lattice, succi2018lattice}.
-Additionally, we use as much slicing as possible in the Algorithms
-in order to speed up the runtime.
+Since {\tt Python} slows down when using for loops
+and {\tt Python} speeds up when replacing for loops with {\tt numpy} processing,
+the implementations use as much slicing as possible
+and high dependency on {\tt numpy} achieves 100 times speed up depending on
+the settings~\cite{van2011numpy}. 
 
-The Algorithm~\ref{alg:streaming-algorithm} uses
+Algorithm~\ref{alg:streaming-algorithm} uses
 the {\tt np.roll} operation that enables
 to handle periodic boundary conditions automatically.
 This function rolls the array in the following manner:
@@ -45,11 +48,11 @@ This function rolls the array in the following manner:
 \end{equation}
 where $i$ is the direction index in D2Q9 and $\cv_i$ is the vector
 that specifies the $i$-th direction in D2Q9.
-In the Algorithm~\ref{alg:boundary-conditions-algorithm},
+In Algorithm~\ref{alg:boundary-conditions-algorithm},
 we use boolean matrices {\tt in\_boundary} and {\tt out\_boundary}
 that have the shape of $(X, Y, 9)$ so that 
-we can refer to only elements that have bounce back or collision
-with the boundary.
+we can refer to only elements that have bounce-back or collision
+with the boundary through {\tt numpy} array.
 Additionally, we compute $\rho_w$ by the average density~\cite{khajepor2019study}.
 Note that the domain is extended with virtual nodes 
 at both edges of the periodic boundary in the PBC with pressure variation
@@ -69,7 +72,7 @@ so that the implementation is more straightforward.
     \Function{lattice boltzmann method}{}
     \State{$\rho(\xv, 0) = \rho_0, \uv(\xv, 0) = \uv_0$ for all $\xv \in [0, X) \times [0, Y)$}
     \For{$t= 0, 1, \dots$}
-    \State{$\feq(\cdot, t)$ = equillibrium($\rho(\cdot, t), \uv(\cdot, t)$)}
+    \State{$\feq(\cdot, t)$ = equilibrium($\rho(\cdot, t), \uv(\cdot, t)$)}
     \Comment{Eq~(\ref{discretized-eq})}
     \State{$f^\star$ = $f + \omega (\feq - f)$}
     \Comment{Eq~(\ref{discretized-streaming})}
@@ -85,15 +88,15 @@ so that the implementation is more straightforward.
 \end{algorithm}
 
 \begin{algorithm}[tb]
-  \caption{Equillibrium}
-  \label{alg:equillibrium-algorithm}
+  \caption{equilibrium}
+  \label{alg:equilibrium-algorithm}
   \begin{algorithmic}[1]
     \Statex{$\wv = \text{np.array([}
     \frac{4}{9}, \frac{1}{9}, \frac{1}{9}, 
     \frac{1}{9}, \frac{1}{9}, \frac{1}{36}, 
     \frac{1}{36}, \frac{1}{36}, \frac{1}{36}
     \text{])}$, $\cv$ in Eq~(\ref{d2q9-velocity})}
-    \Function{equillibrium}{$\rho$ = $\rho(\cdot, t)$, $\uv$ = $\uv(\cdot, t)$}
+    \Function{equilibrium}{$\rho$ = $\rho(\cdot, t)$, $\uv$ = $\uv(\cdot, t)$}
     \Comment{$\uv$.shape = $(X, Y, 2)$, $\rho$.shape = $(X, Y)$}
     \State{u\_norm2 = ($\uv$ ** 2).sum(axis=-1)[..., None]}
     \State{u\_at\_c = $\uv$ @ $\cv^\top$}
@@ -170,17 +173,17 @@ so that the implementation is more straightforward.
 In order to process the LBM in parallel,
 we employ the spatial domain decomposition and
 the messaging passing interface (MPI)
-so that we can compute collision step of the LBM
+so that we can compute the collision step of the LBM
 in parallel.
 This is possible because the collision step does not require
 any communication between processes~\cite{pastewka2019hpc}.
 Then, we explain how we divide the domain.
 Suppose we are provided the number of processes of $P$,
-we first factorize $P$ such that $P = P_0 \times P_1$
-where $P_0, P_1 \in \mathbb{Z}^{+}$
-and $P_0, P_1 = \text{arg} \min_{P_0, P_1}(|| P_1 - P_0 ||)$.
-Then, we divide the $x$-axis into $P_0$ intervals and
-$y$-axis into $P_1$ intervals where
+we first factorize $P$ such that $P = P_x \times P_y$
+where $P_x, P_y \in \mathbb{Z}^{+}$
+and $P_x, P_y = \text{arg} \min_{P_x, P_y}(|| P_y - P_x ||)$.
+Then, we divide the $x$-axis into $P_x$ intervals and
+the $y$-axis into $P_y$ intervals where
 any pairs of intervals $I_{i}, I_{j}$ in the same direction satisfy
 $-1 \leq || I_{i} || - ||I_{j}|| \leq 1$.
 Note that $||I||$ is the size of the interval $I$.
@@ -193,14 +196,14 @@ around the actual computational domain.
 Figure~\ref{mpi-conceptual} shows the conceptual visualization of
 how each process communicates and ghost cells work.
 Since each process requires the four edges of adjacent
-processes, the commnications are required four times
+processes, the communications are required four times
 for each process.
-The Algorithm~\ref{alg:mpi-algorithm}
-shows the implementation using mpi4py.
-{\tt grid\_manager} is our self-developed module
-that allows to get useful information related to
-process location, the adjacent relation and so on.
-{\tt Sendrecv} function is used for the commnication and
+Algorithm~\ref{alg:mpi-algorithm}
+shows the implementation using {\tt mpi4py}.
+{\tt grid\_manager} is the self-developed module
+that allows getting useful information related to
+the process location, the adjacent relation, and so on.
+{\tt Sendrecv} function is used for the communication and
 each process receives an array from {\tt dest} that is sent
 by {\tt neighbor} and sends an array {\tt sendbuf} to
 {\tt neighbor}.
@@ -213,9 +216,9 @@ it is literally used for the buffer to communicate data.
   \caption{
     Domain decomposition and communication strategy in MPI.
     As described in the main text, we first divide each axis
-    into $P_0$ and $P_1$ intervals and divide by the intervals.
+    into $P_x$ and $P_y$ intervals and divide by the intervals.
     Each rank has green lattice points and this area is the active physical domain.
-    Then we add an additional ghost cells for buffer (gray lattice points).
+    Then we add additional ghost cells for buffer (gray lattice points).
     During each communication step, the outermost green active lattice
     sends the data to the adjacent outermost ghost lattice (blue arrows).
     The figure is cited from Figure~2 in ~\cite{pastewka2019hpc}.
@@ -253,3 +256,26 @@ it is literally used for the buffer to communicate data.
     \EndFunction
   \end{algorithmic}
 \end{algorithm}
+
+\section{Software quality}
+All the codes follow {\tt pep8 style}~\footnote{https://www.python.org/dev/peps/pep-0008/}
+and {\tt Google Python Style documentation string}~\footnote{https://google.github.io/styleguide/pyguide.html}.
+In order to make the codes robust to unexpected errors,
+we introduce
+{\tt Flake8}~\footnote{https://flake8.pycqa.org/en/latest/}
+and {\tt MyPy} static typing check~\footnote{http://mypy-lang.org/} as well.
+Furthermore, all the components are tested by
+{\tt unittest}\footnote{https://docs.python.org/3/library/unittest.html}
+and we provide {\tt requirements.txt}
+and the shell scripts for the main experiments
+to reproduce the complete running conditions.
+Those tools {\bf guarantee the reproducibility} of the experiments.
+
+The implementations focus on abstraction and
+most codes are abstracted to reduce the coding lines as much as possible.
+Therefore, the codes are {\bf highly reusable} and
+the implementation has only one explicit coding for
+Algorithms provided in this chapter.
+Furthermore, {\tt ArgumentParser} allows user to
+pass an arbitrary setting to run the experiments
+and it {\bf contributes to the generality} in this code. 
