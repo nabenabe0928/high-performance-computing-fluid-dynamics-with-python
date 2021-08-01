@@ -119,15 +119,15 @@ This simulation uses the sinusoidal density in the $x$-direction:
 Besides, momentum fluctuations decay exponentially in shear wave decay settings~\cite{palmer1994transverse, hess2002determining}:
 \begin{equation}
   \begin{aligned}
-    Q(x, t) &=
-    \epsilon Q_x(x) Q_t(t) \propto
-    \epsilon Q_x(x) \exp\biggl(
+    Q_t(t) &= \exp\biggl(
       -\nu \biggl(
         \frac{2\pi}{X}
-      \biggr)^2 t\biggr)  \\
+      \biggr)^2 t\biggr)
   \end{aligned}
   \label{viscosity-analytical}
 \end{equation}
+where $Q(x, t) = \epsilon Q_x(x) Q_t(t)$
+and $Q(x, t)$ is one of the moment quantities.
 Note that we assume that the assumptions for Eq~(\ref{sinusoidal-vel-analytical-solution}) hold
 and the case of the sinusoidal velocity is equivalent to Eq~(\ref{sinusoidal-vel-analytical-solution})~\cite{fei2018three}.
 We perform the experiments to validate Eq~(\ref{viscosity-analytical}) using 
