@@ -28,6 +28,8 @@ from typing import Optional, Tuple
 
 import matplotlib.pyplot as plt
 
+from scipy.signal import argrelextrema
+
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from src.simulation_attributes.boundary_handling import (
     MovingWall,
@@ -119,11 +121,17 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
     total_time_steps = experiment_vars.total_time_steps
     subj = f'sinusoidal_{mode}'
 
+    quantities = []
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and visualize and (t == 0 or (t + 1) % 100 == 0):
             make_directories_to_path(f'log/{subj}/npy/')
             np.save(f'log/{subj}/npy/density{t + 1 if t else 0:0>6}.npy', field.density)
             np.save(f'log/{subj}/npy/v_abs{t + 1 if t else 0:0>6}.npy', field.velocity[..., 0])
+        elif save:
+            if mode == 'velocity':
+                quantities.append(np.abs(field.velocity[..., 0]).max())
+            else:
+                quantities.append(np.abs(field.density - rho0).max())
 
     field = get_field(experiment_vars)
     # run LBM
@@ -134,10 +142,17 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
         visualize_density_plot(subj, save=True, end=total_time_steps, bounds=d_bounds)
         return None
     elif save:
-        X, _ = field.lattice_grid_shape
-        viscs = viscosity_equation(total_time_steps, eps, field.velocity[X // 2, :, 0])
-        viscs = np.array([visc for visc in viscs if 0 < visc < 10])
-        return float(np.mean(viscs))
+        quantities = np.array(quantities)
+        T = np.arange(quantities.size)
+        X, Y = field.lattice_grid_shape
+        if mode == 'velocity':
+            viscosity = viscosity_equation(T, Y, eps, quantities)
+        else:
+            T = argrelextrema(quantities, np.greater)[0]
+            quantities = quantities[T]
+            viscosity = viscosity_equation(T, X, eps, quantities)
+
+        return viscosity
 
     return None
 
@@ -245,7 +260,7 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
     visc = omega2viscosity(experiment_vars.omega)
 
     assert experiment_vars.wall_vel is not None
-    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}'
+    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}x{Y}'
 
     field = get_field(experiment_vars, dir_name=dir_name)
     total_time_steps = experiment_vars.total_time_steps
@@ -291,7 +306,7 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
     visc = omega2viscosity(experiment_vars.omega)
 
     assert experiment_vars.wall_vel is not None
-    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}'
+    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}x{Y}'
 
     field = get_field(experiment_vars, grid_manager=grid_manager, dir_name=dir_name)
     start, total_time_steps = time.time(), experiment_vars.total_time_steps

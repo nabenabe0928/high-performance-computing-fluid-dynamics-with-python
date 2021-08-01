@@ -3,21 +3,22 @@ from enum import IntEnum
 
 import numpy as np
 
+from scipy.optimize import curve_fit
+
 
 EquationFuncType = Callable[[np.ndarray], np.ndarray]
 
 
-def viscosity_equation(t: int, epsilon: float, velocity: np.ndarray) -> np.ndarray:
-    """
-    v(y, t) = epsilon * exp(- visc * (2pi / Y) ** 2 * t) sin(2pi / Y * y)
-    => - visc * (2pi / Y) ** 2 * t = log(v(y, t) / sin(2pi / Y * y) / epsilon)
-    """
-    assert len(velocity.shape) == 1
-    Y = velocity.shape[0]
-    y = np.arange(Y)
-    coef = 2 * np.pi / Y
-    visc = - np.log(velocity / np.sin(coef * y) / epsilon) / coef ** 2 / t
-    return visc
+def viscosity_equation(T: np.ndarray, X: int, epsilon: float, quantities: np.ndarray) -> float:
+    """ Fit the observations to the diffusion equation and return viscosity """
+
+    coef = 2 * np.pi / X    
+    # fitted_params: List[float] = [optimized viscosity]
+    fitted_params = curve_fit(lambda t, visc: epsilon * np.exp(-visc * t * coef ** 2),
+                              xdata=T, ydata=quantities)
+
+    viscosity = fitted_params[0][0]
+    return viscosity
 
 
 def density_equation(epsilon: float, viscosity: float, lattice_grid_shape: Tuple[int, int]
@@ -82,7 +83,7 @@ def sinusoidal_density(lattice_grid_shape: Tuple[int, int], epsilon: float,
         density := rho(x, y, 0) = rho0 + eps * sin(2PI x/X)
         v(x, y, 0) = 0
     """
-    assert rho0 + epsilon < 1
+    assert rho0 + epsilon < 2
     assert rho0 - epsilon > 0
     X, Y = lattice_grid_shape
     vel = np.zeros((*lattice_grid_shape, 2))
@@ -93,6 +94,7 @@ def sinusoidal_density(lattice_grid_shape: Tuple[int, int], epsilon: float,
 
 
 class DirectionIndicators(IntEnum):
+    """ Enumerator for the D2Q9 directions """
     CENTER: int = 0
     RIGHT: int = 1
     TOP: int = 2
@@ -117,8 +119,13 @@ class DirectionIndicators(IntEnum):
 
     def is_center(self, axis: int) -> bool:
         """
-        axis == 0: x axis
-        axis == 1: y axis
+        Return if the direction indicator is at the center
+        given an axis
+
+        Args:
+            axis (int):
+                axis == 0: x axis
+                axis == 1: y axis
         """
         if axis == 0:
             return self in [
