@@ -76,6 +76,7 @@ class LatticeBoltzmannMethod():
 
         """ pdf for boundary handling """
         self._pdf_pre = np.zeros_like(self.pdf)
+        self._density_avg = self.density.mean()
 
         assert 0 < omega < 2
         self._omega = omega
@@ -155,6 +156,10 @@ class LatticeBoltzmannMethod():
     @density.setter
     def density(self) -> None:
         raise NotImplementedError("density is not supposed to change from outside.")
+
+    @property
+    def density_avg(self) -> float:
+        return self._density_avg
 
     @property
     def velocity(self) -> np.ndarray:

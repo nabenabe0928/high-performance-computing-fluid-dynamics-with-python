@@ -74,7 +74,7 @@ the following inequality
 where $\dt$ is the time step size 
 and $\Delta \xv_i$ is the distance between 
 the closest grid in the direction
-of $\cv_i$ that is defined:
+of $\cv_i$ that is defined by:
 \begin{equation}
 \begin{aligned}
   \cv = \begin{bmatrix}
@@ -90,7 +90,7 @@ Figure~\ref{fig:d2q9} is called D2Q9.
 In this setting, 
 we first discretize
 the particle probability density function
-in nine directions by subscripting 
+in the nine directions by subscripting 
 as $f_i(\xv, t)$.
 Then Eq~(\ref{density-analytical-update}), (\ref{velocity-analytical-update})
 become the followings:
@@ -160,6 +160,7 @@ by considering the effects of the particle collision.
 \begin{figure}[h!]
   \begin{center}
    \includegraphics[width=10cm]{logos/Gitter_LBM.png}
+   \vspace{-3mm}
    \caption{
       (a) The discretization on the velocity space according to D2Q9.
       (b) The uniform two-dimensional grids for
@@ -167,6 +168,7 @@ by considering the effects of the particle collision.
    }
   \label{fig:d2q9}
   \end{center}
+  \vspace{-3mm}
 \end{figure}
 
 \section{Boundary handling}
@@ -236,20 +238,20 @@ For simplicity, we {\bf take the first solution}.
 
 \subsection{Periodic boundary conditions (PBC)}
 In this section, we assume that we have
-boundaries at $x = 0~(\text{inlet}), X - 1~(\text{outlet})$
+boundaries at $x = 0~(\text{inlet})$ and $X - 1~(\text{outlet})$
 where $X$ is the number of the lattice grid in the $x$-axis.
 The most basic PBC assumes that
 the flow from outlet comes in from inlet as follows~\cite{succi2018lattice}: 
 \begin{equation}
 \begin{aligned}
-  f((0, y), t) = f((X - 1, y), t)
+  f(0, y, t) = f((X - 1)\dx, y, t)
 \end{aligned}
 \end{equation}
 This condition is implicitly implemented during the streaming operation.
 Another PBC handles
 the pressure variation $\Delta p$ between inlet and outlet.
-Since the density $\rho$ is computed using the pressure $p$
-as $\rho = \frac{p}{c_s^2}$ where $c_s$ is the speed of sound,
+Since the density $\rho$ is computed as $\rho = \frac{p}{c_s^2}$
+where $p$ is the pressure and $c_s$ is the speed of sound,
 the density at the inlet $\rho_{\rm in}$ and
 that at the outlet $\rho_{\rm out}$ can be computed
 accordingly given the constant pressure $p_{\rm out}$
@@ -258,12 +260,14 @@ Then the particle probability density functions at
 the inlet and the outlet are computed as follows~\cite{succi2018lattice}:
 \begin{equation}
 \begin{aligned}
-  f_i^\star(0, y, t) &=
-  f_i^{\rm eq}(\rho_{\rm in}, \uv(X - 1, y, t))
-  + (f_i^\star(X - 1, y, t) - f_i^{\rm eq}(X - 1, y, t))\\
-  f_i^\star(X - 1, y, t) &=
+  f_i^\star(-\dx, y, t) &=
+  f_i^{\rm eq}(\rho_{\rm in}, \uv((X - 1)\dx, y, t))
+  + (f_i^\star((X - 1)\dx, y, t) - f_i^{\rm eq}((X - 1)\dx, y, t))\\
+  f_i^\star(X, y, t) &=
   f_i^{\rm eq}(\rho_{\rm out}, \uv(0, y, t))
   + (f_i^\star(0, y, t) - f_i^{\rm eq}(0, y, t))\\
 \end{aligned}
 \label{discretized-pbc-pressure}
 \end{equation}
+where $x = -1$ and $x = X$ correspond to $x = X - 1$ and $x = 0$
+in this setting.

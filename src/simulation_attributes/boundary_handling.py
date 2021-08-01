@@ -343,7 +343,7 @@ class MovingWall(BaseBoundary):
         self._weighted_vel_dot_wall_vel6 = np.array([])
         self._wall_vel = wall_vel  # shape (2, )
         self._finish_precompute = False
-        self._wall_density = np.ones((*field.lattice_grid_shape, 9))
+        self._wall_density = np.full((*field.lattice_grid_shape, 9), field.density_avg)
 
         if len(boundary_locations) != 1:
             raise ValueError("Moving wall only supports one moving wall, but got {} directions".format(

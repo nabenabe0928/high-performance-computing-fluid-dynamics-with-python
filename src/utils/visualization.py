@@ -175,8 +175,8 @@ def visualize_velocity_field(subj: str, save: bool = False, format: str = 'pdf',
 
         plt.close('all')
         plt.figure()
-        plt.xlim(0, X - 1)
-        plt.ylim(0, Y - 1)
+        plt.xlim(0, X)
+        plt.ylim(0, Y)
         level = np.linalg.norm(np.dstack([vy, vx]), axis=-1).T
         plt.streamplot(x, y, vx.T, vy.T, color=level, cmap=cmap)
         show_or_save(path=f'log/{subj}/fig/vel_flow{t:0>6}.{format}' if save else None)

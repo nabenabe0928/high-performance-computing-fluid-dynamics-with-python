@@ -1,4 +1,3 @@
-rm -r final_submission/
 rm final_submission.zip
 mkdir final_submission/
 rsync -av log/ final_submission/log/ --exclude "*.npy"
@@ -15,3 +14,5 @@ rm -r final_submission/submission/out final_submission/submission/memo.tex
 echo "### Create ZIP ###"
 
 zip final_submission -r final_submission/
+
+rm -r final_submission/

@@ -161,8 +161,8 @@ so that the implementation is more straightforward.
     \If{PBC with pressure variation}
     \Comment{fluid flows from $x = 0$ to $X - 1$}
     \State{$\feq_{\rm in}, \feq_{\rm out}$ = equilibrium($\rho_{\rm in}$, $\uv$[-2]), equilibrium($\rho_{\rm out}$, $\uv$[1])}
-    \State{$f^{\rm post}$[0][:,out\_indices]=$\feq_{\rm in}$[:,out\_indices]+($f$[-2][:,out\_indices]-$\feq$[-2][:,out\_indices])}
-    \State{$f^{\rm post}$[-1][:, in\_indices]=$\feq_{\rm out}$[:, in\_indices]+($f$[1][:, in\_indices] - $\feq$[1][:, in\_indices])}
+    \State{$f$[0][:,out\_indices]=$\feq_{\rm in}$[:,out\_indices]+($f$[-2][:,out\_indices]-$\feq$[-2][:,out\_indices])}
+    \State{$f$[-1][:, in\_indices]=$\feq_{\rm out}$[:, in\_indices]+($f$[1][:, in\_indices] - $\feq$[1][:, in\_indices])}
     \EndIf
     \State{{\bf return} $f$}
     \EndFunction
@@ -270,12 +270,13 @@ and we provide {\tt requirements.txt}
 and the shell scripts for the main experiments
 to reproduce the complete running conditions.
 Those tools {\bf guarantee the reproducibility} of the experiments.
-
-The implementations focus on abstraction and
+Furthermore, the implementations focus on abstraction and
 most codes are abstracted to reduce the coding lines as much as possible.
 Therefore, the codes are {\bf highly reusable} and
 the implementation has only one explicit coding for
-Algorithms provided in this chapter.
-Furthermore, {\tt ArgumentParser} allows user to
+each Algorithm provided in this chapter.
+Furthermore, {\tt ArgumentParser} allows users to
 pass an arbitrary setting to run the experiments
-and it {\bf contributes to the generality} in this code. 
+and it {\bf contributes to the generality} in this code.
+All the instructions are available at {\tt Github} repository
+described in Chapter~1.

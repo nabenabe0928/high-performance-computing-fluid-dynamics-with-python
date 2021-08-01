@@ -1,13 +1,15 @@
 \chapter{Numerical results}
 \vspace{-8mm}
 In the previous chapter, we discuss the implementation details
-and how we implement and apply LBM to various settings.
-In this chapter, we show the visualizations and numerical results
+and how we apply LBM to various settings.
+In this chapter, we first illustrate
+how to validate the implementations and 
+then show the visualizations and numerical results
 obtained from the series experiments.
 
 \section{Validation experiments}
 In the physics simulation, it is always important
-to validate whether the implementation is correct.
+to validate whether the implementations are correct.
 Therefore, we first show how to validate the implementation
 using several examples.
 
@@ -63,6 +65,8 @@ This simulation uses the sinusoidal density in the $x$-direction:
   \rho(\xv, 0) = \rho_0 + \epsilon \sin \frac{2 \pi x}{X}
 \end{aligned}
 \end{equation}
+As seen in the figure, the sinusoidal density also
+yields the convergence.
 
 \begin{figure}[H]
   \begin{center}
@@ -116,7 +120,8 @@ This simulation uses the sinusoidal density in the $x$-direction:
   \end{center}
 \end{figure}
 
-Besides, momentum fluctuations decay exponentially in shear wave decay settings~\cite{palmer1994transverse, hess2002determining}:
+As discussed, momentum fluctuations decay exponentially and
+such a decay is represented as follows~\cite{palmer1994transverse, hess2002determining}:
 \begin{equation}
   \begin{aligned}
     Q_t(t) &= \exp\biggl(
@@ -130,12 +135,12 @@ where $Q(x, t) = \epsilon Q_x(x) Q_t(t)$
 and $Q(x, t)$ is one of the moment quantities.
 Note that we assume that the assumptions for Eq~(\ref{sinusoidal-vel-analytical-solution}) hold
 and the case of the sinusoidal velocity is equivalent to Eq~(\ref{sinusoidal-vel-analytical-solution})~\cite{fei2018three}.
-We perform the experiments to validate Eq~(\ref{viscosity-analytical}) using 
+We perform the experiments to validate the implementation via the viscosity estimated by Eq~(\ref{viscosity-analytical}) using
 the exact experiment settings for Figure~\ref{fig:sinusoidal-velocity}
 and Figure~\ref{fig:sinusoidal-density}
 except the relaxation term $\omega$.
 The analytical viscosity is computed as $\nu = \frac{1}{3} (\frac{1}{\omega} - \frac{1}{2})$.
-For the experiments, the simulated viscosity is computed based on the exponential decay curve
+For the experiments, the simulated viscosity is computed based on the exponential decay curve, i.e. Eq~(\ref{viscosity-analytical}),
 of the density and velocity using 
 {\tt curve\_fit}~\footnote{https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve\_fit.html}.
 {\tt curve\_fit} approximates the optimal viscosity $\nu$ from the observations.
@@ -204,21 +209,23 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
 \begin{figure}[H]
   \begin{center}
     \subfloat[Sinusoidal density]{
-      \includegraphics[width=0.48\textwidth]{../log/sinusoidal_density/fig/omega_vs_visc.pdf}
+      \includegraphics[width=0.48\textwidth]{../log/sinusoidal_velocity/fig/omega_vs_visc.pdf}
     }
     \subfloat[Sinusoidal velocity]{
-      \includegraphics[width=0.48\textwidth]{../log/sinusoidal_velocity/fig/omega_vs_visc.pdf}
+      \includegraphics[width=0.48\textwidth]{../log/sinusoidal_density/fig/omega_vs_visc.pdf}
     }
     \caption{The simulated viscosity value 
     over various relaxation values $\omega$.
     The analytical solution uses $\nu = \frac{1}{3}(\frac{1}{\omega} - \frac{1}{2})$
     and the simulated viscosity $\nu$ is approximated from an exponential decay curve in Eq~(\ref{viscosity-analytical}).
     The simulation is performed $T = 3000$ steps
-    and takes the maximum magnitude of
-    $|| u_x ||$ and $|| \rho - \rho_0 ||$
+    and we take the maximum magnitude of
+    $|| u_x ||$ for (a) and $|| \rho - \rho_0 ||$ for (b)
     to fit the curve.
-    Note that (a) uses the same parameters as in Figure~\ref{fig:sinusoidal-density}
-    and (a) uses the same parameters as in Figure~\ref{fig:sinusoidal-velocity}.
+    Note that (a) uses the same parameters as in 
+    Figure~\ref{fig:sinusoidal-velocity}
+    and (b) uses the same parameters as in
+    Figure~\ref{fig:sinusoidal-density}.
     \label{fig:omega-vs-visc}}
   \end{center}
 \end{figure}
@@ -264,7 +271,7 @@ From this experiment, the moving wall can be validated.
   \includegraphics[width=0.58\textwidth]{../log/couette_flow/fig/couette_flow_joint.pdf}
   \vspace{-5mm}
   \caption{The velocity evolution at
-  the $x = 25$ in the lattice grid size of $(50, 50)$.
+  $x = 25$ in the lattice grid size of $(50, 50)$.
   The wall velocity $U_w$ at the bottom and the relaxation term $\omega$ are set
   to $50$ and $0.3$ respectively.
   The computation of wall density follows Section~\ref{boundary-wall-settings}.
@@ -300,7 +307,7 @@ and the velocity stops growing as seen at $t=4000, 5000$.
   $x = 25$ in the lattice grid size of $(50, 50)$.
   The relaxation term $\omega$ is set to $0.7$.
   The density factor at the inlet and the density factor
-  at the outlet are set to $0.3$ and $0.301$ respectively.
+  at the outlet are set to $0.301$ and $0.3$ respectively.
   The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
   \label{fig:poiseuille-velocity-evolution}}
 \end{figure}
@@ -310,7 +317,7 @@ Finally, we handle a concrete example.
 In this paper, the lid-driven cavity shown in Figure~\ref{lid-driven-cavity-conceptual} is simulated.
 The lid-driven cavity simulates the flow inside a box with
 three rigid walls and one moving wall, i.e. a lid.
-In this simulation, it is known that the turbulence is caused 
+In this simulation, the turbulence is caused 
 when the following Reynolds number is larger than 1000~\cite{chiang1998effect}:
 \begin{equation}
 \begin{aligned}
@@ -334,7 +341,8 @@ are {\bf performed using MPI of 9 processes}
 and Table~\ref{tab:parallel-validation}
 shows the validation of the parallel implementation.
 Since the summation of the absolute error of the velocity over the whole domain
-is $0.0$, it is obvious that {\bf the parallel implementation is correct}.
+is $0.0$, it is obvious that
+{\bf the parallel implementation behaves identically to the serial implementation}.
 
 \begin{figure}[t]
   \vspace{-7mm}
