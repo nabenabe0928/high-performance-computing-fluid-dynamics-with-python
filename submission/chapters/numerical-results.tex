@@ -258,11 +258,11 @@ and $u_x(y)$ is the horizontal velocity of the flow
 at the location of $y$. 
 In the experiment, we apply the bounce-back boundary condition
 at the moving wall and the rigid wall
-and the periodic boundary conditions at the inlet and outlet.
+and the PBC at the inlet and outlet.
 The results are shown in Figure~\ref{fig:couette-velocity-evolution}.
 As shown in the figures, the flow velocity iteratively approaches
 the analytical solution and it perfectly fits in the end
-and the velocity stops growing as seen at $t=1600, 2000$.
+and {\bf the velocity stops growing} as seen at $t=12000 \sim 21000$.
 From this experiment, the moving wall can be validated.
 
 \begin{figure}[H]
@@ -273,9 +273,10 @@ From this experiment, the moving wall can be validated.
   \caption{The velocity evolution at
   $x = 25$ in the lattice grid size of $(50, 50)$.
   The wall velocity $U_w$ at the bottom and the relaxation term $\omega$ are set
-  to $50$ and $0.3$ respectively.
-  The computation of wall density follows Section~\ref{boundary-wall-settings}.
-  The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$. 
+  to $0.5$ and $1.20$ respectively.
+  We use {\bf dry node} as described in Section~\ref{boundary-handling-section}
+  and the computation of wall density follows Section~\ref{boundary-wall-settings}.
+  The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
   \label{fig:couette-velocity-evolution}}
 \end{figure}
 
@@ -284,8 +285,7 @@ The Poiseuille flow is the flow between two non-moving walls as shown in Figure~
 The flow is caused by a constant pressure difference $\od{p}{x}$
 in the horizontal direction of the two walls.
 The Poiseuille flow also has the analytical solution
-and we can validate the implementation of the periodic boundary conditions
-with pressure variation.
+and we can validate the implementation of the pressure PBC.
 The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by~\cite{mendiburu2009analytical}:
 \begin{equation}
 \begin{aligned}
@@ -294,18 +294,19 @@ The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is gi
 \end{equation}
 In the experiment, we apply the bounce-back boundary condition
 at the moving wall and the rigid wall
-and the periodic boundary condition with pressure variation at the inlet and outlet.
+and the pressure PBC at the inlet and outlet.
 Figure~\ref{fig:poiseuille-velocity-evolution} presents the results
 and the simulated results approach the analytical solutions as in the Couette flow.
 In the end, it fits completely
-and the velocity stops growing as seen at $t=4000, 5000$.
+and {\bf the velocity stops growing} as seen at $t=12000 \sim 21000$.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.58\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow_joint.pdf}
+  \vspace{-3mm}
   \caption{The velocity evolution at
   $x = 25$ in the lattice grid size of $(50, 50)$.
-  The relaxation term $\omega$ is set to $0.7$.
+  The relaxation term $\omega$ is set to $1.20$.
   The density factor at the inlet and the density factor
   at the outlet are set to $0.301$ and $0.3$ respectively.
   The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
@@ -331,12 +332,17 @@ is dynamically similar if the Reynolds number and the geometry are similar~\cite
 Therefore, we present the results with various 
 viscosity $\nu$ and the wall velocity $U = U_w$ that 
 satisfy the Reynolds number of $1000$ under $L = X = Y = 300$
-in Figure~\ref{fig:sliding-lid-velocity-evolution}.
-All the settings converge to a similar flow in the end
+in Figure~\ref{fig:sliding-lid-reynolds-comparison}.
+In the figures, all the settings converge to a similar flow in the end
 as indicated in the key property of the Reynolds number.
+Figure~\ref{fig:sliding-lid-velocity-evolution} shows the time evolution of
+the streaming plot with the Reynolds number of $1000$.
+The series of figure shows that the streaming changes gradually
+and starts to have spirals at a corner due to the turbulence.
 {\bf The time evolution of the velocity streaming plot is provided in
-Github}~\footnote{https://github.com/nabenabe0928/high-performance-computing-fluid-dynamics-with-python/tree/stable}.
-Note that all the experiments for Figure~\ref{fig:sliding-lid-velocity-evolution}
+Github}~\footnote{https://github.com/nabenabe0928/high-performance-computing-fluid-dynamics-with-python/}.
+Note that all the experiments for
+Figure~\ref{fig:sliding-lid-reynolds-comparison}, \ref{fig:sliding-lid-velocity-evolution}
 are {\bf performed using MPI of 9 processes}
 and Table~\ref{tab:parallel-validation}
 shows the validation of the parallel implementation.
@@ -357,26 +363,99 @@ is $0.0$, it is obvious that
 \begin{figure}[t]
   \begin{center}
     \subfloat[$U_w = 0.1, \nu = 0.03$]{
-      \includegraphics[width=0.40\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size75x75/fig/vel_flow095000.pdf}
     }
     \subfloat[$U_w = 0.2, \nu = 0.06$]{
-      \includegraphics[width=0.40\textwidth]{../log/sliding_lid_W0.20_visc0.06_size300/fig/vel_flow095000.pdf}
-    }\\
-    \vspace{-3mm}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size75x75/fig/vel_flow095000.pdf}
+    }
     \subfloat[$U_w = 0.3, \nu = 0.09$]{
-      \includegraphics[width=0.40\textwidth]{../log/sliding_lid_W0.30_visc0.09_size300/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size75x75/fig/vel_flow095000.pdf}
     }
     \subfloat[$U_w = 0.4, \nu = 0.12$]{
-      \includegraphics[width=0.40\textwidth]{../log/sliding_lid_W0.40_visc0.12_size300/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size75x75/fig/vel_flow095000.pdf}
+    }\\
+    \subfloat[$U_w = 0.1, \nu = 0.03$]{
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size150x150/fig/vel_flow095000.pdf}
+    }
+    \subfloat[$U_w = 0.2, \nu = 0.06$]{
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size150x150/fig/vel_flow095000.pdf}
+    }
+    \subfloat[$U_w = 0.3, \nu = 0.09$]{
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size150x150/fig/vel_flow095000.pdf}
+    }
+    \subfloat[$U_w = 0.4, \nu = 0.12$]{
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size150x150/fig/vel_flow095000.pdf}
+    }\\
+    \subfloat[$U_w = 0.1, \nu = 0.03$]{
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size225x225/fig/vel_flow095000.pdf}
+    }
+    \subfloat[$U_w = 0.2, \nu = 0.06$]{
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size225x225/fig/vel_flow095000.pdf}
+    }
+    \subfloat[$U_w = 0.3, \nu = 0.09$]{
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size225x225/fig/vel_flow095000.pdf}
+    }
+    \subfloat[$U_w = 0.4, \nu = 0.12$]{
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size225x225/fig/vel_flow095000.pdf}
+    }\\
+    \subfloat[$U_w = 0.1, \nu = 0.03$]{
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow095000.pdf}
+    }
+    \subfloat[$U_w = 0.2, \nu = 0.06$]{
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size300/fig/vel_flow095000.pdf}
+    }
+    \subfloat[$U_w = 0.3, \nu = 0.09$]{
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size300/fig/vel_flow095000.pdf}
+    }
+    \subfloat[$U_w = 0.4, \nu = 0.12$]{
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size300/fig/vel_flow095000.pdf}
     }\\
     \caption{The stream plots of the lid-driven cavity
-    with the lattice grid size of $(300, 300)$.
-    Each setting is chosen to satisfy the Reynolds number 1000.
+    with the lattice grid size of $(75, 75), (150, 150), (225, 225), (300, 300)$.
+    (a) -- (d), (e) -- (h), (i) -- (l), (m) -- (p) are chosen to satisfy the Reynolds number
+    250, 500, 750, 1000, respectively.
+    We perform the update $T = 100000$ times for each setting.
     The computation of wall density follows Section~\ref{boundary-wall-settings}.
     The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
-      \label{fig:sliding-lid-velocity-evolution}}
+      \label{fig:sliding-lid-reynolds-comparison}}
   \end{center}
 \end{figure}
+
+\begin{figure}[t]
+  \begin{center}
+    \subfloat[$t = 5000$]{
+      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow005000.pdf}
+    }
+    \subfloat[$t = 10000$]{
+      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow010000.pdf}
+    }
+    \subfloat[$t = 20000$]{
+      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow020000.pdf}
+    }\\
+    \vspace{-3mm}
+    \subfloat[$t = 30000$]{
+      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow030000.pdf}
+    }
+    \subfloat[$t = 50000$]{
+      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow050000.pdf}
+    }
+    \subfloat[$t = 100000$]{
+      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow095000.pdf}
+    }\\
+    \caption{
+      The time evolution of the stream plots of the lid-driven cavity
+    with the Reynolds number of $1000$.
+    In this experiment, the lattice grid size is $(300, 300)$,
+    the viscosity $\nu$ and the wall velocity are set to $0.03$ and $0.1$, respectively.
+    The computation of wall density follows Section~\ref{boundary-wall-settings}.
+    The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
+    {\bf The gif file for this experiment is available at Github} as described in footnote 3.
+    }
+    \label{fig:sliding-lid-velocity-evolution}
+  \end{center}
+\end{figure}
+
+% \footnotetext{aaaaa}
 
 \begin{table}
   \begin{center}
@@ -445,4 +524,3 @@ the number of processes.
   }
   \label{fig:sliding-lid-scaling}
 \end{figure}
-% write how many steps we performed

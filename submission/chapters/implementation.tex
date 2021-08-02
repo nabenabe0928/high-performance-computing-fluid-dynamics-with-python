@@ -35,7 +35,7 @@ the settings~\cite{van2011numpy}.
 
 Algorithm~\ref{alg:streaming-algorithm} uses
 the {\tt np.roll} operation that enables
-to handle periodic boundary conditions automatically.
+to handle the PBC automatically.
 This function rolls the array in the following manner:
 \begin{equation}
 \begin{aligned}
@@ -54,9 +54,14 @@ that have the shape of $(X, Y, 9)$ so that
 we can refer to only elements that have bounce-back or collision
 with the boundary through {\tt numpy} array.
 Additionally, we compute $\rho_w$ by the average density~\cite{khajepor2019study}.
-Note that the domain is extended with virtual nodes 
-at both edges of the periodic boundary in the PBC with pressure variation
-so that the implementation is more straightforward. 
+Note that 
+although the pressure PBC is included in Algorithm~\ref{alg:boundary-conditions-algorithm}
+for simplicity,
+only the pressure PBC updates the pre-streaming $f^\star$
+and thus we need to perform it {\bf before the streaming operation}.
+Additioinally, the domain is extended with virtual nodes 
+at both edges of the periodic boundary in the pressure PBC
+so that we can handle the boundary condition naturally. 
 
 
 \begin{algorithm}[tb]
@@ -126,7 +131,7 @@ so that the implementation is more straightforward.
 \end{algorithm}
 
 \begin{algorithm}[t]
-  \caption{Boundary conditions}
+  \caption{Boundary conditions (Pressure PBC is also included for simplicity)}
   \label{alg:boundary-conditions-algorithm}
   \begin{algorithmic}[1]
     \Statex{
@@ -147,6 +152,13 @@ so that the implementation is more straightforward.
     }
     \Function{boundary handlling}{$f^\star$ = $f^\star(\cdot, t)$,
       $\feq$ = $\feq(\cdot, t)$}
+    \If{Pressure PBC}
+    \Comment{fluid flows from $x = 0$ to $X - 1$}
+    \State{{\bf \# Note: Pressure PBC must be applied before streaming operation}}
+    \State{$\feq_{\rm in}, \feq_{\rm out}$ = equilibrium($\rho_{\rm in}$, $\uv$[-2]), equilibrium($\rho_{\rm out}$, $\uv$[1])}
+    \State{$f^\star$[0][:,out\_indices]=$\feq_{\rm in}$[:,out\_indices]+($f^\star$[-2][:,out\_indices]-$\feq$[-2][:,out\_indices])}
+    \State{$f^\star$[-1][:, in\_indices]=$\feq_{\rm out}$[:, in\_indices]+($f^\star$[1][:, in\_indices] - $\feq$[1][:, in\_indices])}
+    \EndIf
     \If{Rigid wall}
     \State{$f$[in\_boundary] = $f^\star$[out\_boundary]}
     \EndIf
@@ -157,12 +169,6 @@ so that the implementation is more straightforward.
     \State{coef[:, :, out\_idx] = 2 * wi * (ci @ $\Uv_w$)} / c\_s ** 2
     \EndIndent
     \State{$f$[in\_boundary] = $f^\star$[out\_boundary]-$\rho_w$[out\_boundary] * coef[out\_boundary]}
-    \EndIf
-    \If{PBC with pressure variation}
-    \Comment{fluid flows from $x = 0$ to $X - 1$}
-    \State{$\feq_{\rm in}, \feq_{\rm out}$ = equilibrium($\rho_{\rm in}$, $\uv$[-2]), equilibrium($\rho_{\rm out}$, $\uv$[1])}
-    \State{$f$[0][:,out\_indices]=$\feq_{\rm in}$[:,out\_indices]+($f$[-2][:,out\_indices]-$\feq$[-2][:,out\_indices])}
-    \State{$f$[-1][:, in\_indices]=$\feq_{\rm out}$[:, in\_indices]+($f$[1][:, in\_indices] - $\feq$[1][:, in\_indices])}
     \EndIf
     \State{{\bf return} $f$}
     \EndFunction

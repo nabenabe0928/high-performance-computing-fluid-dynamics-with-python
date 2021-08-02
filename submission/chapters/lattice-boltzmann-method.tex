@@ -41,15 +41,10 @@ such as density and velocity.
 The momentum updates are performed via~\cite{caroli1984non}:
 \begin{equation}
   \begin{aligned}
-    \rho(\xv, t) &= \int f(\xv, \uv, t) d\uv 
+    \rho(\xv, t) = \int f(\xv, \uv, t) d\uv,~
+    \uv(\xv, t) = \frac{1}{\rho(\xv, t)} \int \uv f(\xv, \uv, t)  d\uv 
   \end{aligned}
-  \label{density-analytical-update}
-\end{equation}
-\begin{equation}
-\begin{aligned}
-  \uv(\xv, t) &= \frac{1}{\rho(\xv, t)} \int \uv f(\xv, \uv, t)  d\uv
-\end{aligned}
-\label{velocity-analytical-update}
+  \label{analytical-update}
 \end{equation}
 The underlying equations allow simulating
 fluid flow as seen in the latter parts of this paper.
@@ -92,23 +87,17 @@ we first discretize
 the particle probability density function
 in the nine directions by subscripting 
 as $f_i(\xv, t)$.
-Then Eq~(\ref{density-analytical-update}), (\ref{velocity-analytical-update})
-become the followings:
+Then Eq~(\ref{analytical-update}) becomes the followings:
 \begin{equation}
   \begin{aligned}
-    \rho(\xv, t) &= \sum_i f_i(\xv, t) \\
+    \rho(\xv, t) = \sum_i f_i(\xv, t),~
+    \uv(\xv, t) = 
+    \frac{1}{\rho(\xv, t)} \sum_i \cv_i f_i(\xv) \\
   \end{aligned}
   \label{discretized-density}
 \end{equation}
-\begin{equation}
-\begin{aligned}
-  \uv(\xv, t) &= 
-  \frac{1}{\rho(\xv, t)} \sum_i \cv_i f_i(\xv) \\
-\end{aligned}
-\label{discretized-velocity}
-\end{equation}
 Note that we regard the density as
-a unit molecular mass in Eq~(\ref{discretized-density}).
+a unit molecular mass in Eq~(\ref{discretized-momentum}).
 Additionally, the equilibrium in Eq~(\ref{analytical-eq}) is computed as:
 \begin{equation}
 \begin{aligned}
@@ -139,16 +128,7 @@ The equilibrium is computed as~\cite{zhao2002non}:
 \label{discretized-eq}
 \end{equation}
 where the index $i$ corresponds to Figure~\ref{fig:d2q9}
-and the weights are 
-\begin{eqnarray}
-  w_i = \left\{
-  \begin{array}{cl}
-     \frac{4}{9}&~(i = 0) \\
-     \frac{1}{9}&~(i=1,2,3,4) \\
-     \frac{1}{36}&~(i=5,6,7,8)
-  \end{array}
-  \right.
-\end{eqnarray}
+and $\wv = [\frac{4}{9}, \frac{1}{9}, \frac{1}{9}, \frac{1}{9}, \frac{1}{9}, \frac{1}{36}, \frac{1}{36}, \frac{1}{36}, \frac{1}{36}]$.
 In the streaming step, the grid receives 
 the particle flow $f_i(\xv + \cv_i \dt, \cdot)$
 from its nine adjacent grids.
@@ -171,7 +151,7 @@ by considering the effects of the particle collision.
   \vspace{-3mm}
 \end{figure}
 
-\section{Boundary handling}
+\section{Boundary handling}\label{boundary-handling-section}
 In this section, we briefly discuss how we handle
 the particles that bump into boundaries.
 Note that the boundary handling is performed
@@ -256,18 +236,20 @@ the density at the inlet $\rho_{\rm in}$ and
 that at the outlet $\rho_{\rm out}$ can be computed
 accordingly given the constant pressure $p_{\rm out}$
 at the outlet.
-Then the particle probability density functions at 
+Then the prestreaming $f^\star$ at 
 the inlet and the outlet are computed as follows~\cite{succi2018lattice}:
 \begin{equation}
 \begin{aligned}
   f_i^\star(-\dx, y, t) &=
   f_i^{\rm eq}(\rho_{\rm in}, \uv((X - 1)\dx, y, t))
   + (f_i^\star((X - 1)\dx, y, t) - f_i^{\rm eq}((X - 1)\dx, y, t))\\
-  f_i^\star(X, y, t) &=
+  f_i^\star(X\dx, y, t) &=
   f_i^{\rm eq}(\rho_{\rm out}, \uv(0, y, t))
   + (f_i^\star(0, y, t) - f_i^{\rm eq}(0, y, t))\\
 \end{aligned}
 \label{discretized-pbc-pressure}
 \end{equation}
-where $x = -1$ and $x = X$ correspond to $x = X - 1$ and $x = 0$
+where $x = -\dx$ and $x = X\dx$ correspond to $x = (X - 1)\dx$ and $x = 0$
 in this setting.
+Note that since the pressure PBC computes the prestreaming $f^\star$,
+{\bf it must be performed before the streaming operation} unlike the bounce-back.
