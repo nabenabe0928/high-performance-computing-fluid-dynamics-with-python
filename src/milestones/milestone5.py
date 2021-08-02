@@ -3,9 +3,9 @@ from typing import Tuple
 
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from src.simulation_attributes.boundary_handling import (
-    PeriodicBoundaryConditions,
+    PeriodicBoundaryConditionsWithPressureVariation,
     RigidWall,
-    sequential_boundary_handlings
+    SequentialBoundaryHandlings
 )
 from src.utils.utils import AttrDict
 from src.utils.constants import DirectionIndicators
@@ -28,7 +28,7 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
 
     field = LatticeBoltzmannMethod(X, Y, omega=omega, init_vel=init_velocity, init_density=init_density)
 
-    pbc = PeriodicBoundaryConditions(
+    pbc = PeriodicBoundaryConditionsWithPressureVariation(
         field=field,
         boundary_locations=[DirectionIndicators.LEFT, DirectionIndicators.RIGHT],
         in_density_factor=in_density_factor,
@@ -40,7 +40,7 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
         boundary_locations=[DirectionIndicators.TOP, DirectionIndicators.BOTTOM]
     )
 
-    field(total_time_steps, boundary_handling=sequential_boundary_handlings(rigid_wall, pbc))
+    field(total_time_steps, boundary_handling=SequentialBoundaryHandlings(rigid_wall, pbc))
     # visualize_poiseuille_flow(field=field, pbc=pbc)
 
 

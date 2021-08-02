@@ -33,9 +33,9 @@ from scipy.signal import argrelextrema
 from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannMethod
 from src.simulation_attributes.boundary_handling import (
     MovingWall,
-    PeriodicBoundaryConditions,
+    PeriodicBoundaryConditionsWithPressureVariation,
     RigidWall,
-    sequential_boundary_handlings
+    SequentialBoundaryHandlings
 )
 from src.utils.utils import AttrDict, make_directories_to_path
 from src.utils.constants import (
@@ -122,6 +122,7 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
     subj = f'sinusoidal_{mode}'
 
     quantities = []
+
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and visualize and (t == 0 or (t + 1) % 100 == 0):
             make_directories_to_path(f'log/{subj}/npy/')
@@ -142,15 +143,15 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
         visualize_density_plot(subj, save=True, end=total_time_steps, bounds=d_bounds)
         return None
     elif save:
-        quantities = np.array(quantities)
-        T = np.arange(quantities.size)
+        q_array = np.array(quantities)
+        T = np.arange(q_array.size)
         X, Y = field.lattice_grid_shape
         if mode == 'velocity':
-            viscosity = viscosity_equation(T, Y, eps, quantities)
+            viscosity = viscosity_equation(T, Y, eps, q_array)
         else:
             T = argrelextrema(quantities, np.greater)[0]
-            quantities = quantities[T]
-            viscosity = viscosity_equation(T, X, eps, quantities)
+            q_array = quantities[T]
+            viscosity = viscosity_equation(T, X, eps, q_array)
 
         return viscosity
 
@@ -201,16 +202,18 @@ def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> Non
         wall_vel=experiment_vars.wall_vel
     )
 
+    freq = 3000
+
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if save and (t == 0 or (t + 1) % 100 == 0):
+        if save and (t == 0 or (t + 1) % freq == 0):
             make_directories_to_path('log/couette_flow/npy/')
             np.save(f'log/couette_flow/npy/v_x{t + 1 if t else 0 :0>6}.npy', field.velocity[..., 0])
 
     # run LBM
-    field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
+    field(total_time_steps, proc=proc, boundary_handling=SequentialBoundaryHandlings(rigid_wall, moving_wall))
 
     if save:
-        visualize_couette_flow(wall_vel=experiment_vars.wall_vel, save=True, end=total_time_steps)
+        visualize_couette_flow(wall_vel=experiment_vars.wall_vel, freq=freq, save=True, end=total_time_steps)
 
 
 def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> None:
@@ -221,7 +224,7 @@ def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> 
     field = get_field(experiment_vars)
     total_time_steps = experiment_vars.total_time_steps
 
-    pbc = PeriodicBoundaryConditions(
+    pbc = PeriodicBoundaryConditionsWithPressureVariation(
         field=field,
         boundary_locations=[DirectionIndicators.LEFT, DirectionIndicators.RIGHT],
         in_density_factor=experiment_vars.in_density_factor,
@@ -233,14 +236,16 @@ def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> 
         boundary_locations=[DirectionIndicators.TOP, DirectionIndicators.BOTTOM]
     )
 
+    freq = 3000
+
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
-        if save and (t == 0 or (t + 1) % 100 == 0):
+        if save and (t == 0 or (t + 1) % freq == 0):
             make_directories_to_path('log/poiseuille_flow/npy/')
             np.save(f'log/poiseuille_flow/npy/v_x{t + 1 if t else 0:0>6}.npy', field.velocity[..., 0])
             np.save(f'log/poiseuille_flow/npy/density{t + 1 if t else 0:0>6}.npy', field.density)
 
     # run LBM
-    field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, pbc))
+    field(total_time_steps, proc=proc, boundary_handling=SequentialBoundaryHandlings(rigid_wall, pbc))
     params = PoiseuilleFlowHyperparams(
         viscosity=omega2viscosity(experiment_vars.omega),
         out_density_factor=experiment_vars.out_density_factor,
@@ -248,7 +253,7 @@ def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> 
     )
 
     if save:
-        visualize_poiseuille_flow(params, save=True, end=total_time_steps)
+        visualize_poiseuille_flow(params, freq=freq, save=True, end=total_time_steps)
 
 
 def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
@@ -281,6 +286,7 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
     )
 
     freq = 5000
+
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and (t == 0 or (t + 1) % freq == 0):
             path = f'log/{dir_name}/npy/'
@@ -290,7 +296,7 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
             np.save(f'{path}v_y{t + 1 if t else 0:0>6}.npy', field.velocity[..., 1])
 
     # run LBM
-    field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
+    field(total_time_steps, proc=proc, boundary_handling=SequentialBoundaryHandlings(rigid_wall, moving_wall))
 
     if save:
         visualize_velocity_field(subj=dir_name, save=True, start=freq, end=total_time_steps + 1, freq=freq)
@@ -338,7 +344,7 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
             field.save_velocity_field(t + 1 if t else 0)
 
     # run LBM
-    field(total_time_steps, proc=proc, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
+    field(total_time_steps, proc=proc, boundary_handling=SequentialBoundaryHandlings(rigid_wall, moving_wall))
 
     if save and not scaling:
         visualize_velocity_field(dir_name, save=True, start=freq, end=total_time_steps + 1, freq=freq)

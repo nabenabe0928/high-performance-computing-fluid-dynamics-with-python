@@ -1,8 +1,8 @@
-cmd="python -m run_experiment -E cf -T 2400 -X 50 -Y 50 -W 0.5 --omega 0.35"
+cmd="python -m run_experiment -E cf -T 21500 -X 50 -Y 50 -W 0.5 --omega 1.20"
 echo $cmd
 $cmd
 
-cmd="python -m run_experiment -E pf -T 5500 -X 50 -Y 50 -I 0.301 -O 0.300 --omega 0.70"
+cmd="python -m run_experiment -E pf -T 21500 -X 50 -Y 50 -I 0.301 -O 0.300 --omega 1.20"
 echo $cmd
 $cmd
 
@@ -22,20 +22,23 @@ cmd="python -m run_experiment -E sv -T 3000 -X 50 -Y 50 --eps 0.08 --omega 1.0 -
 echo $cmd
 $cmd
 
-# The minimum possible viscosity
 T=100000
-vel=0.1
-visc=0.03
-mpirun -n 9 python -m run_experiment -E sm -T $T -X 300 -Y 300 --visc $visc -W $vel
+# Reynolds number: 250, 500, 750, 1000
+for S in 75 150 225 300
+do
+    vel=0.1
+    visc=0.03
+    mpirun -n 9 python -m run_experiment -E sm -T $T -X $S -Y $S --visc $visc -W $vel
 
-vel=0.2
-visc=0.06
-mpirun -n 9 python -m run_experiment -E sm -T $T -X 300 -Y 300 --visc $visc -W $vel
+    vel=0.2
+    visc=0.06
+    mpirun -n 9 python -m run_experiment -E sm -T $T -X $S -Y $S --visc $visc -W $vel
 
-vel=0.3
-visc=0.09
-mpirun -n 9 python -m run_experiment -E sm -T $T -X 300 -Y 300 --visc $visc -W $vel
+    vel=0.3
+    visc=0.09
+    mpirun -n 9 python -m run_experiment -E sm -T $T -X $S -Y $S --visc $visc -W $vel
 
-vel=0.4
-visc=0.12
-mpirun -n 9 python -m run_experiment -E sm -T $T -X 300 -Y 300 --visc $visc -W $vel
+    vel=0.4
+    visc=0.12
+    mpirun -n 9 python -m run_experiment -E sm -T $T -X $S -Y $S --visc $visc -W $vel
+done

@@ -1,5 +1,6 @@
 from abc import abstractmethod
-from typing import Any, Callable, Dict, List, Optional
+from copy import deepcopy
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -283,17 +284,6 @@ class BaseBoundary():
         print("")
 
 
-def sequential_boundary_handlings(*boundary_handlings: Optional[BaseBoundary]
-                                  ) -> Callable[[LatticeBoltzmannMethod], None]:
-
-    def _imp(field: LatticeBoltzmannMethod) -> None:
-        for boundary_handling in boundary_handlings:
-            if boundary_handling is not None:
-                boundary_handling(field)
-
-    return _imp
-
-
 class RigidWall(BaseBoundary):
     def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators]):
         super().__init__(field, boundary_locations)
@@ -448,7 +438,7 @@ class MovingWall(BaseBoundary):
         )
 
 
-class PeriodicBoundaryConditions(BaseBoundary):
+class PeriodicBoundaryConditionsWithPressureVariation(BaseBoundary):
     def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators],
                  in_density_factor: float, out_density_factor: float):
 
@@ -464,8 +454,8 @@ class PeriodicBoundaryConditions(BaseBoundary):
         assert self.vert or self.horiz
         X, Y = field.lattice_grid_shape
         boundary_shape = Y if self.horiz else X
-        self._in_density = 3 * in_density_factor * np.ones(boundary_shape)
-        self._out_density = 3 * out_density_factor * np.ones(boundary_shape)
+        self._in_density = np.full(boundary_shape, 3 * in_density_factor)
+        self._out_density = np.full(boundary_shape, 3 * out_density_factor)
 
     @property
     def in_density(self) -> np.ndarray:
@@ -484,25 +474,51 @@ class PeriodicBoundaryConditions(BaseBoundary):
         raise NotImplementedError("out_density is not supposed to change from outside.")
 
     def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
-        pdf_eq, pdf_post = field.pdf_eq, field.pdf
+        pdf_eq, pdf_pre = field.pdf_eq, field.pdf_pre
 
         if self.horiz:
             pdf_eq_in = local_equilibrium(velocity=field.velocity[-2], density=self.in_density).squeeze()
-            pdf_post[0][:, self.out_indices] = pdf_eq_in[:, self.out_indices] + (
-                pdf_post[-2][:, self.out_indices] - pdf_eq[-2][:, self.out_indices]
+            pdf_pre[0][:, self.out_indices] = pdf_eq_in[:, self.out_indices] + (
+                pdf_pre[-2][:, self.out_indices] - pdf_eq[-2][:, self.out_indices]
             )
 
             pdf_eq_out = local_equilibrium(velocity=field.velocity[1], density=self.out_density).squeeze()
-            pdf_post[-1][:, self.in_indices] = pdf_eq_out[:, self.in_indices] + (
-                pdf_post[1][:, self.in_indices] - pdf_eq[1][:, self.in_indices]
+            pdf_pre[-1][:, self.in_indices] = pdf_eq_out[:, self.in_indices] + (
+                pdf_pre[1][:, self.in_indices] - pdf_eq[1][:, self.in_indices]
             )
         else:
             pdf_eq_in = local_equilibrium(velocity=field.velocity[:, -2], density=self.in_density).squeeze()
-            pdf_post[:, 0, self.out_indices] = pdf_eq_in[:, self.out_indices] + (
-                pdf_post[:, -2, self.out_indices] - pdf_eq[:, -2, self.out_indices]
+            pdf_pre[:, 0, self.out_indices] = pdf_eq_in[:, self.out_indices] + (
+                pdf_pre[:, -2, self.out_indices] - pdf_eq[:, -2, self.out_indices]
             )
 
             pdf_eq_out = local_equilibrium(velocity=field.velocity[:, 1], density=self.out_density).squeeze()
-            pdf_post[:, -1, self.in_indices] = pdf_eq_out[:, self.in_indices] + (
-                pdf_post[:, 1, self.in_indices] - pdf_eq[:, 1, self.in_indices]
+            pdf_pre[:, -1, self.in_indices] = pdf_eq_out[:, self.in_indices] + (
+                pdf_pre[:, 1, self.in_indices] - pdf_eq[:, 1, self.in_indices]
             )
+
+
+class SequentialBoundaryHandlings:
+    def __init__(self, *boundary_handlings: Optional[BaseBoundary]):
+        PressurePBC = PeriodicBoundaryConditionsWithPressureVariation
+
+        self.pressure_pbcs = []
+        self.bounce_backs = []
+
+        if boundary_handlings is not None:
+
+            for boundary_handling in boundary_handlings:
+                if isinstance(boundary_handling, PressurePBC):
+                    self.pressure_pbcs.append(boundary_handling)
+                elif boundary_handling is not None:
+                    self.bounce_backs.append(boundary_handling)
+
+    def __call__(self, field: LatticeBoltzmannMethod) -> None:
+        for boundary_handling in self.pressure_pbcs:
+            boundary_handling(field)
+
+        field._pdf = deepcopy(field.pdf_pre)
+        field.update_pdf()
+
+        for boundary_handling in self.bounce_backs:  # type: ignore
+            boundary_handling(field)

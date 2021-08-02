@@ -5,7 +5,8 @@ from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannM
 from src.simulation_attributes.boundary_handling import (
     RigidWall,
     MovingWall,
-    PeriodicBoundaryConditions
+    PeriodicBoundaryConditionsWithPressureVariation,
+    SequentialBoundaryHandlings
 )
 from src.utils.constants import DirectionIndicators
 
@@ -37,8 +38,9 @@ class TestBoundaryHandling(unittest.TestCase):
                                        init_vel=self.init_vel, init_density=self.init_density)
         rigid_wall = RigidWall(field, boundary_locations=self.rigid_boundary_locations)
         moving_wall = MovingWall(field, boundary_locations=self.moving_boundary_locations, wall_vel=self.wall_vel)
-        pbc = PeriodicBoundaryConditions(field, boundary_locations=self.pbc_boundary_locations,
-                                         in_density_factor=1. / 3., out_density_factor=(1. + 3e-3) / 3.)
+        pbc = PeriodicBoundaryConditionsWithPressureVariation(field, boundary_locations=self.pbc_boundary_locations,
+                                                              in_density_factor=(1. + 3e-3) / 3.,
+                                                              out_density_factor=1. / 3.)
 
         return field, rigid_wall, moving_wall, pbc
 
@@ -47,7 +49,7 @@ class TestBoundaryHandling(unittest.TestCase):
         field.local_equilibrium_pdf_update()
 
         for _ in range(100):
-            field.lattice_boltzmann_step(boundary_handling=rigid_wall)
+            field.lattice_boltzmann_step(boundary_handling=SequentialBoundaryHandlings(rigid_wall))
         ans = TestOutputs.pdf_rigid_wall
         self.assertEqual(field.pdf.shape, ans.shape)
         self.assertAlmostEqual(abssum(field.pdf, ans), 0.0, places=1)
@@ -57,7 +59,7 @@ class TestBoundaryHandling(unittest.TestCase):
         field.local_equilibrium_pdf_update()
 
         for _ in range(100):
-            field.lattice_boltzmann_step(boundary_handling=moving_wall)
+            field.lattice_boltzmann_step(boundary_handling=SequentialBoundaryHandlings(moving_wall))
         ans = TestOutputs.pdf_moving_wall
         self.assertEqual(field.pdf.shape, ans.shape)
         self.assertAlmostEqual(abssum(field.pdf, ans), 0.0, places=1)
@@ -67,7 +69,7 @@ class TestBoundaryHandling(unittest.TestCase):
         field.local_equilibrium_pdf_update()
 
         for _ in range(100):
-            field.lattice_boltzmann_step(boundary_handling=pbc)
+            field.lattice_boltzmann_step(boundary_handling=SequentialBoundaryHandlings(pbc))
         ans = TestOutputs.pdf_pbc
         self.assertEqual(field.pdf.shape, ans.shape)
         self.assertAlmostEqual(abssum(field.pdf, ans), 0.0, places=1)
