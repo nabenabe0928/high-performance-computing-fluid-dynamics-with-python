@@ -151,8 +151,8 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
         if mode == 'velocity':
             viscosity = viscosity_equation(T, Y, eps, q_array)
         else:
-            T = argrelextrema(quantities, np.greater)[0]
-            q_array = quantities[T]
+            T = argrelextrema(q_array, np.greater)[0]
+            q_array = q_array[T]
             viscosity = viscosity_equation(T, X, eps, q_array)
 
         return viscosity
