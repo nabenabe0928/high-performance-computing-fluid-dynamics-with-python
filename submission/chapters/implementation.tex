@@ -25,7 +25,7 @@ streaming operation shown in Algorithm~\ref{alg:streaming-algorithm}
 and slide each quantity to the adjacent cells.
 Finally, we apply the boundary handling at each boundary cell as 
 described in Algorithm~\ref{alg:boundary-conditions-algorithm}
-and update the density and the velocity as in Eq~\ref{discretized-density}, \ref{discretized-velocity}.
+and update the density and the velocity as in Eq~(\ref{discretized-momentum}).
 Note that the order of each step might vary depending on literature~\cite{timm2016lattice, succi2018lattice}.
 Since {\tt Python} slows down when using for loops
 and {\tt Python} speeds up when replacing for loops with {\tt numpy} processing,
@@ -86,7 +86,7 @@ so that we can handle the boundary condition naturally.
     \State{$f(\cdot, t + 1)$ = boundary\_handling($f^\star(\cdot, t),\feq(\cdot, t)$)}
     \Comment{Eq~(\ref{discretized-rigid-wall}), (\ref{discretized-moving-wall}), (\ref{discretized-pbc-pressure})}
     \State{$\rho(\cdot, t + 1), \uv(\cdot, t + 1)$=moments\_update($f(\cdot, t + 1)$)}
-    \Comment{Eq~(\ref{discretized-density}), (\ref{discretized-velocity})}
+    \Comment{Eq~(\ref{discretized-momentum})}
     \EndFor
     \EndFunction
   \end{algorithmic}
@@ -186,8 +186,9 @@ any communication between processes~\cite{pastewka2019hpc}.
 Then, we explain how we divide the domain.
 Suppose we are provided the number of processes of $P$,
 we first factorize $P$ such that $P = P_x \times P_y$
-where $P_x, P_y \in \mathbb{Z}^{+}$
-and $P_x, P_y = \text{arg} \min_{P_x, P_y}(|| P_y - P_x ||)$.
+where $P_x, P_y \in \mathbb{Z}^{+}$,
+$P_x, P_y = \text{arg} \min_{P_x, P_y}(|| P_y - P_x ||)$
+and $P_x \leq P_y$ if $X \leq Y$ otherwise $P_y \leq P_x$.
 Then, we divide the $x$-axis into $P_x$ intervals and
 the $y$-axis into $P_y$ intervals where
 any pairs of intervals $I_{i}, I_{j}$ in the same direction satisfy
@@ -207,14 +208,14 @@ for each process.
 Algorithm~\ref{alg:mpi-algorithm}
 shows the implementation using {\tt mpi4py}.
 {\tt grid\_manager} is the self-developed module
-that allows getting useful information related to
+that manages useful information related to
 the process location, the adjacent relation, and so on.
 {\tt Sendrecv} function is used for the communication and
 each process receives an array from {\tt dest} that is sent
 by {\tt neighbor} and sends an array {\tt sendbuf} to
 {\tt neighbor}.
 Note that {\tt buf} is the abbreviation of buffer and
-it is literally used for the buffer to communicate data.
+used for the buffer to communicate data.
 
 \begin{figure}
   \centering
