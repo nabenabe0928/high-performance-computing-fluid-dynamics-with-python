@@ -12,7 +12,7 @@ EquationFuncType = Callable[[np.ndarray], np.ndarray]
 def viscosity_equation(T: np.ndarray, X: int, epsilon: float, quantities: np.ndarray) -> float:
     """ Fit the observations to the diffusion equation and return viscosity """
 
-    coef = 2 * np.pi / X    
+    coef = 2 * np.pi / X
     # fitted_params: List[float] = [optimized viscosity]
     fitted_params = curve_fit(lambda t, visc: epsilon * np.exp(-visc * t * coef ** 2),
                               xdata=T, ydata=quantities)

@@ -5,7 +5,7 @@ from src.simulation_attributes.lattice_boltzmann_method import LatticeBoltzmannM
 from src.simulation_attributes.boundary_handling import (
     MovingWall,
     RigidWall,
-    sequential_boundary_handlings
+    SequentialBoundaryHandlings
 )
 from src.utils.utils import AttrDict
 from src.utils.constants import DirectionIndicators
@@ -35,7 +35,7 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray, lattice_grid_shape
         wall_vel=wall_vel
     )
 
-    field(total_time_steps, boundary_handling=sequential_boundary_handlings(rigid_wall, moving_wall))
+    field(total_time_steps, boundary_handling=SequentialBoundaryHandlings(rigid_wall, moving_wall))
 
 
 if __name__ == '__main__':

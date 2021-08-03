@@ -3,24 +3,24 @@ In this paper, we describe what the LBM is
 and how we implement it.
 Chapter 1 describes the motivation behind the numerical integrations
 and mentions the advantages of the LBM, i.e.
-simple implementation and the scalability with respect to the computational
+simple implementation and scalability with respect to the computational
 resources.
 
 Chapter 2 explains the theoretical aspects of LBM
-and how those equations are pluged in the computational simulations.
+and how those equations are plugged into the computational simulations.
 More specifically, the discretization of each equation and
 the boundary handlings are presented.
 
 Chapter 3 shows the algorithms of each component.
 Especially, we focus on the descriptions how
 the simulation should be implemented using numpy
-which is effective to speed up Python implementations.
+which is effective to speed up {\tt Python} implementations.
 Additionally, the MPI usage and the domain division method
-is described. 
+are described. 
 Note that each algorithm in our implementation
-is tested using pytest and abstracted as much as possible
+is tested using {\tt unittest} and abstracted as much as possible
 so that each component can be reused and we can reduce
-the bugs over the whole implementations.
+the bugs over the whole implementation.
 
 Chapter 4 presents the validations of each component
 using the comparison between the analytical solutions
@@ -30,6 +30,9 @@ For the validations, we use the shear wave decay,
 the Couette flow and the Poissuille flow
 and show the analytical solutions for each phenomenon.
 After the validations, we show the lid-driven cavity simulation
-exhibits the similar dynamics when we have a constant Reynolds number.
-Furthermore, we test the scalability of the LBM in the lid-driven cavity simulation
-and show about the 30 times speed up using 100 processes.
+exhibits similar dynamics when we have a constant Reynolds number.
+Furthermore, we test the scalability of the LBM in the lid-driven cavity simulation.
+The experiments show that
+the 30 times speedup using 100 processes for $300 \times 300$ grids
+and bad scalability in the smaller grids' settings.
+This observation corresponds to the intuition from Amdahl's law.

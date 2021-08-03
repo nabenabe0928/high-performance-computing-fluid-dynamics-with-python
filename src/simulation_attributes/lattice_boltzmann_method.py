@@ -9,8 +9,8 @@ from src.utils.utils import make_directories_to_path, omega2viscosity
 
 
 EPS = 1e-12
-BoundaryHandlingFuncType = Callable[['LatticeBoltzmannMethod'], None]
 ProcessFuncType = Callable[['LatticeBoltzmannMethod', int], None]
+BoundaryHandlingFuncType = 'SequentialBoundaryHandlings'  # noqa: E821
 
 
 def local_equilibrium(velocity: np.ndarray, density: np.ndarray) -> np.ndarray:
@@ -76,6 +76,7 @@ class LatticeBoltzmannMethod():
 
         """ pdf for boundary handling """
         self._pdf_pre = np.zeros_like(self.pdf)
+        self._density_avg = self.density.mean()
 
         assert 0 < omega < 2
         self._omega = omega
@@ -90,8 +91,12 @@ class LatticeBoltzmannMethod():
         self,
         total_time_steps: int,
         proc: Optional[ProcessFuncType] = None,
-        boundary_handling: Optional[BoundaryHandlingFuncType] = None
+        boundary_handling: Optional[BoundaryHandlingFuncType] = None  # type: ignore
     ) -> None:
+
+        if boundary_handling is not None:
+            if boundary_handling.__class__.__name__ != 'SequentialBoundaryHandlings':
+                raise ValueError('boundary_handling must be SequentialBoundaryHandlings instance.')
 
         self.local_equilibrium_pdf_update()
         for t in trange(total_time_steps + 1):
@@ -155,6 +160,10 @@ class LatticeBoltzmannMethod():
     @density.setter
     def density(self) -> None:
         raise NotImplementedError("density is not supposed to change from outside.")
+
+    @property
+    def density_avg(self) -> float:
+        return self._density_avg
 
     @property
     def velocity(self) -> np.ndarray:
@@ -268,7 +277,7 @@ class LatticeBoltzmannMethod():
 
     def lattice_boltzmann_step(
         self,
-        boundary_handling: Optional[BoundaryHandlingFuncType] = None
+        boundary_handling: Optional[BoundaryHandlingFuncType] = None  # type: ignore
     ) -> None:
 
         self._apply_local_equilibrium()
@@ -280,12 +289,12 @@ class LatticeBoltzmannMethod():
             # Wait for all the communications
             self.grid_manager.comm.Barrier()
 
-        self._pdf = deepcopy(self.pdf_pre)
-        self.update_pdf()
-
         if boundary_handling is not None:
-            """ use pdf, pdf_pre, density, pdf_eq, velocity inside """
+            """ use pdf, pdf_pre, density, pdf_eq, velocity and update pdf inside """
             boundary_handling(self)
+        else:
+            self._pdf = deepcopy(self.pdf_pre)
+            self.update_pdf()
 
         self.update_density()
         self.update_velocity()

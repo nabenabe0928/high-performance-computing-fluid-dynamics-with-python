@@ -1,6 +1,6 @@
 # Lid-driven cavity using lattice boltzmann method
 <p align="middle">
-    <img src="/README_media/lid-driven-cavity-w0.1-visc0.03-small.gif" width="96%" />
+    <img src="/media/lid-driven-cavity-w0.1-visc0.03-small.gif" width="96%" />
 </p>
 
 # Preface
@@ -11,22 +11,22 @@ at the University of Freiburg 2021 Summer semester.
 The following figures are the visualization of the velocity field of sliding lid at every 4000 time steps from 1000 to 45000 time steps.
 <table>
     <tr>
-        <td><img src="README_media/vel_flow001000.png" alt=""></td>
-        <td><img src="README_media/vel_flow005000.png" alt=""></td>
-        <td><img src="README_media/vel_flow009000.png" alt=""></td>
-        <td><img src="README_media/vel_flow013000.png" alt=""></td>
+        <td><img src="media/vel_flow001000.png" alt=""></td>
+        <td><img src="media/vel_flow005000.png" alt=""></td>
+        <td><img src="media/vel_flow009000.png" alt=""></td>
+        <td><img src="media/vel_flow013000.png" alt=""></td>
     </tr>
     <tr>
-        <td><img src="README_media/vel_flow017000.png" alt=""></td>
-        <td><img src="README_media/vel_flow021000.png" alt=""></td>
-        <td><img src="README_media/vel_flow025000.png" alt=""></td>
-        <td><img src="README_media/vel_flow029000.png" alt=""></td>
+        <td><img src="media/vel_flow017000.png" alt=""></td>
+        <td><img src="media/vel_flow021000.png" alt=""></td>
+        <td><img src="media/vel_flow025000.png" alt=""></td>
+        <td><img src="media/vel_flow029000.png" alt=""></td>
     </tr>
     <tr>
-        <td><img src="README_media/vel_flow033000.png" alt=""></td>
-        <td><img src="README_media/vel_flow037000.png" alt=""></td>
-        <td><img src="README_media/vel_flow041000.png" alt=""></td>
-        <td><img src="README_media/vel_flow045000.png" alt=""></td>
+        <td><img src="media/vel_flow033000.png" alt=""></td>
+        <td><img src="media/vel_flow037000.png" alt=""></td>
+        <td><img src="media/vel_flow041000.png" alt=""></td>
+        <td><img src="media/vel_flow045000.png" alt=""></td>
     </tr>
 </table>
 
@@ -55,6 +55,31 @@ $ ./run_scripts/run_on_cluster.sh
 
 Note that `./run_scripts/run_local.sh` includes the sliding lid simulation with the lattice shape of `300 x 300`
 and you might want to avoid these computations.
+
+# Options for running experiments
+```
+-E (str): The experiment name
+    [Options]
+    cf: The time evolution of the velocity in the Couette flow,
+    pf: The time evolution of the velocity in the Poiseuille flow
+    se: The time evolution of physical quantities given an initial sinusoidal
+    sv: The measurement of viscosity by sinusoidal settings versus the analytical viscosity
+    ss: The sliding lid (or lid-driven cavity) experiment by the serial implementation
+    sm: The sliding lid (or lid-driven cavity) experiment by the parallel implementation
+-T (int): Total time steps in the experiments
+-X (int): The lattice grid size in the x-direction
+-Y (int): The lattice grid size in the y-direction
+--omega (float): The relaxation factor
+--visc (float): The viscosity of fluid (--omega and --visc cannot co-exist)
+-I (float): The density factor at the inlet
+-O (float): The density factor at the outlet
+-W, --wall_vel (float): The velocity of the wall along the x-axis
+--eps (float): The amplitude of swinging in sinusoidal
+--rho (float): The offset of the density in sinusoidal or rho_0
+--mode (Literal[v, d]): Either sinusoidal [v]elocity or [d]ensity
+--scaling (Literal[True, False]): Whether performing scaling test
+--save (Literal[True, False]): Whether saving data or not
+```
 
 # Structure
 
