@@ -64,6 +64,7 @@ This simulation uses the sinusoidal density in the $x$-direction:
 \begin{aligned}
   \rho(\xv, 0) = \rho_0 + \epsilon \sin \frac{2 \pi x}{X}
 \end{aligned}
+\label{sinusoidal-density-init}
 \end{equation}
 As seen in the figure, the sinusoidal density also
 yields the convergence.
@@ -110,13 +111,16 @@ a swing of the maxima and the minima unlike the sinusoidal velocity.
     \subfloat[$t = 1650$]{
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel001650.pdf}
     }\\
-    \caption{The velocity evolution for the sinusoidal velocity at
+    \caption{
+      The time evolution of the sinusoidal velocity
+      (Eq~(\ref{shear-vel-init})) at
       the $x = 25$ in the lattice grid size of $(50, 50)$.
       The $x$-axis shows the location in the $y$ direction
       and the $y$-axis shows the magnitude of velocity at 
       the corresponding location.
-      The coefficients $\epsilon$ and the initial density $\rho_0$ are 
-      set to $0.01$ and $1.0$ respectively.
+      The coefficients $\epsilon$ in Eq~(\ref{shear-vel-init}) and
+      the initial density $\rho_0$
+      are set to $0.01$ and $1.0$ respectively.
       The relaxation term $\omega$ is set to $1.0$.
       \label{fig:sinusoidal-velocity}}
   \end{center}
@@ -196,13 +200,14 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
     \subfloat[$t = 1650$]{
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001650.pdf}
     }\\
-    \caption{The density evolution for the sinusoidal density at
-      $y = 25$ in the lattice grid size of $(50, 50)$.
+    \caption{The time evolution of the sinusoidal density
+    (Eq~(\ref{sinusoidal-density-init}))
+      at $y = 25$ in the lattice grid size of $(50, 50)$.
       The $x$-axis shows the location in the $x$ direction
-      and the $y$-axis shows the magnitude of density at 
-      the corresponding location.
-      The coefficients $\epsilon$ and $\rho_0$ are 
-      set to $0.01$ and $1.0$ respectively.
+      and the $y$-axis shows the magnitude of density.
+      The coefficients $\epsilon$ and $\rho_0$ in Eq~(\ref{sinusoidal-density-init})
+      are set to $0.01$ and $1.0$ and the velocity is initialized by
+      $\uv(\xv, 0) = (0,0)$.
       The relaxation term $\omega$ is set to $1.0$.
       \label{fig:sinusoidal-density}}
   \end{center}
