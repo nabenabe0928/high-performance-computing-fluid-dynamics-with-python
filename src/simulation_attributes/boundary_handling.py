@@ -33,19 +33,15 @@ def get_direction_representor(boundary: np.ndarray) -> str:
 
 class BaseBoundary():
     def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators],
-                 pressure_variation: bool = False, visualize_wall: bool = False,
-                 **kwargs: Dict[str, Any]):
+                 pressure_variation: bool = False, **kwargs: Dict[str, Any]):
 
-        self._out_boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)
         self._out_indices = np.arange(9)
-        self._in_boundary = np.zeros((*field.lattice_grid_shape, 9), np.bool8)
         self._in_indices = AdjacentAttributes.reflected_direction
         self._finish_initialize = False
         self._lattice_grid_shape = field.lattice_grid_shape
         self._boundary_locations = boundary_locations
-        self._visualize_wall = visualize_wall
 
-        self._init_boundary(pressure_variation=pressure_variation)
+        self._init_boundary_indices(pressure_variation)
 
     def __call__(self, field: LatticeBoltzmannMethod) -> None:
         self.boundary_handling(field)
@@ -62,38 +58,6 @@ class BaseBoundary():
             field (LatticeBoltzmannMethod)
         """
         raise NotImplementedError("The child class of BaseBoundary must have boundary_handling function.")
-
-    @property
-    def in_boundary(self) -> np.ndarray:
-        """
-        Returns:
-            _in_boundary (np.ndarray):
-                Direction to come in.
-                In other words, if the reflected direction of _out_boundary
-                or the inlet of pipes.
-                Each element is True or False with the shape of (X, Y, 9).
-        """
-        return self._in_boundary
-
-    @in_boundary.setter
-    def in_boundary(self) -> None:
-        raise NotImplementedError("in_boundary is not supposed to change from outside.")
-
-    @property
-    def out_boundary(self) -> np.ndarray:
-        """
-        Returns:
-            _out_boundary (np.ndarray):
-                Direction to come out.
-                In other words, if there are walls (or boundary) or not
-                or the outlet of pipes.
-                Each element is True or False with the shape of (X, Y, 9).
-        """
-        return self._out_boundary
-
-    @out_boundary.setter
-    def out_boundary(self) -> None:
-        raise NotImplementedError("out_boundary is not supposed to change from outside.")
 
     @property
     def in_indices(self) -> np.ndarray:
@@ -174,114 +138,7 @@ class BaseBoundary():
 
         self._out_indices = np.array(out_indices)
         self._in_indices = self.in_indices[self.out_indices]
-
-    def _allocate_boundary_conditions(self, in_idx: int, out_idx: int) -> None:
-        """
-        Based on the indices of the adjacent cell indices:
-        6 2 5
-        3 0 1
-        7 4 8,
-        we give True or False to each grid (x, y) if (x, y) has the boundary.
-
-        Args:
-            in_idx (int):
-                The direction to come in from the outside.
-            out_idx (int):
-                The direction to come out from the inside.
-        """
-        left = list(AdjacentAttributes.x_left)
-        right = list(AdjacentAttributes.x_right)
-        top = list(AdjacentAttributes.y_top)
-        bottom = list(AdjacentAttributes.y_bottom)
-
-        if (
-            DirectionIndicators.LEFT in self.boundary_locations and
-            (out_idx in left and in_idx in right)  # Wall exists left
-        ):
-            self._out_boundary[0, :, out_idx] = True
-            self._in_boundary[0, :, in_idx] = True
-        if (
-            DirectionIndicators.RIGHT in self.boundary_locations and
-            (in_idx in left and out_idx in right)  # Wall exists left
-        ):
-            self._out_boundary[-1, :, out_idx] = True
-            self._in_boundary[-1, :, in_idx] = True
-        if (
-            DirectionIndicators.TOP in self.boundary_locations and
-            out_idx in top and in_idx in bottom  # Wall exists top
-        ):
-            self._out_boundary[:, -1, out_idx] = True
-            self._in_boundary[:, -1, in_idx] = True
-        if (
-            DirectionIndicators.BOTTOM in self.boundary_locations and
-            in_idx in top and out_idx in bottom  # Wall exists bottom
-        ):
-            self._out_boundary[:, 0, out_idx] = True
-            self._in_boundary[:, 0, in_idx] = True
-
-    def _init_boundary(self, pressure_variation: bool) -> None:
-        """
-        Initialize the boundary of the shape (X, Y)
-        based on the feeded boundary locations.
-
-        Args:
-            pressure_variation (bool):
-                if the simulation is based on pressure variation.
-                If True, the initialization is slightly different.
-        """
-        assert not self._finish_initialize
-        self._init_boundary_indices(pressure_variation)
-        X, Y = self.out_boundary.shape[:-1]
-
-        init_boundary = np.zeros((X, Y), np.bool8)
-        """ init_boundary for the pressure_variation case """
-        if DirectionIndicators.LEFT in self.boundary_locations:
-            init_boundary[0, :] = np.ones(Y)
-        if DirectionIndicators.RIGHT in self.boundary_locations:
-            init_boundary[-1, :] = np.ones(Y)
-        if DirectionIndicators.TOP in self.boundary_locations:
-            init_boundary[:, -1] = np.ones(X)
-        if DirectionIndicators.BOTTOM in self.boundary_locations:
-            init_boundary[:, 0] = np.ones(X)
-
-        for out_idx, in_idx in zip(self.out_indices, self.in_indices):
-            if pressure_variation:
-                self._out_boundary[:, :, out_idx] = init_boundary
-                self._in_boundary[:, :, in_idx] = init_boundary
-            else:
-                self._allocate_boundary_conditions(in_idx=in_idx, out_idx=out_idx)
-
-        if self._visualize_wall:
-            self.visualize_wall_in_cui()
-
         self._finish_initialize = True
-
-    def visualize_wall_in_cui(self, compress: bool = True) -> None:
-        """ Wall visualizer for debugging """
-        X, Y = self.out_boundary.shape[:-1]
-        assert X >= 5 and Y >= 5
-        y_itr = [Y - 1, Y - 2, Y // 2, 1, 0] if compress else range(Y - 1, -1, -1)
-        x_itr = [0, 1, X // 2, X - 2, X - 1] if compress else range(X)
-
-        child_cls = set([obj.__name__ for obj in self.__class__.__mro__])
-        child_cls -= set(['BaseBoundary', 'object'])
-        boundary_name = list(child_cls)[0]
-
-        print(f"### {boundary_name} Out boundary ###")
-        for y in y_itr:
-            display = ""
-            for x in x_itr:
-                display += get_direction_representor(boundary=self.out_boundary[x][y])
-            print(display)
-
-        print(f"\n### {boundary_name} In boundary ###")
-        for y in y_itr:
-            display = ""
-            for x in x_itr:
-                display += get_direction_representor(boundary=self.in_boundary[x][y])
-            print(display)
-
-        print("")
 
 
 class RigidWall(BaseBoundary):
@@ -290,9 +147,7 @@ class RigidWall(BaseBoundary):
 
     def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
         pdf_post = field.pdf
-        # pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
-        # print("start")
-        # print(pdf_post)
+
         if DirectionIndicators.TOP in self.boundary_locations:
             pdf_post[:, -1, self.in_indices] = field.pdf_pre[:, -1, self.out_indices]
         if DirectionIndicators.BOTTOM in self.boundary_locations:
@@ -301,8 +156,6 @@ class RigidWall(BaseBoundary):
             pdf_post[0, :, self.in_indices] = field.pdf_pre[0, :, self.out_indices]
         if DirectionIndicators.RIGHT in self.boundary_locations:
             pdf_post[-1, :, self.in_indices] = field.pdf_pre[-1, :, self.out_indices]
-        # print(pdf_post)
-        # print("end")
 
 
 def dir2coef(wall: DirectionIndicators, dir: DirectionIndicators, equilibrium: bool = False) -> float:
@@ -392,7 +245,7 @@ class MovingWall(BaseBoundary):
         ws = AdjacentAttributes.weights[self.out_indices]
         vs = AdjacentAttributes.velocity_direction_set[self.out_indices]
 
-        self._weighted_vel_dot_wall_vel6 = np.zeros_like(self.out_boundary, np.float32)
+        self._weighted_vel_dot_wall_vel6 = np.zeros((*self._lattice_grid_shape, 9), np.float32)
         for out_idx, v, w in zip(self.out_indices, vs, ws):
             self._weighted_vel_dot_wall_vel6[:, :, out_idx] = 6 * w * (v @ self.wall_vel)
 
@@ -450,17 +303,8 @@ class MovingWall(BaseBoundary):
             pdf_post[:, 0, self.in_indices] = pdf_pre[:, 0, self.out_indices] - coef[:, 0, self.out_indices]
         if DirectionIndicators.LEFT in self.boundary_locations:
             pdf_post[0, :, self.in_indices] = pdf_pre[0, :, self.out_indices] - coef[0, :, self.out_indices]
-            pdf_post[0, :, self.in_indices] = field.pdf_pre[0, :, self.out_indices]
         if DirectionIndicators.RIGHT in self.boundary_locations:
             pdf_post[-1, :, self.in_indices] = pdf_pre[-1, :, self.out_indices] - coef[-1, :, self.out_indices]
-
-        """
-        pdf_post[self.in_boundary] = (
-            field.pdf_pre[self.out_boundary]
-            - self.wall_density[self.out_boundary] *
-            self.weighted_vel_dot_wall_vel6[self.out_boundary]
-        )
-        """
 
 
 class PeriodicBoundaryConditionsWithPressureVariation(BaseBoundary):
@@ -503,13 +347,13 @@ class PeriodicBoundaryConditionsWithPressureVariation(BaseBoundary):
 
         if self.horiz:
             pdf_eq_in = local_equilibrium(velocity=field.velocity[-2], density=self.in_density).squeeze()
-            pdf_pre[0][:, self.out_indices] = pdf_eq_in[:, self.out_indices] + (
-                pdf_pre[-2][:, self.out_indices] - pdf_eq[-2][:, self.out_indices]
+            pdf_pre[0, :, self.out_indices] = pdf_eq_in[:, self.out_indices].T + (
+                pdf_pre[-2, :, self.out_indices] - pdf_eq[-2, :, self.out_indices]
             )
 
             pdf_eq_out = local_equilibrium(velocity=field.velocity[1], density=self.out_density).squeeze()
-            pdf_pre[-1][:, self.in_indices] = pdf_eq_out[:, self.in_indices] + (
-                pdf_pre[1][:, self.in_indices] - pdf_eq[1][:, self.in_indices]
+            pdf_pre[-1, :, self.in_indices] = pdf_eq_out[:, self.in_indices].T + (
+                pdf_pre[1, :, self.in_indices] - pdf_eq[1, :, self.in_indices]
             )
         else:
             pdf_eq_in = local_equilibrium(velocity=field.velocity[:, -2], density=self.in_density).squeeze()

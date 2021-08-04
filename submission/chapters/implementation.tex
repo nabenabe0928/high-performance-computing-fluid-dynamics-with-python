@@ -49,10 +49,8 @@ This function rolls the array in the following manner:
 where $i$ is the direction index in D2Q9 and $\cv_i$ is the vector
 that specifies the $i$-th direction in D2Q9.
 In Algorithm~\ref{alg:boundary-conditions-algorithm},
-we use boolean matrices {\tt in\_boundary} and {\tt out\_boundary}
-that have the shape of $(X, Y, 9)$ so that 
-we can refer to only elements that have bounce-back or collision
-with the boundary through {\tt numpy} array.
+we use {\tt in\_indices} and {\tt out\_indices}
+to eliminate for-loop by slicing.
 Additionally, we compute $\rho_w$ by the average density~\cite{khajepor2019study}.
 Note that 
 although the pressure PBC is included in Algorithm~\ref{alg:boundary-conditions-algorithm}
@@ -135,14 +133,6 @@ so that we can handle the boundary condition naturally.
   \label{alg:boundary-conditions-algorithm}
   \begin{algorithmic}[1]
     \Statex{
-      Boolean matrix that represents
-      where we have the bounce back: in\_boundary
-    }
-    \Statex{
-      Boolean matrix that represents
-      where we have the collision: out\_boundary
-    }
-    \Statex{
       The indices in D2Q9 s.t. the flow comes in
       given boundaries: in\_indices
     }
@@ -156,19 +146,21 @@ so that we can handle the boundary condition naturally.
     \Comment{fluid flows from $x = 0$ to $X - 1$}
     \State{{\bf \# Note: Pressure PBC must be applied before streaming operation}}
     \State{$\feq_{\rm in}, \feq_{\rm out}$ = equilibrium($\rho_{\rm in}$, $\uv$[-2]), equilibrium($\rho_{\rm out}$, $\uv$[1])}
-    \State{$f^\star$[0][:,out\_indices]=$\feq_{\rm in}$[:,out\_indices]+($f^\star$[-2][:,out\_indices]-$\feq$[-2][:,out\_indices])}
-    \State{$f^\star$[-1][:, in\_indices]=$\feq_{\rm out}$[:, in\_indices]+($f^\star$[1][:, in\_indices] - $\feq$[1][:, in\_indices])}
+    \State{$f^\star$[0, :,out\_indices]=$\feq_{\rm in}$[:,out\_indices].T+($f^\star$[-2, :,out\_indices]-$\feq$[-2, :,out\_indices])}
+    \State{$f^\star$[-1, :,in\_indices]=$\feq_{\rm out}$[:,in\_indices].T+($f^\star$[1, :,in\_indices] - $\feq$[1, :,in\_indices])}
     \EndIf
     \If{Rigid wall}
-    \State{$f$[in\_boundary] = $f^\star$[out\_boundary]}
+    \Comment{The case when the wall is at the top}
+    \State{$f$[:, -1, in\_indices] = $f^\star$[:, -1, out\_indices]}
     \EndIf
     \If{Moving wall}
-    \State{coef = np.zeros\_like(out\_boundary)}
+    \Comment{The case when the wall is at the top}
+    \State{coef = np.zeros\_like((X, Y, 9))}
     \State{{\bf for} out\_idx, $\cv_i$, $\wv_i$ in zip(out\_indices, $\cv$, $\wv$) {\bf do}}
     \Indent
     \State{coef[:, :, out\_idx] = 2 * $\wv_i$ * ($\cv_i$ @ $\Uv_w$)} / $c_s$ ** 2
     \EndIndent
-    \State{$f$[in\_boundary] = $f^\star$[out\_boundary]-$\rho_w$[out\_boundary] * coef[out\_boundary]}
+    \State{$f$[:, -1, in\_indices] = $f^\star$[:, -1, out\_indices] $- \rho_w$ * coef[:, -1, out\_indices]}
     \EndIf
     \State{{\bf return} $f$}
     \EndFunction
