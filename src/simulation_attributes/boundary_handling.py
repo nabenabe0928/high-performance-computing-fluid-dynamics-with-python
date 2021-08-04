@@ -290,7 +290,19 @@ class RigidWall(BaseBoundary):
 
     def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
         pdf_post = field.pdf
-        pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
+        # pdf_post[self.in_boundary] = field.pdf_pre[self.out_boundary]
+        # print("start")
+        # print(pdf_post)
+        if DirectionIndicators.TOP in self.boundary_locations:
+            pdf_post[:, -1, self.in_indices] = field.pdf_pre[:, -1, self.out_indices]
+        if DirectionIndicators.BOTTOM in self.boundary_locations:
+            pdf_post[:, 0, self.in_indices] = field.pdf_pre[:, 0, self.out_indices]
+        if DirectionIndicators.LEFT in self.boundary_locations:
+            pdf_post[0, :, self.in_indices] = field.pdf_pre[0, :, self.out_indices]
+        if DirectionIndicators.RIGHT in self.boundary_locations:
+            pdf_post[-1, :, self.in_indices] = field.pdf_pre[-1, :, self.out_indices]
+        # print(pdf_post)
+        # print("end")
 
 
 def dir2coef(wall: DirectionIndicators, dir: DirectionIndicators, equilibrium: bool = False) -> float:
@@ -428,14 +440,27 @@ class MovingWall(BaseBoundary):
         if not self._finish_precompute:
             self._precompute()
 
-        pdf_post = field.pdf
+        pdf_post, pdf_pre = field.pdf, field.pdf_pre
+        coef = self.wall_density * self.weighted_vel_dot_wall_vel6
         # self._compute_wall_density(field.pdf_pre, field.pdf, field.velocity)
 
+        if DirectionIndicators.TOP in self.boundary_locations:
+            pdf_post[:, -1, self.in_indices] = pdf_pre[:, -1, self.out_indices] - coef[:, -1, self.out_indices]
+        if DirectionIndicators.BOTTOM in self.boundary_locations:
+            pdf_post[:, 0, self.in_indices] = pdf_pre[:, 0, self.out_indices] - coef[:, 0, self.out_indices]
+        if DirectionIndicators.LEFT in self.boundary_locations:
+            pdf_post[0, :, self.in_indices] = pdf_pre[0, :, self.out_indices] - coef[0, :, self.out_indices]
+            pdf_post[0, :, self.in_indices] = field.pdf_pre[0, :, self.out_indices]
+        if DirectionIndicators.RIGHT in self.boundary_locations:
+            pdf_post[-1, :, self.in_indices] = pdf_pre[-1, :, self.out_indices] - coef[-1, :, self.out_indices]
+
+        """
         pdf_post[self.in_boundary] = (
             field.pdf_pre[self.out_boundary]
             - self.wall_density[self.out_boundary] *
             self.weighted_vel_dot_wall_vel6[self.out_boundary]
         )
+        """
 
 
 class PeriodicBoundaryConditionsWithPressureVariation(BaseBoundary):

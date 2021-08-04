@@ -1,8 +1,8 @@
-cmd="python -m run_experiment -E cf -T 21500 -X 50 -Y 50 -W 0.5 --omega 1.20"
+cmd="python -m run_experiment -E cf -T 6500 -X 50 -Y 50 -W 0.1 --omega 0.8"
 echo $cmd
 $cmd
 
-cmd="python -m run_experiment -E pf -T 21500 -X 50 -Y 50 -I 0.301 -O 0.300 --omega 1.20"
+cmd="python -m run_experiment -E pf -T 9500 -X 50 -Y 50 -I 0.301 -O 0.300 --omega 0.8"
 echo $cmd
 $cmd
 

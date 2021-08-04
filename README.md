@@ -11,22 +11,28 @@ at the University of Freiburg 2021 Summer semester.
 The following figures are the visualization of the velocity field of sliding lid at every 4000 time steps from 1000 to 45000 time steps.
 <table>
     <tr>
-        <td><img src="media/vel_flow001000.png" alt=""></td>
-        <td><img src="media/vel_flow005000.png" alt=""></td>
-        <td><img src="media/vel_flow009000.png" alt=""></td>
-        <td><img src="media/vel_flow013000.png" alt=""></td>
+        <td><img src="media/vel_flow010000.png" alt=""></td>
+        <td><img src="media/vel_flow016000.png" alt=""></td>
+        <td><img src="media/vel_flow022000.png" alt=""></td>
+        <td><img src="media/vel_flow028000.png" alt=""></td>
     </tr>
     <tr>
-        <td><img src="media/vel_flow017000.png" alt=""></td>
-        <td><img src="media/vel_flow021000.png" alt=""></td>
-        <td><img src="media/vel_flow025000.png" alt=""></td>
-        <td><img src="media/vel_flow029000.png" alt=""></td>
+        <td><img src="media/vel_flow034000.png" alt=""></td>
+        <td><img src="media/vel_flow040000.png" alt=""></td>
+        <td><img src="media/vel_flow046000.png" alt=""></td>
+        <td><img src="media/vel_flow052000.png" alt=""></td>
     </tr>
     <tr>
-        <td><img src="media/vel_flow033000.png" alt=""></td>
-        <td><img src="media/vel_flow037000.png" alt=""></td>
-        <td><img src="media/vel_flow041000.png" alt=""></td>
-        <td><img src="media/vel_flow045000.png" alt=""></td>
+        <td><img src="media/vel_flow058000.png" alt=""></td>
+        <td><img src="media/vel_flow064000.png" alt=""></td>
+        <td><img src="media/vel_flow070000.png" alt=""></td>
+        <td><img src="media/vel_flow076000.png" alt=""></td>
+    </tr>
+    <tr>
+        <td><img src="media/vel_flow082000.png" alt=""></td>
+        <td><img src="media/vel_flow088000.png" alt=""></td>
+        <td><img src="media/vel_flow094000.png" alt=""></td>
+        <td><img src="media/vel_flow100000.png" alt=""></td>
     </tr>
 </table>
 
