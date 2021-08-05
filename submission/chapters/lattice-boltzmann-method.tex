@@ -9,25 +9,26 @@ how to handle the boundary conditions.
 
 \section{The Boltzmann transport equation (BTE)}
 The BTE formulates the time evolution of the 
-particle probability density $f(\xv, \uv, t)$ given
-the velocity $\uv$ and the position $\xv$ of particles.
+particle probability density function $f(\xv, \vv, t)$ given
+the velocity $\vv$ and the position $\xv$ of particles.
 The BTE relaxes the particle distribution to
 the Maxwell velocity distribution
 function~\cite{huang1963statistical} and the approximation of the relaxation of
 $f$ towards $f^{\rm eq}$ is described as follows~\cite{bhatnagar1954model}:
 \begin{equation}
   \begin{aligned}
-    \od{f(\xv, \uv, t)}{t} &= 
+    \od{f(\xv, \vv, t)}{t} &= 
     - \frac{
-      f(\xv, \uv, t) - \feq(\uv; \rho(\xv, t), \uv(\xv, t), T(\xv, t))
+      f(\xv, \vv, t) - \feq(\vv; \rho(\xv, t), \uv(\xv, t), T(\xv, t))
       }{\tau} \\
     \end{aligned}
     \label{analytical-eq}
   \end{equation}
 where $f^{\rm eq}$ is statistical equilibrium,
 $T(\xv, t)$ is the temperature at $\xv$
-of time step $t$ and
-$\tau$ is a characteristic time.
+of time step $t$,
+$\tau$ is a characteristic time, $\rho(\xv, t)$ is the density
+and $\uv(\xv, t)$ is the velocity.
 The characteristic time determines how quickly
 the fluid converges towards equilibrium.
 The higher $\tau$ yields the slower 
@@ -35,14 +36,14 @@ convergence towards the equilibrium.
 Eq~(\ref{analytical-eq}) is used for the update 
 of the particle probability density function.
 Furthermore, this particle probability density function
-$f(\xv, \uv, t)$ is used for computing
+$f(\xv, \vv, t)$ is used for computing
 the physical states of the fluid,
 such as density and velocity.
-The momentum updates are performed via~\cite{caroli1984non}:
+The moments updates are performed via~\cite{caroli1984non}:
 \begin{equation}
   \begin{aligned}
-    \rho(\xv, t) = \int f(\xv, \uv, t) d\uv,~
-    \uv(\xv, t) = \frac{1}{\rho(\xv, t)} \int \uv f(\xv, \uv, t)  d\uv 
+    \rho(\xv, t) = \int f(\xv, \vv, t) d\vv,~
+    \uv(\xv, t) = \frac{1}{\rho(\xv, t)} \int \vv f(\xv, \vv, t)  d\vv 
   \end{aligned}
   \label{analytical-update}
 \end{equation}
@@ -193,7 +194,7 @@ The equation at the boundary is computed as~\cite{succi2018lattice}:
 \label{discretized-rigid-wall}
 \end{equation}
 When the {\bf boundary moves} with the velocity of
-$\Uv_w$, the variation in the momentum of particles
+$\Uv_w$, the variation in the moments of particles
 must be taken into consideration and the equation is
 modified as follows~\cite{succi2018lattice}:
 \begin{equation}
