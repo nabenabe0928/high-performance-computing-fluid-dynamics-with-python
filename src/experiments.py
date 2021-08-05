@@ -204,7 +204,7 @@ def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> Non
         wall_vel=experiment_vars.wall_vel
     )
 
-    freq = 1000
+    freq = 3000
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and (t == 0 or (t + 1) % freq == 0):
@@ -238,7 +238,7 @@ def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> 
         boundary_locations=[DirectionIndicators.TOP, DirectionIndicators.BOTTOM]
     )
 
-    freq = 1500
+    freq = 3000
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and (t == 0 or (t + 1) % freq == 0):

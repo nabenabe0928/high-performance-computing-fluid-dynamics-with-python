@@ -11,32 +11,10 @@ from src.simulation_attributes.lattice_boltzmann_method import (
 from src.utils.constants import AdjacentAttributes, DirectionIndicators
 
 
-def get_direction_representor(boundary: np.ndarray) -> str:
-    indices = [i for i, b in enumerate(boundary) if b]
-    """
-    Adjacent cell indices
-    6 2 5
-    3 0 1
-    7 4 8
-    """
-    if indices == list(AdjacentAttributes.x_left):
-        return "<"
-    if indices == list(AdjacentAttributes.x_right):
-        return ">"
-    if indices == list(AdjacentAttributes.y_top):
-        return "^"
-    if indices == list(AdjacentAttributes.y_bottom):
-        return "v"
-    else:
-        return "*"
-
-
 class BaseBoundary():
     def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators],
                  pressure_variation: bool = False, **kwargs: Dict[str, Any]):
 
-        self._out_indices = np.arange(9)
-        self._in_indices = AdjacentAttributes.reflected_direction
         self._finish_initialize = False
         self._lattice_grid_shape = field.lattice_grid_shape
         self._boundary_locations = boundary_locations
@@ -60,12 +38,11 @@ class BaseBoundary():
         raise NotImplementedError("The child class of BaseBoundary must have boundary_handling function.")
 
     @property
-    def in_indices(self) -> np.ndarray:
+    def in_indices(self) -> Dict[DirectionIndicators, np.ndarray]:
         """
         Returns:
             _in_indices (np.ndarray):
                 The corresponding indices for the bouncing direction of _out_indices.
-                The shape is (n_direction, ).
         """
         return self._in_indices
 
@@ -74,12 +51,11 @@ class BaseBoundary():
         raise NotImplementedError("in_indices is not supposed to change from outside.")
 
     @property
-    def out_indices(self) -> np.ndarray:
+    def out_indices(self) -> Dict[DirectionIndicators, np.ndarray]:
         """
         Returns:
-            _out_indices (np.ndarray):
+            _out_indices (Dict[DirectionIndicators, np.ndarray]):
                 It stands for which directions (from 9 adjacent cells) can have the out-boundary.
-                The shape is (n_direction, ) where n_direction is smaller than 9.
         """
         return self._out_indices
 
@@ -111,16 +87,25 @@ class BaseBoundary():
                 the collision with the wall.
         """
         assert not self._finish_initialize
-        out_indices = []
+        rd = AdjacentAttributes.reflected_direction
+        out_indices, in_indices = {}, {}
         if not pressure_variation:
             if DirectionIndicators.LEFT in self.boundary_locations:
-                out_indices += list(AdjacentAttributes.x_left)
+                dirs = AdjacentAttributes.x_left
+                out_indices[DirectionIndicators.LEFT] = dirs
+                in_indices[DirectionIndicators.LEFT] = rd[dirs]
             if DirectionIndicators.RIGHT in self.boundary_locations:
-                out_indices += list(AdjacentAttributes.x_right)
+                dirs = AdjacentAttributes.x_right
+                out_indices[DirectionIndicators.RIGHT] = dirs
+                in_indices[DirectionIndicators.RIGHT] = rd[dirs]
             if DirectionIndicators.BOTTOM in self.boundary_locations:
-                out_indices += list(AdjacentAttributes.y_bottom)
+                dirs = AdjacentAttributes.y_bottom
+                out_indices[DirectionIndicators.BOTTOM] = dirs
+                in_indices[DirectionIndicators.BOTTOM] = rd[dirs]
             if DirectionIndicators.TOP in self.boundary_locations:
-                out_indices += list(AdjacentAttributes.y_top)
+                dirs = AdjacentAttributes.y_top
+                out_indices[DirectionIndicators.TOP] = dirs
+                in_indices[DirectionIndicators.TOP] = rd[dirs]
         else:
             # left to right (the flow of particles)
             horiz = (DirectionIndicators.LEFT in self.boundary_locations and
@@ -131,13 +116,17 @@ class BaseBoundary():
             assert vert or horiz
             if horiz:
                 # left to right
-                out_indices = list(AdjacentAttributes.x_right)
+                dirs = AdjacentAttributes.x_right
+                out_indices[DirectionIndicators.RIGHT] = dirs
+                in_indices[DirectionIndicators.RIGHT] = rd[dirs]
             else:
                 # bottom to top
-                out_indices = list(AdjacentAttributes.y_top)
+                dirs = AdjacentAttributes.y_top
+                out_indices[DirectionIndicators.TOP] = dirs
+                in_indices[DirectionIndicators.TOP] = rd[dirs]
 
-        self._out_indices = np.array(out_indices)
-        self._in_indices = self.in_indices[self.out_indices]
+        self._out_indices = out_indices
+        self._in_indices = in_indices
         self._finish_initialize = True
 
 
@@ -145,17 +134,36 @@ class RigidWall(BaseBoundary):
     def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators]):
         super().__init__(field, boundary_locations)
 
+    def __repr__(self) -> str:
+        repr = 'RigidWall('
+        repr = '{}boundary_locations={}, in_indices={}, out_indices={})'.format(
+            repr,
+            self.boundary_locations,
+            self.in_indices,
+            self.out_indices
+        )
+
+        return repr
+
     def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
-        pdf_post = field.pdf
+        pdf_post, pdf_pre = field.pdf, field.pdf_pre
 
         if DirectionIndicators.TOP in self.boundary_locations:
-            pdf_post[:, -1, self.in_indices] = field.pdf_pre[:, -1, self.out_indices]
+            dir = DirectionIndicators.TOP
+            in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
+            pdf_post[:, -1, in_idx] = pdf_pre[:, -1, out_idx]
         if DirectionIndicators.BOTTOM in self.boundary_locations:
-            pdf_post[:, 0, self.in_indices] = field.pdf_pre[:, 0, self.out_indices]
+            dir = DirectionIndicators.BOTTOM
+            in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
+            pdf_post[:, 0, in_idx] = pdf_pre[:, 0, out_idx]
         if DirectionIndicators.LEFT in self.boundary_locations:
-            pdf_post[0, :, self.in_indices] = field.pdf_pre[0, :, self.out_indices]
+            dir = DirectionIndicators.LEFT
+            in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
+            pdf_post[0, :, in_idx] = pdf_pre[0, :, out_idx]
         if DirectionIndicators.RIGHT in self.boundary_locations:
-            pdf_post[-1, :, self.in_indices] = field.pdf_pre[-1, :, self.out_indices]
+            dir = DirectionIndicators.RIGHT
+            in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
+            pdf_post[-1, :, in_idx] = pdf_pre[-1, :, out_idx]
 
 
 def dir2coef(wall: DirectionIndicators, dir: DirectionIndicators, equilibrium: bool = False) -> float:
@@ -208,6 +216,18 @@ class MovingWall(BaseBoundary):
         self._prod_coef_pre = np.array(self.coefs_pre[boundary_locations[0]])
         self._prod_coef_post = np.array(self.coefs_post[boundary_locations[0]])
 
+    def __repr__(self) -> str:
+        repr = 'MovingWall('
+        repr = '{}boundary_locations={}, in_indices={}, out_indices={}, wall_vel={})'.format(
+            repr,
+            self.boundary_locations,
+            self.in_indices,
+            self.out_indices,
+            self.wall_vel
+        )
+
+        return repr
+
     @property
     def wall_vel(self) -> np.ndarray:
         """ The velocity of the wall """
@@ -242,12 +262,31 @@ class MovingWall(BaseBoundary):
 
     def _precompute(self) -> None:
         assert not self._finish_precompute
-        ws = AdjacentAttributes.weights[self.out_indices]
-        vs = AdjacentAttributes.velocity_direction_set[self.out_indices]
+        ws = AdjacentAttributes.weights
+        vs = AdjacentAttributes.velocity_direction_set
 
         self._weighted_vel_dot_wall_vel6 = np.zeros((*self._lattice_grid_shape, 9), np.float32)
-        for out_idx, v, w in zip(self.out_indices, vs, ws):
-            self._weighted_vel_dot_wall_vel6[:, :, out_idx] = 6 * w * (v @ self.wall_vel)
+
+        if DirectionIndicators.TOP in self.boundary_locations:
+            out_idx = self.out_indices[DirectionIndicators.TOP]
+            w, v = ws[out_idx], vs[out_idx]
+            value = 6 * w * (v @ self.wall_vel)
+            self._weighted_vel_dot_wall_vel6[:, -1, out_idx] = value[np.newaxis, :]
+        if DirectionIndicators.BOTTOM in self.boundary_locations:
+            out_idx = self.out_indices[DirectionIndicators.BOTTOM]
+            w, v = ws[out_idx], vs[out_idx]
+            value = 6 * w * (v @ self.wall_vel)
+            self._weighted_vel_dot_wall_vel6[:, 0, out_idx] = value[np.newaxis, :]
+        if DirectionIndicators.LEFT in self.boundary_locations:
+            out_idx = self.out_indices[DirectionIndicators.LEFT]
+            w, v = ws[out_idx], vs[out_idx]
+            value = 6 * w * (v @ self.wall_vel)
+            self._weighted_vel_dot_wall_vel6[0, :, out_idx] = value[np.newaxis, :].T
+        if DirectionIndicators.RIGHT in self.boundary_locations:
+            out_idx = self.out_indices[DirectionIndicators.RIGHT]
+            w, v = ws[out_idx], vs[out_idx]
+            value = 6 * w * (v @ self.wall_vel)
+            self._weighted_vel_dot_wall_vel6[-1, :, out_idx] = value[np.newaxis, :].T
 
         self._finish_precompute = True
 
@@ -298,13 +337,21 @@ class MovingWall(BaseBoundary):
         # self._compute_wall_density(field.pdf_pre, field.pdf, field.velocity)
 
         if DirectionIndicators.TOP in self.boundary_locations:
-            pdf_post[:, -1, self.in_indices] = pdf_pre[:, -1, self.out_indices] - coef[:, -1, self.out_indices]
+            dir = DirectionIndicators.TOP
+            in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
+            pdf_post[:, -1, in_idx] = pdf_pre[:, -1, out_idx] - coef[:, -1, out_idx]
         if DirectionIndicators.BOTTOM in self.boundary_locations:
-            pdf_post[:, 0, self.in_indices] = pdf_pre[:, 0, self.out_indices] - coef[:, 0, self.out_indices]
+            dir = DirectionIndicators.BOTTOM
+            in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
+            pdf_post[:, 0, in_idx] = pdf_pre[:, 0, out_idx] - coef[:, 0, out_idx]
         if DirectionIndicators.LEFT in self.boundary_locations:
-            pdf_post[0, :, self.in_indices] = pdf_pre[0, :, self.out_indices] - coef[0, :, self.out_indices]
+            dir = DirectionIndicators.LEFT
+            in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
+            pdf_post[0, :, in_idx] = pdf_pre[0, :, out_idx] - coef[0, :, out_idx]
         if DirectionIndicators.RIGHT in self.boundary_locations:
-            pdf_post[-1, :, self.in_indices] = pdf_pre[-1, :, self.out_indices] - coef[-1, :, self.out_indices]
+            dir = DirectionIndicators.RIGHT
+            in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
+            pdf_post[-1, :, in_idx] = pdf_pre[-1, :, out_idx] - coef[-1, :, out_idx]
 
 
 class PeriodicBoundaryConditionsWithPressureVariation(BaseBoundary):
@@ -321,10 +368,24 @@ class PeriodicBoundaryConditionsWithPressureVariation(BaseBoundary):
                      DirectionIndicators.BOTTOM in self.boundary_locations)
 
         assert self.vert or self.horiz
+        assert in_density_factor > out_density_factor
         X, Y = field.lattice_grid_shape
         boundary_shape = Y if self.horiz else X
         self._in_density = np.full(boundary_shape, 3 * in_density_factor)
         self._out_density = np.full(boundary_shape, 3 * out_density_factor)
+
+    def __repr__(self) -> str:
+        repr = 'PeriodicBoundaryConditionsWithPressureVariation('
+        repr = '{}boundary_locations={}, in_indices={}, out_indices={}, in_density={}, out_density={})'.format(
+            repr,
+            self.boundary_locations,
+            self.in_indices,
+            self.out_indices,
+            self.in_density,
+            self.out_density
+        )
+
+        return repr
 
     @property
     def in_density(self) -> np.ndarray:
@@ -346,24 +407,30 @@ class PeriodicBoundaryConditionsWithPressureVariation(BaseBoundary):
         pdf_eq, pdf_pre = field.pdf_eq, field.pdf_pre
 
         if self.horiz:
+            dir = DirectionIndicators.RIGHT
+            in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
+
             pdf_eq_in = local_equilibrium(velocity=field.velocity[-2], density=self.in_density).squeeze()
-            pdf_pre[0, :, self.out_indices] = pdf_eq_in[:, self.out_indices].T + (
-                pdf_pre[-2, :, self.out_indices] - pdf_eq[-2, :, self.out_indices]
+            pdf_pre[0, :, out_idx] = pdf_eq_in[:, out_idx].T + (
+                pdf_pre[-2, :, out_idx] - pdf_eq[-2, :, out_idx]
             )
 
             pdf_eq_out = local_equilibrium(velocity=field.velocity[1], density=self.out_density).squeeze()
-            pdf_pre[-1, :, self.in_indices] = pdf_eq_out[:, self.in_indices].T + (
-                pdf_pre[1, :, self.in_indices] - pdf_eq[1, :, self.in_indices]
+            pdf_pre[-1, :, in_idx] = pdf_eq_out[:, in_idx].T + (
+                pdf_pre[1, :, in_idx] - pdf_eq[1, :, in_idx]
             )
         else:
+            dir = DirectionIndicators.TOP
+            in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
+
             pdf_eq_in = local_equilibrium(velocity=field.velocity[:, -2], density=self.in_density).squeeze()
-            pdf_pre[:, 0, self.out_indices] = pdf_eq_in[:, self.out_indices] + (
-                pdf_pre[:, -2, self.out_indices] - pdf_eq[:, -2, self.out_indices]
+            pdf_pre[:, 0, out_idx] = pdf_eq_in[:, out_idx] + (
+                pdf_pre[:, -2, out_idx] - pdf_eq[:, -2, out_idx]
             )
 
             pdf_eq_out = local_equilibrium(velocity=field.velocity[:, 1], density=self.out_density).squeeze()
-            pdf_pre[:, -1, self.in_indices] = pdf_eq_out[:, self.in_indices] + (
-                pdf_pre[:, 1, self.in_indices] - pdf_eq[:, 1, self.in_indices]
+            pdf_pre[:, -1, in_idx] = pdf_eq_out[:, in_idx] + (
+                pdf_pre[:, 1, in_idx] - pdf_eq[:, 1, in_idx]
             )
 
 
@@ -391,3 +458,18 @@ class SequentialBoundaryHandlings:
 
         for boundary_handling in self.bounce_backs:  # type: ignore
             boundary_handling(field)
+
+    def __repr__(self) -> str:
+        repr = 'SequentialBoundaryHandlings(\n'
+        cnt = 1
+        for boundary_handling in self.pressure_pbcs:
+            if boundary_handling is not None:
+                repr += f'\t({cnt}): {str(boundary_handling)}\n'
+                cnt += 1
+
+        for boundary_handling in self.bounce_backs:  # type: ignore
+            if boundary_handling is not None:
+                repr += f'\t({cnt}): {str(boundary_handling)}\n'
+                cnt += 1
+
+        return f'{repr})'

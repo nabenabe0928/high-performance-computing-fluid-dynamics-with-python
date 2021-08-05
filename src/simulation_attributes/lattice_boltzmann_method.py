@@ -311,17 +311,17 @@ class LatticeBoltzmannMethod():
                 sendbuf = self.pdf_pre[:, sendidx, ...].copy()
                 self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,
                                                      recvbuf=self.recvbuf[0], source=neighbor)
-                self.pdf_pre[:, recvidx, ...] = self.recvbuf[0]
+                self.pdf_pre[:, recvidx, ...] = self.recvbuf[0].copy()
             elif dy == 0:  # communication for y direction
                 sendbuf = self.pdf_pre[sendidx, ...].copy()
                 self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,
                                                      recvbuf=self.recvbuf[1], source=neighbor)
-                self.pdf_pre[recvidx, ...] = self.recvbuf[1]
+                self.pdf_pre[recvidx, ...] = self.recvbuf[1].copy()
             else:  # communication for diagonal direction
                 sendbuf = self.pdf_pre[sendidx[0], sendidx[1], ...].copy()
                 self.grid_manager.rank_grid.Sendrecv(sendbuf=sendbuf, dest=neighbor,
                                                      recvbuf=self.recvbuf[2], source=neighbor)
-                self.pdf_pre[recvidx[0], recvidx[1], ...] = self.recvbuf[2]
+                self.pdf_pre[recvidx[0], recvidx[1], ...] = self.recvbuf[2].copy()
 
     def save_velocity_field(self, t: int) -> None:
         """

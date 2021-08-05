@@ -269,7 +269,7 @@ and the PBC at the inlet and outlet.
 The results are shown in Figure~\ref{fig:couette-velocity-evolution}.
 As shown in the figures, the flow velocity iteratively approaches
 the analytical solution and it perfectly fits in the end
-and {\bf the velocity stops growing} as seen at $t=4000 \sim 6000$.
+and {\bf the velocity stops growing} as seen at $t=9000 \sim 15000$.
 From this experiment, the moving wall can be validated.
 
 \begin{figure}[H]
@@ -280,7 +280,7 @@ From this experiment, the moving wall can be validated.
   \caption{The velocity evolution at
   $x = 25$ in the lattice grid size of $(50, 50)$.
   The wall velocity $U_w$ at the bottom and the relaxation term $\omega$ are set
-  to $0.1$ and $0.8$ respectively.
+  to $0.1$ and $1.2$ respectively.
   We use {\bf dry node} as described in Section~\ref{boundary-handling-section}
   and the computation of wall density follows Section~\ref{boundary-wall-settings}.
   The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
@@ -305,7 +305,7 @@ and the pressure PBC at the inlet and outlet.
 Figure~\ref{fig:poiseuille-velocity-evolution} presents the results
 and the simulated results approach the analytical solutions as in the Couette flow.
 In the end, it fits completely
-and {\bf the velocity stops growing} as seen at $t=6000 \sim 9000$.
+and {\bf the velocity stops growing} as seen at $t=12000 \sim 18000$.
 
 \begin{figure}[H]
   \centering
@@ -313,7 +313,7 @@ and {\bf the velocity stops growing} as seen at $t=6000 \sim 9000$.
   \vspace{-3mm}
   \caption{The velocity evolution at
   $x = 25$ in the lattice grid size of $(50, 50)$.
-  The relaxation term $\omega$ is set to $0.8$.
+  The relaxation term $\omega$ is set to $1.2$.
   The density at the inlet $\rho_{\rm in}$ and the density
   at the outlet $\rho_{\rm out}$ are set to $0.301$ and $0.3$ respectively.
   The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
@@ -480,8 +480,8 @@ is $0.0$, it is obvious that
       \toprule
        & Min & Max & Sum of absolute values \\
       \midrule
-      Velocity $\uv_p$ in parallel implementation & -0.02600 & 0.09365 & 16.25150 \\
-      Velocity $\uv_s$ in serial implementation & -0.02600 & 0.09365 & 16.25150 \\
+      Velocity $\uv_p$ in parallel implementation & -0.03488 & 0.08998 & 20.12832 \\
+      Velocity $\uv_s$ in serial implementation & -0.03488 & 0.08998 & 20.12832 \\
       The absolute difference $|| \uv_p - \uv_s ||$ & {\bf 0.0} & {\bf 0.0} & {\bf 0.0} \\
       \bottomrule
     \end{tabular}

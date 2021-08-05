@@ -156,10 +156,8 @@ so that we can handle the boundary condition naturally.
     \If{Moving wall}
     \Comment{The case when the wall is at the top}
     \State{coef = np.zeros\_like((X, Y, 9))}
-    \State{{\bf for} out\_idx, $\cv_i$, $\wv_i$ in zip(out\_indices, $\cv$, $\wv$) {\bf do}}
-    \Indent
-    \State{coef[:, :, out\_idx] = 2 * $\wv_i$ * ($\cv_i$ @ $\Uv_w$)} / $c_s$ ** 2
-    \EndIndent
+    \State{value = 2 * $\wv$[out\_indices] * ($\cv$[out\_indices] @ $\uv$) / $c_s$ ** 2}
+    \State{coef[:, -1, out\_indices] = value[np.newaxis, :]}
     \State{$f$[:, -1, in\_indices] = $f^\star$[:, -1, out\_indices] $- \rho_w$ * coef[:, -1, out\_indices]}
     \EndIf
     \State{{\bf return} $f$}
