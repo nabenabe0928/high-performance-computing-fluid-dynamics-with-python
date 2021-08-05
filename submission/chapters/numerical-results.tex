@@ -64,6 +64,7 @@ This simulation uses the sinusoidal density in the $x$-direction:
 \begin{aligned}
   \rho(\xv, 0) = \rho_0 + \epsilon \sin \frac{2 \pi x}{X}
 \end{aligned}
+\label{sinusoidal-density-init}
 \end{equation}
 As seen in the figure, the sinusoidal density also
 yields the convergence.
@@ -110,19 +111,22 @@ a swing of the maxima and the minima unlike the sinusoidal velocity.
     \subfloat[$t = 1650$]{
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel001650.pdf}
     }\\
-    \caption{The velocity evolution for the sinusoidal velocity at
+    \caption{
+      The time evolution of the sinusoidal velocity
+      (Eq~(\ref{shear-vel-init})) at
       the $x = 25$ in the lattice grid size of $(50, 50)$.
       The $x$-axis shows the location in the $y$ direction
       and the $y$-axis shows the magnitude of velocity at 
       the corresponding location.
-      The coefficients $\epsilon$ and the initial density $\rho_0$ are 
-      set to $0.01$ and $1.0$ respectively.
+      The coefficients $\epsilon$ in Eq~(\ref{shear-vel-init}) and
+      the initial density $\rho_0$
+      are set to $0.01$ and $1.0$ respectively.
       The relaxation term $\omega$ is set to $1.0$.
       \label{fig:sinusoidal-velocity}}
   \end{center}
 \end{figure}
 
-As discussed, momentum fluctuations decay exponentially and
+As discussed, moment fluctuations decay exponentially and
 such a decay is represented as follows~\cite{palmer1994transverse, hess2002determining}:
 \begin{equation}
   \begin{aligned}
@@ -196,13 +200,14 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
     \subfloat[$t = 1650$]{
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001650.pdf}
     }\\
-    \caption{The density evolution for the sinusoidal density at
-      $y = 25$ in the lattice grid size of $(50, 50)$.
+    \caption{The time evolution of the sinusoidal density
+    (Eq~(\ref{sinusoidal-density-init}))
+      at $y = 25$ in the lattice grid size of $(50, 50)$.
       The $x$-axis shows the location in the $x$ direction
-      and the $y$-axis shows the magnitude of density at 
-      the corresponding location.
-      The coefficients $\epsilon$ and $\rho_0$ are 
-      set to $0.01$ and $1.0$ respectively.
+      and the $y$-axis shows the magnitude of density.
+      The coefficients $\epsilon$ and $\rho_0$ in Eq~(\ref{sinusoidal-density-init})
+      are set to $0.01$ and $1.0$ and the velocity is initialized by
+      $\uv(\xv, 0) = (0,0)$.
       The relaxation term $\omega$ is set to $1.0$.
       \label{fig:sinusoidal-density}}
   \end{center}
@@ -264,7 +269,7 @@ and the PBC at the inlet and outlet.
 The results are shown in Figure~\ref{fig:couette-velocity-evolution}.
 As shown in the figures, the flow velocity iteratively approaches
 the analytical solution and it perfectly fits in the end
-and {\bf the velocity stops growing} as seen at $t=12000 \sim 21000$.
+and {\bf the velocity stops growing} as seen at $t=9000 \sim 15000$.
 From this experiment, the moving wall can be validated.
 
 \begin{figure}[H]
@@ -275,7 +280,7 @@ From this experiment, the moving wall can be validated.
   \caption{The velocity evolution at
   $x = 25$ in the lattice grid size of $(50, 50)$.
   The wall velocity $U_w$ at the bottom and the relaxation term $\omega$ are set
-  to $0.5$ and $1.20$ respectively.
+  to $0.1$ and $1.2$ respectively.
   We use {\bf dry node} as described in Section~\ref{boundary-handling-section}
   and the computation of wall density follows Section~\ref{boundary-wall-settings}.
   The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
@@ -300,7 +305,7 @@ and the pressure PBC at the inlet and outlet.
 Figure~\ref{fig:poiseuille-velocity-evolution} presents the results
 and the simulated results approach the analytical solutions as in the Couette flow.
 In the end, it fits completely
-and {\bf the velocity stops growing} as seen at $t=12000 \sim 21000$.
+and {\bf the velocity stops growing} as seen at $t=12000 \sim 18000$.
 
 \begin{figure}[H]
   \centering
@@ -308,9 +313,9 @@ and {\bf the velocity stops growing} as seen at $t=12000 \sim 21000$.
   \vspace{-3mm}
   \caption{The velocity evolution at
   $x = 25$ in the lattice grid size of $(50, 50)$.
-  The relaxation term $\omega$ is set to $1.20$.
-  The density factor at the inlet and the density factor
-  at the outlet are set to $0.301$ and $0.3$ respectively.
+  The relaxation term $\omega$ is set to $1.2$.
+  The density at the inlet $\rho_{\rm in}$ and the density
+  at the outlet $\rho_{\rm out}$ are set to $0.301$ and $0.3$ respectively.
   The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
   \label{fig:poiseuille-velocity-evolution}}
 \end{figure}
@@ -365,55 +370,56 @@ is $0.0$, it is obvious that
 \begin{figure}[t]
   \begin{center}
     \subfloat[$U_w = 0.1, \nu = 0.03$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size75x75/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size75x75/fig/vel_flow100000.pdf}
     }
     \subfloat[$U_w = 0.2, \nu = 0.06$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size75x75/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size75x75/fig/vel_flow100000.pdf}
     }
     \subfloat[$U_w = 0.3, \nu = 0.09$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size75x75/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size75x75/fig/vel_flow100000.pdf}
     }
     \subfloat[$U_w = 0.4, \nu = 0.12$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size75x75/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size75x75/fig/vel_flow100000.pdf}
     }\\
     \subfloat[$U_w = 0.1, \nu = 0.03$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size150x150/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size150x150/fig/vel_flow100000.pdf}
     }
     \subfloat[$U_w = 0.2, \nu = 0.06$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size150x150/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size150x150/fig/vel_flow100000.pdf}
     }
     \subfloat[$U_w = 0.3, \nu = 0.09$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size150x150/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size150x150/fig/vel_flow100000.pdf}
     }
     \subfloat[$U_w = 0.4, \nu = 0.12$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size150x150/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size150x150/fig/vel_flow100000.pdf}
     }\\
     \subfloat[$U_w = 0.1, \nu = 0.03$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size225x225/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size225x225/fig/vel_flow100000.pdf}
     }
     \subfloat[$U_w = 0.2, \nu = 0.06$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size225x225/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size225x225/fig/vel_flow100000.pdf}
     }
     \subfloat[$U_w = 0.3, \nu = 0.09$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size225x225/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size225x225/fig/vel_flow100000.pdf}
     }
     \subfloat[$U_w = 0.4, \nu = 0.12$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size225x225/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size225x225/fig/vel_flow100000.pdf}
     }\\
     \subfloat[$U_w = 0.1, \nu = 0.03$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300x300/fig/vel_flow100000.pdf}
     }
     \subfloat[$U_w = 0.2, \nu = 0.06$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size300/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size300x300/fig/vel_flow100000.pdf}
     }
     \subfloat[$U_w = 0.3, \nu = 0.09$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size300/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size300x300/fig/vel_flow100000.pdf}
     }
     \subfloat[$U_w = 0.4, \nu = 0.12$]{
-      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size300/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size300x300/fig/vel_flow100000.pdf}
     }\\
     \caption{The stream plots of the lid-driven cavity
     with the lattice grid size of $(75, 75), (150, 150), (225, 225), (300, 300)$.
+    The setting of the wall follows Figure~\ref{lid-driven-cavity-conceptual}.
     (a) -- (d), (e) -- (h), (i) -- (l), (m) -- (p) are chosen to satisfy the Reynolds number
     250, 500, 750, 1000, respectively.
     We perform the update $T = 100000$ times for each setting.
@@ -426,27 +432,28 @@ is $0.0$, it is obvious that
 \begin{figure}[t]
   \begin{center}
     \subfloat[$t = 5000$]{
-      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow005000.pdf}
-    }
-    \subfloat[$t = 10000$]{
-      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow010000.pdf}
+      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300x300/fig/vel_flow005000.pdf}
     }
     \subfloat[$t = 20000$]{
-      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow020000.pdf}
+      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300x300/fig/vel_flow020000.pdf}
+    }
+    \subfloat[$t = 40000$]{
+      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300x300/fig/vel_flow040000.pdf}
     }\\
     \vspace{-3mm}
-    \subfloat[$t = 30000$]{
-      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow030000.pdf}
+    \subfloat[$t = 60000$]{
+      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300x300/fig/vel_flow060000.pdf}
     }
-    \subfloat[$t = 50000$]{
-      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow050000.pdf}
+    \subfloat[$t = 80000$]{
+      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300x300/fig/vel_flow080000.pdf}
     }
     \subfloat[$t = 100000$]{
-      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300/fig/vel_flow095000.pdf}
+      \includegraphics[width=0.30\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300x300/fig/vel_flow100000.pdf}
     }\\
     \caption{
       The time evolution of the stream plots of the lid-driven cavity
     with the Reynolds number of $1000$.
+    The setting of the wall follows Figure~\ref{lid-driven-cavity-conceptual}.
     In this experiment, the lattice grid size is $(300, 300)$,
     the viscosity $\nu$ and the wall velocity are set to $0.03$ and $0.1$, respectively.
     The computation of wall density follows Section~\ref{boundary-wall-settings}.
@@ -456,8 +463,6 @@ is $0.0$, it is obvious that
     \label{fig:sliding-lid-velocity-evolution}
   \end{center}
 \end{figure}
-
-% \footnotetext{aaaaa}
 
 \begin{table}
   \begin{center}
@@ -473,10 +478,10 @@ is $0.0$, it is obvious that
     \label{tab:parallel-validation}
     \begin{tabular}{llll}
       \toprule
-       & Max & Min & Sum of absolute values \\
+       & Min & Max & Sum of absolute values \\
       \midrule
-      Velocity $\uv_p$ in parallel implementation & -0.03711 & 0.09372 & 32.06084 \\
-      Velocity $\uv_s$ in serial implementation & -0.03711 & 0.09372 & 32.06084 \\
+      Velocity $\uv_p$ in parallel implementation & -0.03488 & 0.08998 & 20.12832 \\
+      Velocity $\uv_s$ in serial implementation & -0.03488 & 0.08998 & 20.12832 \\
       The absolute difference $|| \uv_p - \uv_s ||$ & {\bf 0.0} & {\bf 0.0} & {\bf 0.0} \\
       \bottomrule
     \end{tabular}
