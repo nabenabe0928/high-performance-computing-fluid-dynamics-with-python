@@ -186,7 +186,9 @@ class MovingWall(BaseBoundary):
     }
 
     def __init__(self, field: LatticeBoltzmannMethod,
-                 boundary_locations: List[DirectionIndicators], wall_vel: np.ndarray):
+                 boundary_locations: List[DirectionIndicators],
+                 wall_vel: np.ndarray,
+                 extrapolation: bool = False):
         """
         Attributes:
             _wall_vel (np.ndarray):
@@ -196,6 +198,8 @@ class MovingWall(BaseBoundary):
                 The computation results of
                 2 * wi * rhow * (ci @ uw) / cs ** 2
                 in the equation for the moving wall.
+            _extrapolation (bool):
+                If using extrapolation for the wall density or not.
 
         Example:
             ##### -> the wall will move to this direction.
@@ -207,6 +211,7 @@ class MovingWall(BaseBoundary):
         self._wall_vel = wall_vel  # shape (2, )
         self._finish_precompute = False
         self._wall_density = np.full((*field.lattice_grid_shape, 9), field.density_avg)
+        self._extrapolation = extrapolation
 
         if len(boundary_locations) != 1:
             raise ValueError("Moving wall only supports one moving wall, but got {} directions".format(
@@ -218,12 +223,13 @@ class MovingWall(BaseBoundary):
 
     def __repr__(self) -> str:
         repr = 'MovingWall('
-        repr = '{}boundary_locations={}, in_indices={}, out_indices={}, wall_vel={})'.format(
+        repr = '{}boundary_locations={}, in_indices={}, out_indices={}, wall_vel={}, extrapolation={})'.format(
             repr,
             self.boundary_locations,
             self.in_indices,
             self.out_indices,
-            self.wall_vel
+            self.wall_vel,
+            self.extrapolation
         )
 
         return repr
@@ -246,6 +252,10 @@ class MovingWall(BaseBoundary):
     @wall_density.setter
     def wall_density(self) -> None:
         raise NotImplementedError("wall_density is not supposed to change from outside.")
+
+    @property
+    def extrapolation(self) -> bool:
+        return self._extrapolation
 
     @property
     def weighted_vel_dot_wall_vel6(self) -> np.ndarray:
@@ -327,14 +337,17 @@ class MovingWall(BaseBoundary):
                 In this case, the total mass is preverved,
                 so always the initial average density.
 
-        We use 2. in this implementation for more stability.
+        We use 2. in this implementation for more stability by default.
         """
         if not self._finish_precompute:
             self._precompute()
 
         pdf_post, pdf_pre = field.pdf, field.pdf_pre
+
+        if self.extrapolation:
+            self._compute_wall_density(field.pdf_pre, field.pdf, field.velocity)
+
         coef = self.wall_density * self.weighted_vel_dot_wall_vel6
-        # self._compute_wall_density(field.pdf_pre, field.pdf, field.velocity)
 
         if DirectionIndicators.TOP in self.boundary_locations:
             dir = DirectionIndicators.TOP

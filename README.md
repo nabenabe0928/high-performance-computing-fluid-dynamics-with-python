@@ -85,6 +85,7 @@ and you might want to avoid these computations.
 --eps (float): The amplitude of swinging in sinusoidal
 --rho (float): The offset of the density in sinusoidal or rho_0
 --mode (Literal[v, d]): Either sinusoidal [v]elocity or [d]ensity
+--extrapolation (Literal[True, False]): Whether to use the extrapolation for the computation of the wall density
 --scaling (Literal[True, False]): Whether performing scaling test
 --save (Literal[True, False]): Whether saving data or not
 ```

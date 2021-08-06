@@ -98,6 +98,11 @@ class LatticeBoltzmannMethod():
             if boundary_handling.__class__.__name__ != 'SequentialBoundaryHandlings':
                 raise ValueError('boundary_handling must be SequentialBoundaryHandlings instance.')
 
+        print('{}{}'.format(
+            '' if self.grid_manager is None else f'Rank {self.grid_manager.rank}\n',
+            str(boundary_handling)
+        ))
+
         self.local_equilibrium_pdf_update()
         for t in trange(total_time_steps + 1):
             self.lattice_boltzmann_step(boundary_handling=boundary_handling)

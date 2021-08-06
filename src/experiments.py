@@ -64,6 +64,7 @@ class ExperimentVariables(AttrDict):
     omega: float
     scaling_test: bool
     save: bool
+    extrapolation: bool
     epsilon: Optional[float]
     rho0: Optional[float]
     mode: Optional[str]
@@ -193,6 +194,7 @@ def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> Non
     # Initialization
     velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
     field = get_field(experiment_vars)
+    extrapolation = experiment_vars.extrapolation
     total_time_steps = experiment_vars.total_time_steps
     rigid_wall = RigidWall(
         field=field,
@@ -201,7 +203,8 @@ def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> Non
     moving_wall = MovingWall(
         field=field,
         boundary_locations=[DirectionIndicators.BOTTOM],
-        wall_vel=experiment_vars.wall_vel
+        wall_vel=experiment_vars.wall_vel,
+        extrapolation=extrapolation
     )
 
     freq = 3000
@@ -263,11 +266,14 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
 
     # Initialization
     velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
+    extrapolation = experiment_vars.extrapolation
     X, Y = experiment_vars.lattice_grid_shape
     visc = omega2viscosity(experiment_vars.omega)
 
     assert experiment_vars.wall_vel is not None
     dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}x{Y}'
+    if extrapolation:
+        dir_name += '_extrapolation'
 
     field = get_field(experiment_vars, dir_name=dir_name)
     total_time_steps = experiment_vars.total_time_steps
@@ -275,7 +281,8 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
     moving_wall = MovingWall(
         field,
         boundary_locations=[DirectionIndicators.BOTTOM],
-        wall_vel=experiment_vars.wall_vel
+        wall_vel=experiment_vars.wall_vel,
+        extrapolation=extrapolation
     )
 
     rigid_wall = RigidWall(
@@ -309,6 +316,7 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
 
     # Initialization
     scaling = experiment_vars.scaling_test
+    extrapolation = experiment_vars.extrapolation
     grid_manager = ChunkedGridManager(*experiment_vars.lattice_grid_shape)
     velocity0_density1(experiment_vars, grid_manager.buffer_grid_size)
     X, Y = experiment_vars.lattice_grid_shape
@@ -316,6 +324,8 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
 
     assert experiment_vars.wall_vel is not None
     dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}x{Y}'
+    if extrapolation:
+        dir_name += '_extrapolation'
 
     field = get_field(experiment_vars, grid_manager=grid_manager, dir_name=dir_name)
     start, total_time_steps = time.time(), experiment_vars.total_time_steps
@@ -331,7 +341,8 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
         moving_wall = MovingWall(
             field,
             boundary_locations=[DirectionIndicators.BOTTOM],
-            wall_vel=experiment_vars.wall_vel
+            wall_vel=experiment_vars.wall_vel,
+            extrapolation=extrapolation
         )
     if len(rigid_boundary_locations) >= 1:
         rigid_wall = RigidWall(

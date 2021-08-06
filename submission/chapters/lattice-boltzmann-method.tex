@@ -10,7 +10,7 @@ how to handle the boundary conditions.
 \section{The Boltzmann transport equation (BTE)}
 The BTE formulates the time evolution of the 
 particle probability density function $f(\xv, \vv, t)$ given
-the velocity $\vv$ and the position $\xv$ of particles.
+the microscopic velocity $\vv$ and the position $\xv$ of particles.
 The BTE relaxes the particle distribution to
 the Maxwell velocity distribution
 function~\cite{huang1963statistical} and the approximation of the relaxation of
@@ -27,8 +27,8 @@ $f$ towards $f^{\rm eq}$ is described as follows~\cite{bhatnagar1954model}:
 where $f^{\rm eq}$ is statistical equilibrium,
 $T(\xv, t)$ is the temperature at $\xv$
 of time step $t$,
-$\tau$ is a characteristic time, $\rho(\xv, t)$ is the density
-and $\uv(\xv, t)$ is the velocity.
+$\tau$ is a characteristic time, $\rho(\xv, t)$ is the macroscopic density
+and $\uv(\xv, t)$ is the macroscopic velocity.
 The characteristic time determines how quickly
 the fluid converges towards equilibrium.
 The higher $\tau$ yields the slower 
@@ -140,7 +140,7 @@ by considering the effects of the particle collision.
 
 \begin{figure}[h!]
   \begin{center}
-   \includegraphics[width=10cm]{logos/Gitter_LBM.png}
+   \includegraphics[width=0.4\textwidth]{logos/Gitter_LBM.png}
    \vspace{-3mm}
    \caption{
       (a) The discretization on the velocity space according to D2Q9.
@@ -149,7 +149,7 @@ by considering the effects of the particle collision.
    }
   \label{fig:d2q9}
   \end{center}
-  \vspace{-3mm}
+  \vspace{-10mm}
 \end{figure}
 
 \section{Boundary handling}\label{boundary-handling-section}
@@ -213,9 +213,14 @@ either of the followings~\cite{zou1997pressure, khajepor2019study}:
 \begin{enumerate}
   \item Take the average density $\bar{\rho}$ of the simulated field
   \item Extrapolate $\rho_w$ using 
-  the particle probability density function in the physical domain
+  the particle probability density function in the physical domain by Eq~(19) in \cite{zou1997pressure}
 \end{enumerate}
-For simplicity, we {\bf take the first solution}.
+Although we get {\bf similar velocity fields in lid-driven cavity by both solutions},
+the extrapolation is highly unstable with respect to
+the wall velocity $U_w (> 0.3)$ compared to the first solution for this paper.
+For this reason, we {\bf take the first solution}.
+Note that we can activate the usage of the extrapolation by
+{\tt --extrapolation True} from the command line as well.
 
 \subsection{Periodic boundary conditions (PBC)}
 In this section, we assume that we have
