@@ -217,8 +217,8 @@ either of the followings~\cite{zou1997pressure, khajepor2019study}:
 \end{enumerate}
 Although we get {\bf similar velocity fields in lid-driven cavity by both solutions},
 the extrapolation is highly unstable with respect to
-the wall velocity $U_w (> 0.3)$ compared to the first solution for this paper.
-For this reason, we {\bf take the first solution}.
+the wall velocity $U_w (> 0.3)$ compared to the first solution.
+For this reason, we {\bf take the first solution} for this paper.
 Note that we can activate the usage of the extrapolation by
 {\tt --extrapolation True} from the command line as well.
 
@@ -255,7 +255,7 @@ the inlet and the outlet are computed as follows~\cite{succi2018lattice}:
 \end{aligned}
 \label{discretized-pbc-pressure}
 \end{equation}
-where $x = -\dx$ and $x = X\dx$ correspond to $x = (X - 1)\dx$ and $x = 0$
-in this setting.
+where $x = -\dx$ and $x = X\dx$ correspond to $x = (X - 1)\dx$ and $x = 0$ in this setting,
+respectively.
 Note that since the pressure PBC computes the prestreaming $f^\star$,
 {\bf it must be performed before the streaming operation} unlike the bounce-back.
