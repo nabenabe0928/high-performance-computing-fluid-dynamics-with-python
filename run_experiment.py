@@ -46,6 +46,8 @@ def run() -> None:
     parser.add_argument('-I', '--indensity', type=float, help='The density factor at the inlet.')
     parser.add_argument('-O', '--outdensity', type=float, help='The density factor at the outlet.')
     parser.add_argument('-W', '--wall_vel', type=float, help='The velocity of the wall along the x-axis.')
+    parser.add_argument('--extrapolation', type=str, choices=['True', 'False'], default='False',
+                        help='Whether using extrapolation for the wall density.')
     parser.add_argument('--eps', type=float, help='The amplitude of swinging in sinusoidal.')
     parser.add_argument('--rho', type=float, help='The offset of the density in sinusoidal..')
     parser.add_argument('--mode', type=str, choices=['d', 'v'], help='Either sinusoidal velocity or density.')
@@ -63,6 +65,7 @@ def run() -> None:
         lattice_grid_shape=(args.X, args.Y),
         omega=args.omega if args.omega is not None else viscosity2omega(args.visc),
         scaling_test=eval(args.scaling),
+        extrapolation=args.extrapolation,
         save=eval(args.save)
     )
 
