@@ -64,6 +64,7 @@ class ExperimentVariables(AttrDict):
     omega: float
     scaling_test: bool
     save: bool
+    freq: int
     extrapolation: bool
     epsilon: Optional[float]
     rho0: Optional[float]
@@ -99,6 +100,7 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
     lattice_grid_shape = experiment_vars.lattice_grid_shape
     mode = experiment_vars.mode
     save = experiment_vars.save
+    freq = experiment_vars.freq
 
     if mode == 'density':
         eps, rho0 = experiment_vars.epsilon, experiment_vars.rho0
@@ -123,7 +125,6 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
     subj = f'sinusoidal_{mode}'
 
     quantities = []
-    freq = 150
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and visualize and (t == 0 or (t + 1) % freq == 0):
@@ -190,6 +191,7 @@ def sinusoidal_viscosity(experiment_vars: ExperimentVariables) -> None:
 
 def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> None:
     save = experiment_vars.save
+    freq = experiment_vars.freq
 
     # Initialization
     velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
@@ -207,8 +209,6 @@ def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> Non
         extrapolation=extrapolation
     )
 
-    freq = 3000
-
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and (t == 0 or (t + 1) % freq == 0):
             make_directories_to_path('log/couette_flow/npy/')
@@ -223,6 +223,7 @@ def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> Non
 
 def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> None:
     save = experiment_vars.save
+    freq = experiment_vars.freq
 
     # Initialization
     velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
@@ -240,8 +241,6 @@ def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> 
         field=field,
         boundary_locations=[DirectionIndicators.TOP, DirectionIndicators.BOTTOM]
     )
-
-    freq = 3000
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and (t == 0 or (t + 1) % freq == 0):
@@ -263,6 +262,7 @@ def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> 
 
 def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
     save = experiment_vars.save
+    freq = experiment_vars.freq
 
     # Initialization
     velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
@@ -271,7 +271,7 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
     visc = omega2viscosity(experiment_vars.omega)
 
     assert experiment_vars.wall_vel is not None
-    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}x{Y}'
+    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}x{Y}_serial'
     if extrapolation:
         dir_name += '_extrapolation'
 
@@ -294,8 +294,6 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
         ]
     )
 
-    freq = 5000
-
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and (t == 0 or (t + 1) % freq == 0):
             path = f'log/{dir_name}/npy/'
@@ -313,6 +311,7 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
 
 def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
     save = experiment_vars.save
+    freq = experiment_vars.freq
 
     # Initialization
     scaling = experiment_vars.scaling_test
@@ -323,7 +322,7 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
     visc = omega2viscosity(experiment_vars.omega)
 
     assert experiment_vars.wall_vel is not None
-    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}x{Y}'
+    dir_name = f'sliding_lid_W{experiment_vars.wall_vel[0]:.2f}_visc{visc:.2f}_size{X}x{Y}_parallel'
     if extrapolation:
         dir_name += '_extrapolation'
 
@@ -349,8 +348,6 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
             field,
             boundary_locations=rigid_boundary_locations
         )
-
-    freq = 5000
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and not scaling and (t + 1) % freq == 0:

@@ -53,12 +53,18 @@ $ pip install -r requirements.txt
 # The experiments except the scaling test
 $ ./run_scripts/run_local.sh
 
+# The result of Table 4.1
+$ ./run_scripts/compare_parallel_vs_serial.sh
+
 ### Run on BWUniCluster ###
 # The scaling test (computations that require only 1 node)
 $ ./run_scripts/run_on_cluster_manually.sh
 
 # The scaling test (computations that require more than 1 node)
 $ ./run_scripts/submit_scaling_test.sh
+
+# Plot the scaling test figure
+$ ./run_scripts/visualize_scaling_test.sh
 ```
 
 Note that `./run_scripts/run_local.sh` includes the sliding lid simulation with the lattice shape of `300 x 300`

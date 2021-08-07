@@ -303,7 +303,7 @@ def visualize_proc_vs_MLUPS(save: bool = False, format: str = 'pdf') -> None:
     plt.figure(figsize=(15, 5))
 
     for size, col in zip([100, 300, 1000], ['blue', 'red', 'black']):
-        dir_name = "log/sliding_lid_W0.10_visc0.03_size{0}x{0}/".format(size)
+        dir_name = "log/sliding_lid_W0.10_visc0.03_size{0}x{0}_parallel/".format(size)
         file_name = 'MLUPS_vs_proc.csv'
 
         file_path = f"{dir_name}{file_name}"
@@ -313,6 +313,8 @@ def visualize_proc_vs_MLUPS(save: bool = False, format: str = 'pdf') -> None:
             procs = np.array([int(row[0]) for row in reader])
             mlups = np.array([float(row[1]) / 1e6 for row in reader])
 
+        order = np.argsort(procs)
+        procs, mlups = procs[order], mlups[order]
         plt.plot(procs, mlups, marker='x', color=col, label='$X \\times Y = {0} \\times {0}$'.format(size))
 
     plt.xlabel('# of processes', fontsize=28)
