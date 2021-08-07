@@ -1,0 +1,1 @@
+python -m src.utils.visualize_scaling_test

@@ -1,4 +1,5 @@
 from typing import Any
+import numpy as np
 import os
 
 
@@ -91,3 +92,35 @@ def omega2viscosity(omega: float) -> float:
 
 def viscosity2omega(viscosity: float) -> float:
     return 1. / (3. * viscosity + 0.5)
+
+
+def compare_serial_vs_parallel(wall_vel: float, viscosity: float, X: int, Y: int, T: int) -> None:
+    dir_parallel = 'log/sliding_lid_W{:.2f}_visc{:.2f}_size{}x{}_parallel/npy/'.format(
+        wall_vel, viscosity, X, Y
+    )
+    dir_serial = 'log/sliding_lid_W{:.2f}_visc{:.2f}_size{}x{}_serial/npy/'.format(
+        wall_vel, viscosity, X, Y
+    )
+    file_suffix = '{:0>6}.npy'.format(T)
+
+    vs = np.array([
+        np.load(f'{dir_serial}v_x{file_suffix}'),
+        np.load(f'{dir_serial}v_y{file_suffix}')
+    ])
+    vp = np.array([
+        np.load(f'{dir_parallel}v_x{file_suffix}'),
+        np.load(f'{dir_parallel}v_y{file_suffix}')
+    ])
+
+    dif = np.abs(vp - vs)
+    print('The results of serial')
+    print(f'Max: {vs.max():.5f}, Min: {vs.min():.5f}, Abs. sum: {np.abs(vs).sum():.5f}')
+    print('The results of parallel')
+    print(f'Max: {vp.max():.5f}, Min: {vp.min():.5f}, Abs. sum: {np.abs(vp).sum():.5f}')
+    print('The results of Absolute sum')
+    print(f'Max: {dif.max():.5f}, Min: {dif.min():.5f}, Abs. sum: {dif.sum():.5f}')
+
+    if dif.sum() < 1e-5:
+        print('Serial run and parallel run had the same result.')
+    else:
+        print('Serial run and parallel run did not have the same result.')

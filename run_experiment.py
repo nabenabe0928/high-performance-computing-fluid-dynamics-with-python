@@ -20,6 +20,7 @@ class ExperimentVariables(AttrDict):
     omega: float
     scaling_test: bool
     save: bool
+    freq: int
     in_density_factor: Optional[float]
     out_density_factor: Optional[float]
     wall_vel: Optional[np.ndarray]
@@ -39,6 +40,7 @@ def run() -> None:
     parser.add_argument('-E', '--experiment', type=str, choices=name2func.keys(), required=True,
                         help=f'The experiment name. {name2func}.')
     parser.add_argument('-T', '--total_time_steps', type=int, required=True, help='The total time steps.')
+    parser.add_argument('--freq', type=int, default=int(1e8), help='The frequency of saving data.')
     parser.add_argument('-X', type=int, required=True, help='The lattice size in the x direction.')
     parser.add_argument('-Y', type=int, required=True, help='The lattice size in the y direction.')
     parser.add_argument('--omega', type=float, help='The relaxation factor.')
@@ -65,8 +67,9 @@ def run() -> None:
         lattice_grid_shape=(args.X, args.Y),
         omega=args.omega if args.omega is not None else viscosity2omega(args.visc),
         scaling_test=eval(args.scaling),
-        extrapolation=args.extrapolation,
-        save=eval(args.save)
+        extrapolation=eval(args.extrapolation),
+        save=eval(args.save),
+        freq=args.freq
     )
 
     if args.indensity is not None and args.outdensity is not None:
