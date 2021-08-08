@@ -77,6 +77,11 @@ def Sendrecv(rank_grid: MPI.Cartcomm, sendbuf: Any, dest: int, sendtag: int,
 class ChunkedGridManager():
     def __init__(self, X: int, Y: int):
         self._size = MPI.COMM_WORLD.Get_size()
+
+        if self.size > X * Y:
+            raise ValueError('The number of processes (mpirun -n xxx) must be smaller than the grid size '
+                             'X*Y={}, but got {}.'.format(X * Y, self.size))
+
         self._rank = MPI.COMM_WORLD.Get_rank()
         self._comm = MPI.COMM_WORLD
         self._rank_grid_size = self._compute_rank_grid_size(X, Y)
@@ -213,6 +218,10 @@ class ChunkedGridManager():
         for i in range(2, int(np.sqrt(self.size)) + 1):
             if self.size % i == 0:
                 lower, upper = i, self.size // i
+
+        if lower > min(X_global, Y_global) or upper > max(X_global, Y_global):
+            raise ValueError('The number of processes (mpirun -n xxx) must be allocatable to the grid, but '
+                             '-n {}={}*{} is not allocatable to ({},{})'.format(self.size, lower, upper, X_global, Y_global))
 
         return (lower, upper) if X_global <= Y_global else (upper, lower)
 
