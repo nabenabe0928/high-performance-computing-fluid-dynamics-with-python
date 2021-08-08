@@ -1,9 +1,22 @@
+#############################################
+# Those parameters do not change the result #
+#############################################
+# Wall velocity
 vel=0.1
+# Viscosity
 visc=0.03
+# The total time step of the simulation
 T=100
-X=30
-Y=30
-P=9
+
+#############################
+# Domain related parameters #
+#############################
+# The lattice size in the x axis
+X=41
+# The lattice size in the y axis
+Y=2
+# The number of processes to compare
+P=4
 
 python -m run_experiment -E ss -T $T --freq $T -X $X -Y $Y --visc $visc -W $vel
 mpirun -n $P python -m run_experiment -E sm -T $T --freq $T -X $X -Y $Y --visc $visc -W $vel

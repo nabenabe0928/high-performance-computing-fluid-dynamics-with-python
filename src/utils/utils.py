@@ -3,6 +3,20 @@ import numpy as np
 import os
 
 
+class pycolor:
+    RED = '\033[31m'
+    GREEN = '\033[32m'
+    END = '\033[0m'
+    
+    @classmethod
+    def print_(cls, txt: str, color='red') -> None:
+        if not color in ['red', 'green']:
+            raise ValueError('color must be either `red` or `green`, but got {}'.format(color))
+
+        col = cls.RED if color == 'red' else cls.GREEN
+        print(f'{col}{txt}{cls.END}')
+
+
 _prohibited = ['clear', 'copy', 'fromkeys', 'get', 'items', 'keys',
                'pop', 'popitem', 'setdefault', 'update', 'values']
 
@@ -121,6 +135,6 @@ def compare_serial_vs_parallel(wall_vel: float, viscosity: float, X: int, Y: int
     print(f'Max: {dif.max():.5f}, Min: {dif.min():.5f}, Abs. sum: {dif.sum():.5f}')
 
     if dif.sum() < 1e-5:
-        print('Serial run and parallel run had the same result.')
+        pycolor.print_('[SUCCESS] Serial run and parallel run had the same result.', color='green')
     else:
-        print('Serial run and parallel run did not have the same result.')
+        pycolor.print_('[FAIL] Serial run and parallel run did not have the same result.', color='red')

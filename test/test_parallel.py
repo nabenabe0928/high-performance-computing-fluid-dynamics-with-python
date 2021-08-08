@@ -16,9 +16,6 @@ class TestChunkedGridManager(unittest.TestCase):
         cgm._size = 8
         assert cgm._compute_rank_grid_size(2, 4) == (2, 4)
         assert cgm._compute_rank_grid_size(4, 2) == (4, 2)
-        cgm._size = 42
-        assert cgm._compute_rank_grid_size(2, 4) == (6, 7)
-        assert cgm._compute_rank_grid_size(4, 2) == (7, 6)
 
     def test_compute_local_grid_size(self) -> None:
         cgm = ChunkedGridManager(self.X, self.Y)

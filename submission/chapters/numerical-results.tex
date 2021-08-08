@@ -356,6 +356,8 @@ shows the validation of the parallel implementation.
 Since the summation of the absolute error of the velocity over the whole domain
 is $0.0$, it is obvious that
 {\bf the parallel implementation behaves identically to the serial implementation}.
+The test code for an arbitrary setting is available at {\tt run\_scripts/compare\_parallel\_vs\_serial.sh}
+in the repository.
 
 \begin{figure}[t]
   \vspace{-7mm}
@@ -511,9 +513,9 @@ On the other hand, as the number of processes
 becomes larger, the simulation with a larger domain exhibits
 higher efficiency.
 Ideally, the MLUPS should grow linearly with respect to the number of processes.
-However, it does not happen because of the latency of the communication
+However, it does not happen due to the latency of the communication
 and the waiting for the synchronization as described in Amdahl's law~\cite{amdahl1967validity}.
-It explains why the larger domain leads to more scalability with respect to
+It explains why larger domains lead to more scalability with respect to
 the number of processes.
 
 

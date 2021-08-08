@@ -83,6 +83,7 @@ and you might want to avoid these computations.
 -T (int): Total time steps in the experiments
 -X (int): The lattice grid size in the x-direction
 -Y (int): The lattice grid size in the y-direction
+--freq (int): The frequency of saving data
 --omega (float): The relaxation factor
 --visc (float): The viscosity of fluid (--omega and --visc cannot co-exist)
 -I (float): The density factor at the inlet
