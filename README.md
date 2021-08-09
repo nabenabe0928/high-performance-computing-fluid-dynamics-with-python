@@ -8,7 +8,7 @@ This repository is created for the final submission of
 the course `high performance computing fluid dynamics with python`
 at the University of Freiburg 2021 Summer semester.
 
-The following figures are the visualization of the velocity field of sliding lid at every 4000 time steps from 1000 to 45000 time steps.
+The following figures are the visualization of the velocity field of sliding lid at every 6000 time steps from 10000 to 100000 time steps.
 <table>
     <tr>
         <td><img src="media/vel_flow010000.png" alt=""></td>
