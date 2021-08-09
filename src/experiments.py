@@ -1,26 +1,3 @@
-"""
-# What I have to put on the final reports
-## Milestone 3
-@ 1. The evolution of the density and the velocity profiles over time
-x 2. The measured viscosity v.s. the parameter omega
-
-## Milestone 4 (Couette Flow)
-@ 1. The evolution of the velocity profile over time
-
-## Milestone 5 (Poiseuille Flow)
-@ 1. The evolution of the velocity profile over time
-@ 2. The comparison between the analytical solutions and the results
-
-## Milestone 6 (The sliding lid)
-@ 1. Observe the results with a fixed box size and Reynolds number 1000.
-
-## Milestone 7 (MPI)
-@ 1. The comparison between Million Lattice Updates Per Second (MLUPS) v.s. runtime
-@ 2. The comparison of the scaling between different lattice size
-
-NOTE: one lattice == one point
-"""
-
 import csv
 import numpy as np
 import time
@@ -54,6 +31,9 @@ from src.utils.visualization import (
     visualize_velocity_plot,
     visualize_velocity_field
 )
+
+
+plt.rcParams['mathtext.fontset'] = 'stix' # The setting of math font
 
 
 class ExperimentVariables(AttrDict):
@@ -181,8 +161,8 @@ def sinusoidal_viscosity(experiment_vars: ExperimentVariables) -> None:
     plt.plot(omegas, visc_sim, label="Simulated result", color='blue')
     plt.scatter(omegas, visc_truth, marker='x', s=100, color='red')
     plt.scatter(omegas, visc_sim, marker='+', s=100, color='blue')
-    plt.xlabel('$\\omega$')
-    plt.ylabel('viscosity $\\nu$ (Log scale)')
+    plt.xlabel('Relaxation term $\omega$')
+    plt.ylabel('viscosity $\nu$ (Log scale)')
     plt.yscale('log')
     plt.grid(which='both', color='black', linestyle='-')
     plt.legend(loc='lower left')
