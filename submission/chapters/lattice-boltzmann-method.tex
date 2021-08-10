@@ -43,7 +43,7 @@ The moments updates are performed via~\cite{caroli1984non}:
 \begin{equation}
   \begin{aligned}
     \rho(\xv, t) = \int f(\xv, \vv, t) d\vv,~
-    \uv(\xv, t) = \frac{1}{\rho(\xv, t)} \int \vv f(\xv, \vv, t)  d\vv 
+    \uv(\xv, t) = \frac{1}{\rho(\xv, t)} \int \vv f(\xv, \vv, t)  d\vv. 
   \end{aligned}
   \label{analytical-update}
 \end{equation}
@@ -76,7 +76,7 @@ of $\cv_i$ that is defined by:
   \cv = \begin{bmatrix}
     0 & 1 & 0 & -1 & 0 & 1 & -1 & -1 & 1 \\
     0 & 0 & 1 & 0 & -1 & 1 & 1 & -1 & -1 \\
-  \end{bmatrix}^\top
+  \end{bmatrix}^\top.
 \end{aligned}
 \label{d2q9-velocity}
 \end{equation}
@@ -93,7 +93,7 @@ Then Eq~(\ref{analytical-update}) becomes the followings:
   \begin{aligned}
     \rho(\xv, t) = \sum_i f_i(\xv, t),~
     \uv(\xv, t) = 
-    \frac{1}{\rho(\xv, t)} \sum_i \cv_i f_i(\xv) \\
+    \frac{1}{\rho(\xv, t)} \sum_i \cv_i f_i(\xv). \\
   \end{aligned}
   \label{discretized-momentum}
 \end{equation}
@@ -190,7 +190,7 @@ slip condition at the boundary.
 The equation at the boundary is computed as~\cite{succi2018lattice}:
 \begin{equation}
 \begin{aligned}
-  f_i(\xv_b, t + \dt) = f_{i^\star}^\star(\xv_b, t)
+  f_i(\xv_b, t + \dt) = f_{i^\star}^\star(\xv_b, t).
 \end{aligned}
 \label{discretized-rigid-wall}
 \end{equation}
@@ -231,7 +231,7 @@ The most basic PBC assumes that
 the flow from outlet comes in from inlet as follows~\cite{succi2018lattice}: 
 \begin{equation}
 \begin{aligned}
-  f(0, y, t) = f((X - 1)\dx, y, t)
+  f(0, y, t) = f((X - 1)\dx, y, t).
 \end{aligned}
 \end{equation}
 This condition is implicitly implemented during the streaming operation.
@@ -249,7 +249,7 @@ the inlet and the outlet are computed as follows~\cite{succi2018lattice}:
 \begin{aligned}
   f_i^\star(-\dx, y, t) &=
   f_i^{\rm eq}(\rho_{\rm in}, \uv((X - 1)\dx, y, t))
-  + (f_i^\star((X - 1)\dx, y, t) - f_i^{\rm eq}((X - 1)\dx, y, t))\\
+  + (f_i^\star((X - 1)\dx, y, t) - f_i^{\rm eq}((X - 1)\dx, y, t)), \\
   f_i^\star(X\dx, y, t) &=
   f_i^{\rm eq}(\rho_{\rm out}, \uv(0, y, t))
   + (f_i^\star(0, y, t) - f_i^{\rm eq}(0, y, t))\\

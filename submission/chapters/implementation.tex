@@ -41,12 +41,11 @@ This function rolls the array in the following manner:
 \begin{aligned}
   \text{np.roll}(f[x][y][i], \text{shift}=\cv_i, \text{axis}=(0, 1)) =
   f[nx][ny][i] \\
-  \text{where }
-  nx = (x + \cv_i[0]) \% X,
-  ny = (y + \cv_i[1]) \% Y
 \end{aligned}
 \end{equation}
-where $i$ is the direction index in D2Q9 and $\cv_i$ is the vector
+where
+$nx = (x + \cv_i[0]) \% X, ny = (y + \cv_i[1]) \% Y$,
+$i$ is the direction index in D2Q9, and $\cv_i$ is the vector
 that specifies the $i$-th direction in D2Q9.
 In Algorithm~\ref{alg:boundary-conditions-algorithm},
 we use {\tt in\_indices} and {\tt out\_indices}

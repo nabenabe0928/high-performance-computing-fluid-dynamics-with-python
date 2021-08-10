@@ -32,7 +32,7 @@ as the initial condition:
       \epsilon \sin \frac{2\pi y}{Y} \\
         0 \\
       \end{bmatrix}
-  \end{aligned}
+  \end{aligned}.
   \label{shear-vel-init}
 \end{equation}
 Then the analytical solution for the time evolution of 
@@ -43,7 +43,7 @@ the velocity is calculated as follows~\cite{fei2018three}:
     \epsilon \exp\biggl(
       -\nu \biggl(
         \frac{2\pi}{Y}
-      \biggr)^2 t\biggr) \sin \frac{2\pi y}{Y}
+      \biggr)^2 t\biggr) \sin \frac{2\pi y}{Y}.
   \end{aligned}
   \label{sinusoidal-vel-analytical-solution}
 \end{equation}
@@ -59,10 +59,10 @@ As seen in the figure, the simulated results and the analytical solutions
 rigid wall and moments updates.
 Figure~\ref{fig:sinusoidal-density} shows the density distribution
 over time.
-This simulation uses the sinusoidal density in the $x$-direction:
+This simulation uses the sinusoidal density in the $x$-direction
 \begin{equation}
 \begin{aligned}
-  \rho(\xv, 0) = \rho_0 + \epsilon \sin \frac{2 \pi x}{X}
+  \rho(\xv, 0) = \rho_0 + \epsilon \sin \frac{2 \pi x}{X}.
 \end{aligned}
 \label{sinusoidal-density-init}
 \end{equation}
@@ -262,15 +262,16 @@ One is fixed and the other moves horizontally with the velocity of $U_w$.
 The flow is caused by the viscous drag force acting on the fluid.
 Since the Couette flow also has an analytical solution,
 we can validate the implementation of the moving wall.
-The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by~\cite{nagy2019graphical}:
+The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by
 \begin{equation}
 \begin{aligned}
   u_x(\cdot, y) =\frac{Y - y}{Y}U_w
 \end{aligned}
 \end{equation}
-where $Y$ is the distance between the two walls
+~\cite{nagy2019graphical} where $Y$ is the distance between the two walls
 and $u_x(\cdot, y)$ is the horizontal velocity of the flow
-at the location of $y$ and at the location of an arbitrary $x$. 
+at the location of $y$ and at the location of
+an arbitrary $x$. 
 In the experiment, we apply the bounce-back boundary condition
 at the moving wall and the rigid wall
 and the PBC at the inlet and outlet.
@@ -301,12 +302,13 @@ The flow is caused by a constant pressure difference $\od{p}{x}$
 in the horizontal direction of the two walls.
 The Poiseuille flow also has the analytical solution
 and we can validate the implementation of the pressure PBC.
-The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by~\cite{mendiburu2009analytical}:
+The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by
 \begin{equation}
 \begin{aligned}
   u_x(\cdot, y) = - \frac{1}{2\rho \nu} \od{p}{x} y (Y - y)
 \end{aligned}
 \end{equation}
+~\cite{mendiburu2009analytical}.
 In the experiment, we apply the bounce-back boundary condition
 at the moving wall and the rigid wall
 and the pressure PBC at the inlet and outlet.
