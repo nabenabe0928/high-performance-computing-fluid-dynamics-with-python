@@ -116,12 +116,11 @@ def visualize_density_countour(subject: str, save: bool = False, format: str = '
         show_or_save(path=f'log/{subject}/fig/density{t:0>6}.{format}' if save else None)
 
 
-def visualize_density_plot(subject: str, save: bool = False, format: str = 'pdf', start: int = 0,
-                           freq: int = 100, end: int = 100001, cmap: Optional[str] = None,
-                           bounds: np.ndarray = np.array([0., 1.])) -> None:
+def visualize_density_plot(subject: str, profile: np.ndarray, save: bool = False, format: str = 'pdf',
+                           start: int = 0, freq: int = 100, end: int = 100001,
+                           cmap: Optional[str] = None, bounds: np.ndarray = np.array([0., 1.])) -> None:
 
     buf = (bounds[1] - bounds[0]) * 0.1
-    cnt = 0
     for t in range(start, end, freq):
         density_file_name = f'log/{subject}/npy/density{t:0>6}.npy'
         density = np.load(density_file_name)
@@ -130,19 +129,32 @@ def visualize_density_plot(subject: str, save: bool = False, format: str = 'pdf'
         plt.close('all')
         plt.figure(figsize=(5, 3))
         plt.ylabel(f'Density $\\rho(x, y={Y//2})$')
-
-        if cnt >= 8:
-            plt.xlabel(f'$x$ position')
+        plt.xlabel(f'$x$ position')
 
         plt.xlim(0, X)
         plt.ylim(bounds[0] - buf, bounds[1] + buf)
-        plt.plot(np.arange(X), density[:, Y // 2])
+        plt.plot(np.arange(X), density[:, Y // 2], label='Simulated Result')
+
+        if t == 0:
+            plt.legend()
+
         show_or_save(path=f'log/{subject}/fig/density{t:0>6}.{format}' if save else None)
-        cnt += 1
+
+    plt.close('all')
+    plt.figure(figsize=(20, 3))
+    T = np.arange(profile.size)
+    plt.plot(T, profile, label='Simulated Result')
+    plt.xlabel('Time step $t$')
+    plt.ylabel('Density $\\rho_y(x={})$'.format(X//4))
+    dy = profile.max() - profile.min()
+    plt.ylim(profile.min() - dy * 0.1, profile.max() + dy * 0.1)
+    plt.grid()
+    plt.legend()
+    show_or_save(path=f'log/{subject}/fig/density_time_evolution.{format}' if save else None)
 
 
-def visualize_velocity_plot(subject: str, epsilon: float, visc: float, save: bool = False,
-                            format: str = 'pdf', start: int = 0, freq: int = 100,
+def visualize_velocity_plot(subject: str, profile: np.ndarray, epsilon: float, visc: float,
+                            save: bool = False, format: str = 'pdf', start: int = 0, freq: int = 100,
                             end: int = 100001, cmap: Optional[str] = None,
                             bounds: Optional[np.ndarray] = None) -> None:
 
@@ -153,7 +165,6 @@ def visualize_velocity_plot(subject: str, epsilon: float, visc: float, save: boo
         ly = 2.0 * np.pi / Y
         return epsilon * np.exp(- visc * ly ** 2 * t) * np.sin(ly * y)
 
-    cnt = 0
     for t in range(start, end, freq):
         v_abs_file_name = f'log/{subject}/npy/v_abs{t:0>6}.npy'
         v = np.load(v_abs_file_name)
@@ -170,11 +181,20 @@ def visualize_velocity_plot(subject: str, epsilon: float, visc: float, save: boo
             plt.legend()
 
         plt.ylabel('Velocity $u(x={}, y)$'.format(X//2))
-        if cnt >= 8:
-            plt.xlabel('$y$ position')
+        plt.xlabel('$y$ position')
 
         show_or_save(path=f'log/{subject}/fig/vel{t:0>6}.{format}' if save else None)
-        cnt += 1
+
+    plt.close('all')
+    plt.figure(figsize=(20, 3))
+    T = np.arange(profile.size)
+    plt.plot(T, analytical_sol(T, Y//4, Y), color='blue', lw=4.5, label='Analytical Solution')
+    plt.plot(T, profile, color='red', label='Simulated Result')
+    plt.xlabel('Time step $t$')
+    plt.ylabel(f'Velocity $u_x(y={Y//4})$')
+    plt.grid()
+    plt.legend()
+    show_or_save(path=f'log/{subject}/fig/vel_time_evolution.{format}' if save else None)
 
 
 def visualize_velocity_field(subj: str, save: bool = False, format: str = 'pdf', start: int = 0,

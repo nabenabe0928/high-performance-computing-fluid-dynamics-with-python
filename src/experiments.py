@@ -104,27 +104,31 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
     total_time_steps = experiment_vars.total_time_steps
     subj = f'sinusoidal_{mode}'
 
-    quantities = []
+    quantities, profile = [], []
+    X, Y = density.shape
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and visualize and (t == 0 or (t + 1) % freq == 0):
             make_directories_to_path(f'log/{subj}/npy/')
             np.save(f'log/{subj}/npy/density{t + 1 if t else 0:0>6}.npy', field.density)
             np.save(f'log/{subj}/npy/v_abs{t + 1 if t else 0:0>6}.npy', field.velocity[..., 0])
-        elif save:
-            if mode == 'velocity':
-                quantities.append(np.abs(field.velocity[..., 0]).max())
-            else:
-                quantities.append(np.abs(field.density - rho0).max())
+
+        if mode == 'velocity':
+            quantities.append(np.abs(field.velocity[..., 0]).max())
+            profile.append(field.velocity[0, X//4, 0].max())
+        else:
+            quantities.append(np.abs(field.density - rho0).max())
+            profile.append(field.density[X//4, 0])
 
     field = get_field(experiment_vars)
     # run LBM
     field(total_time_steps, proc=proc)
     if save and visualize:
         visc = 1. / 3. * (1. / experiment_vars.omega - 0.5)
-        visualize_velocity_plot(subj, epsilon=eps, visc=visc, freq=freq, save=True,
-                                end=total_time_steps, bounds=v_bounds)
-        visualize_density_plot(subj, save=True, freq=freq, end=total_time_steps, bounds=d_bounds)
+        visualize_velocity_plot(subj, profile=np.array(profile), epsilon=eps, visc=visc,
+                                freq=freq, save=True, end=total_time_steps, bounds=v_bounds)
+        visualize_density_plot(subj, profile=np.array(profile), save=True, freq=freq,
+                               end=total_time_steps, bounds=d_bounds)
         return None
     elif save:
         q_array = np.array(quantities)
