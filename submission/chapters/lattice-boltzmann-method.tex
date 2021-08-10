@@ -146,6 +146,7 @@ by considering the effects of the particle collision.
       (a) The discretization on the velocity space according to D2Q9.
       (b) The uniform two-dimensional grids for
       the discretization in the physical space.
+      This figure is cited from Figure~1 in \cite{pastewka2019hpc}.
    }
   \label{fig:d2q9}
   \end{center}
@@ -238,9 +239,9 @@ Another PBC handles
 the pressure variation $\Delta p$ between inlet and outlet.
 Since the density $\rho$ is computed as $\rho = \frac{p}{c_s^2}$
 where $p$ is the pressure and $c_s$ is the speed of sound,
-the density at the inlet $\rho_{\rm in}$ and
-that at the outlet $\rho_{\rm out}$ can be computed
-accordingly given the constant pressure $p_{\rm out}$
+the density at the inlet $\rho_{\rm in} = \frac{p_{\rm in}}{c_s^2}$ and
+that at the outlet $\rho_{\rm out} = \frac{p_{\rm in} + \Delta p}{c_s^2}$ can be computed
+accordingly given the constant pressure $p_{\rm in}$
 at the outlet.
 Then the prestreaming $f^\star$ at 
 the inlet and the outlet are computed as follows~\cite{succi2018lattice}:

@@ -1,26 +1,3 @@
-"""
-# What I have to put on the final reports
-## Milestone 3
-@ 1. The evolution of the density and the velocity profiles over time
-x 2. The measured viscosity v.s. the parameter omega
-
-## Milestone 4 (Couette Flow)
-@ 1. The evolution of the velocity profile over time
-
-## Milestone 5 (Poiseuille Flow)
-@ 1. The evolution of the velocity profile over time
-@ 2. The comparison between the analytical solutions and the results
-
-## Milestone 6 (The sliding lid)
-@ 1. Observe the results with a fixed box size and Reynolds number 1000.
-
-## Milestone 7 (MPI)
-@ 1. The comparison between Million Lattice Updates Per Second (MLUPS) v.s. runtime
-@ 2. The comparison of the scaling between different lattice size
-
-NOTE: one lattice == one point
-"""
-
 import csv
 import numpy as np
 import time
@@ -54,6 +31,9 @@ from src.utils.visualization import (
     visualize_velocity_plot,
     visualize_velocity_field
 )
+
+
+plt.rcParams['mathtext.fontset'] = 'stix' # The setting of math font
 
 
 class ExperimentVariables(AttrDict):
@@ -124,27 +104,31 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
     total_time_steps = experiment_vars.total_time_steps
     subj = f'sinusoidal_{mode}'
 
-    quantities = []
+    quantities, profile = [], []
+    X, Y = density.shape
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and visualize and (t == 0 or (t + 1) % freq == 0):
             make_directories_to_path(f'log/{subj}/npy/')
             np.save(f'log/{subj}/npy/density{t + 1 if t else 0:0>6}.npy', field.density)
             np.save(f'log/{subj}/npy/v_abs{t + 1 if t else 0:0>6}.npy', field.velocity[..., 0])
-        elif save:
-            if mode == 'velocity':
-                quantities.append(np.abs(field.velocity[..., 0]).max())
-            else:
-                quantities.append(np.abs(field.density - rho0).max())
+
+        if mode == 'velocity':
+            quantities.append(np.abs(field.velocity[..., 0]).max())
+            profile.append(field.velocity[0, X//4, 0].max())
+        else:
+            quantities.append(np.abs(field.density - rho0).max())
+            profile.append(field.density[X//4, 0])
 
     field = get_field(experiment_vars)
     # run LBM
     field(total_time_steps, proc=proc)
     if save and visualize:
         visc = 1. / 3. * (1. / experiment_vars.omega - 0.5)
-        visualize_velocity_plot(subj, epsilon=eps, visc=visc, freq=freq, save=True,
-                                end=total_time_steps, bounds=v_bounds)
-        visualize_density_plot(subj, save=True, freq=freq, end=total_time_steps, bounds=d_bounds)
+        visualize_velocity_plot(subj, profile=np.array(profile), epsilon=eps, visc=visc,
+                                freq=freq, save=True, end=total_time_steps, bounds=v_bounds)
+        visualize_density_plot(subj, profile=np.array(profile), save=True, freq=freq,
+                               end=total_time_steps, bounds=d_bounds)
         return None
     elif save:
         q_array = np.array(quantities)
@@ -181,8 +165,8 @@ def sinusoidal_viscosity(experiment_vars: ExperimentVariables) -> None:
     plt.plot(omegas, visc_sim, label="Simulated result", color='blue')
     plt.scatter(omegas, visc_truth, marker='x', s=100, color='red')
     plt.scatter(omegas, visc_sim, marker='+', s=100, color='blue')
-    plt.xlabel('$\\omega$')
-    plt.ylabel('viscosity $\\nu$ (Log scale)')
+    plt.xlabel('Relaxation term $\omega$')
+    plt.ylabel('viscosity $\nu$ (Log scale)')
     plt.yscale('log')
     plt.grid(which='both', color='black', linestyle='-')
     plt.legend(loc='lower left')

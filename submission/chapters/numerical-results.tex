@@ -99,18 +99,22 @@ a swing of the maxima and the minima unlike the sinusoidal velocity.
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel001050.pdf}
     }\\
     \vspace{-3mm}
-    \subfloat[$t = 1200$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel001200.pdf}
+    \subfloat[Time evolution of velocity at $y = {\rm arg}\max_{y^\prime} u_x(y^\prime, t=0)$]{
+      \includegraphics[width=0.77\textwidth]{../log/sinusoidal_velocity/fig/vel_time_evolution.pdf}
     }
-    \subfloat[$t = 1350$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel001350.pdf}
-    }
-    \subfloat[$t = 1500$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel001500.pdf}
-    }
-    \subfloat[$t = 1650$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel001650.pdf}
-    }\\
+    % \vspace{-3mm}
+    % \subfloat[$t = 1200$]{
+    %   \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel001200.pdf}
+    % }
+    % \subfloat[$t = 1350$]{
+    %   \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel001350.pdf}
+    % }
+    % \subfloat[$t = 1500$]{
+    %   \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel001500.pdf}
+    % }
+    % \subfloat[$t = 1650$]{
+    %   \includegraphics[width=0.23\textwidth]{../log/sinusoidal_velocity/fig/vel001650.pdf}
+    % }\\
     \caption{
       The time evolution of the sinusoidal velocity
       (Eq~(\ref{shear-vel-init})) at
@@ -137,8 +141,8 @@ such a decay is represented as follows~\cite{palmer1994transverse, hess2002deter
   \end{aligned}
   \label{viscosity-analytical}
 \end{equation}
-where $Q(x, t) = \epsilon Q_x(x) Q_t(t)$
-and $Q(x, t)$ is one of the moment quantities.
+where $Q(\xv, t) = \epsilon Q_x(\xv) Q_t(t)$
+and $Q(\xv, t)$ is one of the moment quantities.
 Note that we assume that the assumptions for Eq~(\ref{sinusoidal-vel-analytical-solution}) hold
 and the case of the sinusoidal velocity is equivalent to Eq~(\ref{sinusoidal-vel-analytical-solution})~\cite{fei2018three}.
 We perform the experiments to validate the implementation via the viscosity estimated by Eq~(\ref{viscosity-analytical}) using
@@ -188,18 +192,22 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
       \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001050.pdf}
     }\\
     \vspace{-3mm}
-    \subfloat[$t = 1200$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001200.pdf}
+    \subfloat[Time evolution of density at $x = {\rm arg}\max_{x^\prime} \rho(x^\prime, t=0)$]{
+      \includegraphics[width=0.77\textwidth]{../log/sinusoidal_density/fig/density_time_evolution.pdf}
     }
-    \subfloat[$t = 1350$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001350.pdf}
-    }
-    \subfloat[$t = 1500$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001500.pdf}
-    }
-    \subfloat[$t = 1650$]{
-      \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001650.pdf}
-    }\\
+    % \vspace{-3mm}
+    % \subfloat[$t = 1200$]{
+    %   \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001200.pdf}
+    % }
+    % \subfloat[$t = 1350$]{
+    %   \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001350.pdf}
+    % }
+    % \subfloat[$t = 1500$]{
+    %   \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001500.pdf}
+    % }
+    % \subfloat[$t = 1650$]{
+    %   \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001650.pdf}
+    % }\\
     \caption{The time evolution of the sinusoidal density
     (Eq~(\ref{sinusoidal-density-init}))
       at $y = 25$ in the lattice grid size of $(50, 50)$.
@@ -257,12 +265,12 @@ we can validate the implementation of the moving wall.
 The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by~\cite{nagy2019graphical}:
 \begin{equation}
 \begin{aligned}
-  u_x(y) =\frac{Y - y}{Y}U_w
+  u_x(\cdot, y) =\frac{Y - y}{Y}U_w
 \end{aligned}
 \end{equation}
 where $Y$ is the distance between the two walls
-and $u_x(y)$ is the horizontal velocity of the flow
-at the location of $y$. 
+and $u_x(\cdot, y)$ is the horizontal velocity of the flow
+at the location of $y$ and at the location of an arbitrary $x$. 
 In the experiment, we apply the bounce-back boundary condition
 at the moving wall and the rigid wall
 and the PBC at the inlet and outlet.
@@ -296,7 +304,7 @@ and we can validate the implementation of the pressure PBC.
 The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by~\cite{mendiburu2009analytical}:
 \begin{equation}
 \begin{aligned}
-  u_x(y) = - \frac{1}{2\rho \nu} \od{p}{x} y (Y - y)
+  u_x(\cdot, y) = - \frac{1}{2\rho \nu} \od{p}{x} y (Y - y)
 \end{aligned}
 \end{equation}
 In the experiment, we apply the bounce-back boundary condition

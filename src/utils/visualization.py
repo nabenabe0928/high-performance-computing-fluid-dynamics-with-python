@@ -12,6 +12,9 @@ from src.utils.utils import make_directories_to_path
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
 
+plt.rcParams['mathtext.fontset'] = 'stix' # The setting of math font
+
+
 class PoiseuilleFlowHyperparams(NamedTuple):
     viscosity: float
     out_density_factor: float
@@ -113,9 +116,9 @@ def visualize_density_countour(subject: str, save: bool = False, format: str = '
         show_or_save(path=f'log/{subject}/fig/density{t:0>6}.{format}' if save else None)
 
 
-def visualize_density_plot(subject: str, save: bool = False, format: str = 'pdf', start: int = 0,
-                           freq: int = 100, end: int = 100001, cmap: Optional[str] = None,
-                           bounds: np.ndarray = np.array([0., 1.])) -> None:
+def visualize_density_plot(subject: str, profile: np.ndarray, save: bool = False, format: str = 'pdf',
+                           start: int = 0, freq: int = 100, end: int = 100001,
+                           cmap: Optional[str] = None, bounds: np.ndarray = np.array([0., 1.])) -> None:
 
     buf = (bounds[1] - bounds[0]) * 0.1
     for t in range(start, end, freq):
@@ -125,14 +128,33 @@ def visualize_density_plot(subject: str, save: bool = False, format: str = 'pdf'
 
         plt.close('all')
         plt.figure(figsize=(5, 3))
+        plt.ylabel(f'Density $\\rho(x, y={Y//2})$')
+        plt.xlabel(f'$x$ position')
+
         plt.xlim(0, X)
         plt.ylim(bounds[0] - buf, bounds[1] + buf)
-        plt.plot(np.arange(X), density[:, Y // 2])
+        plt.plot(np.arange(X), density[:, Y // 2], label='Simulated Result')
+
+        if t == 0:
+            plt.legend()
+
         show_or_save(path=f'log/{subject}/fig/density{t:0>6}.{format}' if save else None)
 
+    plt.close('all')
+    plt.figure(figsize=(20, 3))
+    T = np.arange(profile.size)
+    plt.plot(T, profile, label='Simulated Result')
+    plt.xlabel('Time step $t$')
+    plt.ylabel('Density $\\rho(x={}, y={})$'.format(X//4, Y//2))
+    dy = profile.max() - profile.min()
+    plt.ylim(profile.min() - dy * 0.1, profile.max() + dy * 0.1)
+    plt.grid()
+    plt.legend()
+    show_or_save(path=f'log/{subject}/fig/density_time_evolution.{format}' if save else None)
 
-def visualize_velocity_plot(subject: str, epsilon: float, visc: float, save: bool = False,
-                            format: str = 'pdf', start: int = 0, freq: int = 100,
+
+def visualize_velocity_plot(subject: str, profile: np.ndarray, epsilon: float, visc: float,
+                            save: bool = False, format: str = 'pdf', start: int = 0, freq: int = 100,
                             end: int = 100001, cmap: Optional[str] = None,
                             bounds: Optional[np.ndarray] = None) -> None:
 
@@ -157,7 +179,22 @@ def visualize_velocity_plot(subject: str, epsilon: float, visc: float, save: boo
         plt.plot(y, v[X // 2, :], color='red', label='Simulated Result')
         if t == 0:
             plt.legend()
+
+        plt.ylabel('Velocity $u_x(x={}, y)$'.format(X//2))
+        plt.xlabel('$y$ position')
+
         show_or_save(path=f'log/{subject}/fig/vel{t:0>6}.{format}' if save else None)
+
+    plt.close('all')
+    plt.figure(figsize=(20, 3))
+    T = np.arange(profile.size)
+    plt.plot(T, analytical_sol(T, Y//4, Y), color='blue', lw=4.5, label='Analytical Solution')
+    plt.plot(T, profile, color='red', label='Simulated Result')
+    plt.xlabel('Time step $t$')
+    plt.ylabel(f'Velocity $u_x(y={Y//4})$')
+    plt.grid()
+    plt.legend()
+    show_or_save(path=f'log/{subject}/fig/vel_time_evolution.{format}' if save else None)
 
 
 def visualize_velocity_field(subj: str, save: bool = False, format: str = 'pdf', start: int = 0,
@@ -176,6 +213,8 @@ def visualize_velocity_field(subj: str, save: bool = False, format: str = 'pdf',
         plt.close('all')
         plt.figure()
         plt.xlim(0, X)
+        plt.xlabel('$x$ position')
+        plt.ylabel('$y$ position')
         plt.ylim(0, Y)
         level = np.linalg.norm(np.dstack([vy, vx]), axis=-1).T
         plt.streamplot(x, y, vx.T, vy.T, color=level, cmap=cmap)
@@ -220,7 +259,9 @@ def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str
             plt.plot(vx[X // 2, :], np.arange(Y), label=f"$t = {t}$", linestyle=":", linewidth=2)
 
     if joint:
-        plt.rc('legend', fontsize=10)
+        plt.rc('legend', fontsize=12)
+        plt.xlabel(f'Velocity $u_x(x={X//2}, y)$')
+        plt.ylabel('$y$ position')
         plt.legend(loc='upper right')
         show_or_save(path=f'log/couette_flow/fig/couette_flow_joint.{format}' if save else None)
 
@@ -268,13 +309,15 @@ def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = Fa
     if joint:
         plt.xlim(0, analy_sol.max() * 1.1)
         plt.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', lw=4.5, label="Analytical velocity")
-        plt.rc('legend', fontsize=10)
+        plt.rc('legend', fontsize=12)
         idx = 0
         Y = np.arange(V[0].size)
         for t in range(start, end, freq):
             plt.plot(V[idx], Y, label=f"$t = {t}$", linestyle=":", linewidth=2)
             idx += 1
 
+        plt.xlabel(f'Velocity $u_x(x={X//2}, y)$')
+        plt.ylabel('$y$ position')
         plt.legend(loc='lower left')
         show_or_save(path=f'log/poiseuille_flow/fig/poiseuille_flow_joint.{format}' if save else None)
 
