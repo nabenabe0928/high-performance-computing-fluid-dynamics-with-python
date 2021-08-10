@@ -145,7 +145,7 @@ def visualize_density_plot(subject: str, profile: np.ndarray, save: bool = False
     T = np.arange(profile.size)
     plt.plot(T, profile, label='Simulated Result')
     plt.xlabel('Time step $t$')
-    plt.ylabel('Density $\\rho_y(x={})$'.format(X//4))
+    plt.ylabel('Density $\\rho(x={}, y={})$'.format(X//4, Y//2))
     dy = profile.max() - profile.min()
     plt.ylim(profile.min() - dy * 0.1, profile.max() + dy * 0.1)
     plt.grid()
@@ -180,7 +180,7 @@ def visualize_velocity_plot(subject: str, profile: np.ndarray, epsilon: float, v
         if t == 0:
             plt.legend()
 
-        plt.ylabel('Velocity $u(x={}, y)$'.format(X//2))
+        plt.ylabel('Velocity $u_x(x={}, y)$'.format(X//2))
         plt.xlabel('$y$ position')
 
         show_or_save(path=f'log/{subject}/fig/vel{t:0>6}.{format}' if save else None)
@@ -260,7 +260,7 @@ def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str
 
     if joint:
         plt.rc('legend', fontsize=12)
-        plt.xlabel(f'Velocity $u(x={X//2}, y)$')
+        plt.xlabel(f'Velocity $u_x(x={X//2}, y)$')
         plt.ylabel('$y$ position')
         plt.legend(loc='upper right')
         show_or_save(path=f'log/couette_flow/fig/couette_flow_joint.{format}' if save else None)
@@ -316,7 +316,7 @@ def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = Fa
             plt.plot(V[idx], Y, label=f"$t = {t}$", linestyle=":", linewidth=2)
             idx += 1
 
-        plt.xlabel(f'Velocity $u(x={X//2}, y)$')
+        plt.xlabel(f'Velocity $u_x(x={X//2}, y)$')
         plt.ylabel('$y$ position')
         plt.legend(loc='lower left')
         show_or_save(path=f'log/poiseuille_flow/fig/poiseuille_flow_joint.{format}' if save else None)
