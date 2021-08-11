@@ -394,8 +394,8 @@ class PeriodicBoundaryConditionsWithPressureVariation(BaseBoundary):
             self.boundary_locations,
             self.in_indices,
             self.out_indices,
-            self.in_density,
-            self.out_density
+            self.in_density[0],
+            self.out_density[0]
         )
 
         return repr

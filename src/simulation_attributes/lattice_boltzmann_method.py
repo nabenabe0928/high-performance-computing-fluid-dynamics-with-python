@@ -87,6 +87,17 @@ class LatticeBoltzmannMethod():
             np.zeros_like(self.pdf_pre[0, 0, ...])
         ]
 
+    def __repr__(self) -> str:
+        repr = 'LatticeBoltzmannMethod(\n'
+
+        if self.dir_name is not None:
+            repr += '\tLog directory: {}\n'.format(self.dir_name)
+
+        repr += '\tViscosity: {}\n'.format(self.viscosity)
+        repr += ')'
+
+        return repr
+
     def __call__(
         self,
         total_time_steps: int,
@@ -97,6 +108,9 @@ class LatticeBoltzmannMethod():
         if boundary_handling is not None:
             if boundary_handling.__class__.__name__ != 'SequentialBoundaryHandlings':
                 raise ValueError('boundary_handling must be SequentialBoundaryHandlings instance.')
+
+        if self.grid_manager is None or self.grid_manager.rank == 0:
+            print(self)
 
         print('{}{}'.format(
             '' if self.grid_manager is None else f'Rank {self.grid_manager.rank}\n',
