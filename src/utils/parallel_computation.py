@@ -221,7 +221,8 @@ class ChunkedGridManager():
 
         if lower > min(X_global, Y_global) or upper > max(X_global, Y_global):
             raise ValueError('The number of processes (mpirun -n xxx) must be allocatable to the grid, but '
-                             '-n {}={}*{} is not allocatable to ({},{})'.format(self.size, lower, upper, X_global, Y_global))
+                             '-n {}={}*{} is not allocatable to ({},{})'.format(
+                                 self.size, lower, upper, X_global, Y_global))
 
         return (lower, upper) if X_global <= Y_global else (upper, lower)
 

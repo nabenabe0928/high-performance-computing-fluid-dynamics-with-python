@@ -33,7 +33,7 @@ from src.utils.visualization import (
 )
 
 
-plt.rcParams['mathtext.fontset'] = 'stix' # The setting of math font
+plt.rcParams['mathtext.fontset'] = 'stix'  # The setting of math font
 
 
 class ExperimentVariables(AttrDict):
