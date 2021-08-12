@@ -39,8 +39,8 @@ class TestBoundaryHandling(unittest.TestCase):
         rigid_wall = RigidWall(field, boundary_locations=self.rigid_boundary_locations)
         moving_wall = MovingWall(field, boundary_locations=self.moving_boundary_locations, wall_vel=self.wall_vel)
         pbc = PeriodicBoundaryConditionsWithPressureVariation(field, boundary_locations=self.pbc_boundary_locations,
-                                                              in_density_factor=(1. + 3e-3) / 3.,
-                                                              out_density_factor=1. / 3.)
+                                                              density_in=1. + 3e-3,
+                                                              density_out=1)
 
         return field, rigid_wall, moving_wall, pbc
 

@@ -17,8 +17,8 @@ plt.rcParams['mathtext.fontset'] = 'stix' # The setting of math font
 
 class PoiseuilleFlowHyperparams(NamedTuple):
     viscosity: float
-    out_density_factor: float
-    in_density_factor: float
+    density_in: float
+    density_out: float
 
 
 def show_or_save(path: Optional[str] = None) -> None:
@@ -225,8 +225,10 @@ def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str
                            freq: int = 400, end: int = 100001, cmap: Optional[str] = None, joint: bool = True) -> None:
     """ we assume the wall slides to x-direction. """
     plt.figure(figsize=(5, 3))
+    t_last = 0
 
     for t in range(start, end, freq):
+        t_last = t
         vx_file_name = f'log/couette_flow/npy/v_x{t:0>6}.npy'
         vx = np.load(vx_file_name)
         X, Y = vx.shape
@@ -254,11 +256,33 @@ def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str
                 plt.plot(np.arange(vmax), np.zeros(vmax), label='Moving wall', color='red', linewidth=3.0)
                 plt.xlim(-0.01 * wall_vel[0], wall_vel[0])
                 plt.ylim(-0.5, Y)
-                plt.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', lw=4.5, label="Analytical velocity")
+                plt.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', lw=4.5, label="Analytical solution")
 
-            plt.plot(vx[X // 2, :], np.arange(Y), label=f"$t = {t}$", linestyle=":", linewidth=2)
+            plt.plot(vx[X // 2, :], np.arange(Y), linestyle=":", linewidth=2)
 
     if joint:
+        dx = analy_sol[0]
+        plt.xlim(-dx * 0.2, dx * 1.1)
+        plt.annotate(
+            s='$t = {}$'.format(t_last),
+            xy=[analy_sol[Y//4], Y//4],
+            xytext=[analy_sol[Y//3] + dx * 0.08, Y//3],
+            arrowprops=dict(
+                facecolor='red',
+                edgecolor='red',
+                arrowstyle = '->'
+            )
+        )
+        plt.annotate(
+            s='$t = 0$',
+            xy=[0, Y-Y//4],
+            xytext=[-dx*0.17, Y-Y//8],
+            arrowprops=dict(
+                facecolor='red',
+                edgecolor='red',
+                arrowstyle = '->'
+            )
+        )
         plt.rc('legend', fontsize=12)
         plt.xlabel(f'Velocity $u_x(x={X//2}, y)$')
         plt.ylabel('$y$ position')
@@ -272,18 +296,21 @@ def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = Fa
 
     """ we assume the wall slides to x-direction. """
     viscosity = params.viscosity
-    out_density_factor = params.out_density_factor
-    in_density_factor = params.in_density_factor
+    density_out = params.density_out
+    density_in = params.density_in
+    t_last = 0
     V = []
 
     for t in range(start, end, freq):
+        t_last = t
         vx_file_name = f'log/poiseuille_flow/npy/v_x{t:0>6}.npy'
         density_file_name = f'log/poiseuille_flow/npy/density{t:0>6}.npy'
         vx, density = np.load(vx_file_name), np.load(density_file_name)
         X, Y = density.shape
         _, y = np.meshgrid(np.arange(X), np.arange(Y))
         average_density = viscosity * density[X // 2, :].mean()
-        deriv_density_x = (out_density_factor - in_density_factor) / X
+        # density / 3.0 = pressure
+        deriv_density_x = (density_out - density_in) / X / 3.0
         y = np.arange(Y + 1)
         analy_sol = - 0.5 * deriv_density_x * y * (Y - y) / average_density
 
@@ -308,17 +335,39 @@ def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = Fa
 
     if joint:
         plt.xlim(0, analy_sol.max() * 1.1)
-        plt.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', lw=4.5, label="Analytical velocity")
+        plt.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', lw=4.5, label="Analytical solution")
         plt.rc('legend', fontsize=12)
         idx = 0
-        Y = np.arange(V[0].size)
+        y = np.arange(V[0].size)
         for t in range(start, end, freq):
-            plt.plot(V[idx], Y, label=f"$t = {t}$", linestyle=":", linewidth=2)
+            plt.plot(V[idx], y, linestyle=":", linewidth=2)
             idx += 1
 
+        dx = analy_sol[Y//2]
+        plt.xlim(-dx * 0.2, dx * 1.1)
+        plt.annotate(
+            s='$t = {}$'.format(t_last),
+            xy=[analy_sol[-Y//4], Y-Y//4],
+            xytext=[analy_sol[-Y//8] + dx * 0.2, Y - Y//8],
+            arrowprops=dict(
+                facecolor='red',
+                edgecolor='red',
+                arrowstyle = '->'
+            )
+        )
+        plt.annotate(
+            s='$t = 0$',
+            xy=[0, Y-Y//4],
+            xytext=[-dx*0.17, Y-Y//8],
+            arrowprops=dict(
+                facecolor='red',
+                edgecolor='red',
+                arrowstyle = '->'
+            )
+        )
         plt.xlabel(f'Velocity $u_x(x={X//2}, y)$')
         plt.ylabel('$y$ position')
-        plt.legend(loc='lower left')
+        plt.legend(loc='lower right')
         show_or_save(path=f'log/poiseuille_flow/fig/poiseuille_flow_joint.{format}' if save else None)
 
 

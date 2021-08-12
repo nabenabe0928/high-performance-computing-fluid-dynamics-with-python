@@ -49,8 +49,8 @@ class ExperimentVariables(AttrDict):
     epsilon: Optional[float]
     rho0: Optional[float]
     mode: Optional[str]
-    in_density_factor: Optional[float]
-    out_density_factor: Optional[float]
+    density_in: Optional[float]
+    density_out: Optional[float]
     wall_vel: Optional[np.ndarray]
 
 
@@ -219,8 +219,8 @@ def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> 
     pbc = PeriodicBoundaryConditionsWithPressureVariation(
         field=field,
         boundary_locations=[DirectionIndicators.LEFT, DirectionIndicators.RIGHT],
-        in_density_factor=experiment_vars.in_density_factor,
-        out_density_factor=experiment_vars.out_density_factor
+        density_in=experiment_vars.density_in,
+        density_out=experiment_vars.density_out
     )
 
     rigid_wall = RigidWall(
@@ -238,8 +238,8 @@ def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> 
     field(total_time_steps, proc=proc, boundary_handling=SequentialBoundaryHandlings(rigid_wall, pbc))
     params = PoiseuilleFlowHyperparams(
         viscosity=omega2viscosity(experiment_vars.omega),
-        out_density_factor=experiment_vars.out_density_factor,
-        in_density_factor=experiment_vars.in_density_factor
+        density_out=experiment_vars.density_out,
+        density_in=experiment_vars.density_in
     )
 
     if save:

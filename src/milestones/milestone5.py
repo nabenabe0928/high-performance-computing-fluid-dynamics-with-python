@@ -15,14 +15,14 @@ from src.utils.constants import DirectionIndicators
 class ExperimentVariables(AttrDict):
     omega: float = 0.5
     total_time_steps: int = 1000
-    in_density_factor: float = (1. + 3e-3) / 3.
-    out_density_factor: float = 1. / 3.
+    density_in: float = 1.0 + 0.005
+    density_out: float = 1.0 - 0.005
     lattice_grid_shape: Tuple[int, int] = (30, 30)
 
 
 def main(init_density: np.ndarray, init_velocity: np.ndarray,
          total_time_steps: int, omega: float, lattice_grid_shape: Tuple[int, int],
-         in_density_factor: float, out_density_factor: float) -> None:
+         density_in: float, density_out: float) -> None:
 
     X, Y = lattice_grid_shape
 
@@ -31,8 +31,8 @@ def main(init_density: np.ndarray, init_velocity: np.ndarray,
     pbc = PeriodicBoundaryConditionsWithPressureVariation(
         field=field,
         boundary_locations=[DirectionIndicators.LEFT, DirectionIndicators.RIGHT],
-        in_density_factor=in_density_factor,
-        out_density_factor=out_density_factor
+        density_in=density_in,
+        density_out=density_out
     )
 
     rigid_wall = RigidWall(

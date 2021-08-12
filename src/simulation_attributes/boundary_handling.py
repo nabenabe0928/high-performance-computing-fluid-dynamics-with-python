@@ -369,7 +369,7 @@ class MovingWall(BaseBoundary):
 
 class PeriodicBoundaryConditionsWithPressureVariation(BaseBoundary):
     def __init__(self, field: LatticeBoltzmannMethod, boundary_locations: List[DirectionIndicators],
-                 in_density_factor: float, out_density_factor: float):
+                 density_in: float, density_out: float):
 
         super().__init__(field, boundary_locations, pressure_variation=True)
 
@@ -381,11 +381,11 @@ class PeriodicBoundaryConditionsWithPressureVariation(BaseBoundary):
                      DirectionIndicators.BOTTOM in self.boundary_locations)
 
         assert self.vert or self.horiz
-        assert in_density_factor > out_density_factor
+        assert density_in > density_out
         X, Y = field.lattice_grid_shape
         boundary_shape = Y if self.horiz else X
-        self._in_density = np.full(boundary_shape, 3 * in_density_factor)
-        self._out_density = np.full(boundary_shape, 3 * out_density_factor)
+        self._in_density = np.full(boundary_shape, density_in)
+        self._out_density = np.full(boundary_shape, density_out)
 
     def __repr__(self) -> str:
         repr = 'PeriodicBoundaryConditionsWithPressureVariation('
