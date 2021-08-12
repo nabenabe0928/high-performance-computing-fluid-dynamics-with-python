@@ -12,7 +12,7 @@ from src.utils.utils import make_directories_to_path
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
 
-plt.rcParams['mathtext.fontset'] = 'stix' # The setting of math font
+plt.rcParams['mathtext.fontset'] = 'stix'  # The setting of math font
 
 
 class PoiseuilleFlowHyperparams(NamedTuple):
@@ -129,7 +129,7 @@ def visualize_density_plot(subject: str, profile: np.ndarray, save: bool = False
         plt.close('all')
         plt.figure(figsize=(5, 3))
         plt.ylabel(f'Density $\\rho(x, y={Y//2})$')
-        plt.xlabel(f'$x$ position')
+        plt.xlabel('$x$ position')
 
         plt.xlim(0, X)
         plt.ylim(bounds[0] - buf, bounds[1] + buf)
@@ -224,8 +224,9 @@ def visualize_velocity_field(subj: str, save: bool = False, format: str = 'pdf',
 def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str = 'pdf', start: int = 0,
                            freq: int = 400, end: int = 100001, cmap: Optional[str] = None, joint: bool = True) -> None:
     """ we assume the wall slides to x-direction. """
-    plt.figure(figsize=(5, 3))
-    t_last = 0
+    cm = plt.get_cmap('jet')
+    t_last, idx = 0, 0
+    n_lines = (end - start) // freq
 
     for t in range(start, end, freq):
         t_last = t
@@ -251,42 +252,30 @@ def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str
             show_or_save(path=f'log/couette_flow/fig/couette_flow{t:0>6}.{format}' if save else None)
         else:
             if t == start:
-                plt.plot(np.arange(vmax), np.ones(vmax) * (Y - 1) + 0.5, label="Rigid wall",
-                         color='black', linewidth=3.0)
-                plt.plot(np.arange(vmax), np.zeros(vmax), label='Moving wall', color='red', linewidth=3.0)
-                plt.xlim(-0.01 * wall_vel[0], wall_vel[0])
-                plt.ylim(-0.5, Y)
-                plt.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', lw=4.5, label="Analytical solution")
+                fig, ax = plt.subplots(figsize=(10, 3))
+                ax.plot(np.arange(vmax), np.ones(vmax) * (Y - 1) + 0.5, label="Rigid wall",
+                        color='black', linewidth=3.0)
+                ax.plot(np.arange(vmax), np.zeros(vmax), label='Moving wall', color='red', linewidth=3.0)
+                ax.set_xlim(-0.01 * wall_vel[0], wall_vel[0])
+                ax.set_ylim(-0.5, Y)
+                ax.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', linestyle=":",
+                        lw=4.5, label="Analytical solution")
 
-            plt.plot(vx[X // 2, :], np.arange(Y), linestyle=":", linewidth=2)
+            ax.plot(vx[X // 2, :], np.arange(Y), linewidth=1, color=cm(idx / n_lines))
+            idx += 1
 
     if joint:
+        levels = np.linspace(start, t_last, n_lines)
+        zeros = [[0, 0], [0, 0]]
+        contour = plt.contourf(zeros, zeros, zeros, cmap=cm, levels=levels)
         dx = analy_sol[0]
-        plt.xlim(-dx * 0.2, dx * 1.1)
-        plt.annotate(
-            s='$t = {}$'.format(t_last),
-            xy=[analy_sol[Y//4], Y//4],
-            xytext=[analy_sol[Y//3] + dx * 0.08, Y//3],
-            arrowprops=dict(
-                facecolor='red',
-                edgecolor='red',
-                arrowstyle = '->'
-            )
-        )
-        plt.annotate(
-            s='$t = 0$',
-            xy=[0, Y-Y//4],
-            xytext=[-dx*0.17, Y-Y//8],
-            arrowprops=dict(
-                facecolor='red',
-                edgecolor='red',
-                arrowstyle = '->'
-            )
-        )
+        plt.xlim(-dx * 0.1, dx * 1.1)
         plt.rc('legend', fontsize=12)
-        plt.xlabel(f'Velocity $u_x(x={X//2}, y)$')
-        plt.ylabel('$y$ position')
-        plt.legend(loc='upper right')
+        ax.set_xlabel(f'Velocity $u_x(x={X//2}, y)$')
+        ax.set_ylabel('$y$ position')
+        ax.legend(loc='upper right')
+        cbar = fig.colorbar(contour)
+        cbar.ax.set_title('Time step', size=16, x=1, y=1.02)
         show_or_save(path=f'log/couette_flow/fig/couette_flow_joint.{format}' if save else None)
 
 
@@ -299,6 +288,7 @@ def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = Fa
     density_out = params.density_out
     density_in = params.density_in
     t_last = 0
+    cm = plt.get_cmap('jet')
     V = []
 
     for t in range(start, end, freq):
@@ -328,46 +318,32 @@ def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = Fa
             show_or_save(path=f'log/poiseuille_flow/fig/poiseuille_flow{t:0>6}.{format}' if save else None)
         else:
             if t == start:
-                plt.figure(figsize=(5, 3))
-                plt.ylim(-0.5, Y)
+                fig, ax = plt.subplots(figsize=(10, 3))
+                ax.set_ylim(-0.5, Y)
 
             V.append(vx[X // 2, :])
 
     if joint:
-        plt.xlim(0, analy_sol.max() * 1.1)
-        plt.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', lw=4.5, label="Analytical solution")
         plt.rc('legend', fontsize=12)
-        idx = 0
+        ax.set_xlim(0, analy_sol.max() * 1.1)
+        ax.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', linestyle=":", lw=4.5, label="Analytical solution")
+        idx, n_lines = 0, (end - start) // freq
         y = np.arange(V[0].size)
+        levels = np.linspace(start, t_last, n_lines)
+
+        zeros = [[0, 0], [0, 0]]
+        contour = plt.contourf(zeros, zeros, zeros, cmap=cm, levels=levels)
         for t in range(start, end, freq):
-            plt.plot(V[idx], y, linestyle=":", linewidth=2)
+            plt.plot(V[idx], y, color=cm(idx / n_lines), linewidth=1)
             idx += 1
 
         dx = analy_sol[Y//2]
-        plt.xlim(-dx * 0.2, dx * 1.1)
-        plt.annotate(
-            s='$t = {}$'.format(t_last),
-            xy=[analy_sol[-Y//4], Y-Y//4],
-            xytext=[analy_sol[-Y//8] + dx * 0.2, Y - Y//8],
-            arrowprops=dict(
-                facecolor='red',
-                edgecolor='red',
-                arrowstyle = '->'
-            )
-        )
-        plt.annotate(
-            s='$t = 0$',
-            xy=[0, Y-Y//4],
-            xytext=[-dx*0.17, Y-Y//8],
-            arrowprops=dict(
-                facecolor='red',
-                edgecolor='red',
-                arrowstyle = '->'
-            )
-        )
-        plt.xlabel(f'Velocity $u_x(x={X//2}, y)$')
-        plt.ylabel('$y$ position')
-        plt.legend(loc='lower right')
+        ax.set_xlim(-dx * 0.1, dx * 1.1)
+        ax.set_xlabel(f'Velocity $u_x(x={X//2}, y)$')
+        ax.set_ylabel('$y$ position')
+        ax.legend(loc='lower right')
+        cbar = fig.colorbar(contour)
+        cbar.ax.set_title('Time step', size=16, x=1, y=1.02)
         show_or_save(path=f'log/poiseuille_flow/fig/poiseuille_flow_joint.{format}' if save else None)
 
 

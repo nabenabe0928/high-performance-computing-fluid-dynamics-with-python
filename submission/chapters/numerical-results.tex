@@ -278,16 +278,16 @@ and the PBC at the inlet and outlet.
 The results are shown in Figure~\ref{fig:couette-velocity-evolution}.
 As shown in the figures, the flow velocity iteratively approaches
 the analytical solution and it perfectly fits in the end
-and {\bf the velocity stops growing}.
+and {\bf the velocity stops growing} at the time step of $t = 6000 \sim 10000$.
 From this experiment, the moving wall can be validated.
 
 \begin{figure}[H]
   \vspace{-1mm}
   \centering
-  \includegraphics[width=0.56\textwidth]{../log/couette_flow/fig/couette_flow_joint.pdf}
+  \includegraphics[width=0.90\textwidth]{../log/couette_flow/fig/couette_flow_joint.pdf}
   \vspace{-5mm}
   \caption{The velocity evolution at
-  $x = 25$ in the lattice grid size of $(50, 50)$.
+  $x = 25$ in the lattice grid size of $(50, 50)$ until the time step of $t = 10000$.
   The wall velocity $U_w$ at the bottom and the relaxation term $\omega$ are set
   to $0.1$ and $1.0$ respectively.
   We use {\bf dry node} as described in Section~\ref{boundary-handling-section}
@@ -315,14 +315,15 @@ and the pressure PBC at the inlet and outlet.
 Figure~\ref{fig:poiseuille-velocity-evolution} presents the results
 and the simulated results approach the analytical solution as in the Couette flow.
 In the end, it fits completely
-and {\bf the velocity stops growing}.
+and {\bf the velocity stops growing} at the time step of $t = 7000 \sim 10000$.
 
 \begin{figure}[H]
+  \vspace{-3mm}
   \centering
-  \includegraphics[width=0.56\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow_joint.pdf}
+  \includegraphics[width=0.90\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow_joint.pdf}
   \vspace{-3mm}
   \caption{The velocity evolution at
-  $x = 25$ in the lattice grid size of $(50, 50)$.
+  $x = 25$ in the lattice grid size of $(50, 50)$ until the time step of $t = 10000$.
   The relaxation term $\omega$ is set to $1.0$.
   The density at the inlet $\rho_{\rm in}$ and the density
   at the outlet $\rho_{\rm out}$ are set to $1.005$ and $1.0$ respectively.
