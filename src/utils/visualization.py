@@ -116,11 +116,16 @@ def visualize_density_countour(subject: str, save: bool = False, format: str = '
         show_or_save(path=f'log/{subject}/fig/density{t:0>6}.{format}' if save else None)
 
 
-def visualize_density_plot(subject: str, profile: np.ndarray, save: bool = False, format: str = 'pdf',
-                           start: int = 0, freq: int = 100, end: int = 100001,
+def visualize_density_plot(subject: str, profile: np.ndarray, visc: float, epsilon: float, rho0: float,
+                           save: bool = False, format: str = 'pdf', start: int = 0, freq: int = 100, end: int = 100001,
                            cmap: Optional[str] = None, bounds: np.ndarray = np.array([0., 1.])) -> None:
 
     buf = (bounds[1] - bounds[0]) * 0.1
+
+    def analytical_decay(t: int, x: np.ndarray, X: int) -> float:
+        lx = 2.0 * np.pi / X
+        return epsilon * np.exp(- visc * lx ** 2 * t) * np.sin(lx * x)
+
     for t in range(start, end, freq):
         density_file_name = f'log/{subject}/npy/density{t:0>6}.npy'
         density = np.load(density_file_name)
@@ -133,7 +138,7 @@ def visualize_density_plot(subject: str, profile: np.ndarray, save: bool = False
 
         plt.xlim(0, X)
         plt.ylim(bounds[0] - buf, bounds[1] + buf)
-        plt.plot(np.arange(X), density[:, Y // 2], label='Simulated Result')
+        plt.plot(np.arange(X), density[:, Y // 2], color='red', label='Simulated Result')
 
         if t == 0:
             plt.legend()
@@ -143,11 +148,12 @@ def visualize_density_plot(subject: str, profile: np.ndarray, save: bool = False
     plt.close('all')
     plt.figure(figsize=(20, 3))
     T = np.arange(profile.size)
-    plt.plot(T, profile, label='Simulated Result')
+    plt.plot(T, profile, color='red', label='Simulated Result')
+    plt.plot(T, rho0 + analytical_decay(T, X//4, X), color='blue', linestyle=":", lw=4.5, label='Analytical decay')
+    plt.plot(T, rho0 - analytical_decay(T, X//4, X), color='blue', linestyle=":", lw=4.5)
     plt.xlabel('Time step $t$')
     plt.ylabel('Density $\\rho(x={}, y={})$'.format(X//4, Y//2))
-    dy = profile.max() - profile.min()
-    plt.ylim(profile.min() - dy * 0.1, profile.max() + dy * 0.1)
+    plt.ylim(profile.min() - epsilon * 0.1, profile.max() + epsilon * 0.1)
     plt.grid()
     plt.legend()
     show_or_save(path=f'log/{subject}/fig/density_time_evolution.{format}' if save else None)
@@ -175,7 +181,7 @@ def visualize_velocity_plot(subject: str, profile: np.ndarray, epsilon: float, v
         plt.figure(figsize=(5, 3))
         plt.xlim(0, Y)
         plt.ylim(bounds[0] - buf, bounds[1] + buf)
-        plt.plot(y, analytical_sol(t, y, Y), color='blue', lw=4.5, label='Analytical Solution')
+        plt.plot(y, analytical_sol(t, y, Y), color='blue', linestyle=":", lw=4.5, label='Analytical Solution')
         plt.plot(y, v[X // 2, :], color='red', label='Simulated Result')
         if t == 0:
             plt.legend()
@@ -188,7 +194,7 @@ def visualize_velocity_plot(subject: str, profile: np.ndarray, epsilon: float, v
     plt.close('all')
     plt.figure(figsize=(20, 3))
     T = np.arange(profile.size)
-    plt.plot(T, analytical_sol(T, Y//4, Y), color='blue', lw=4.5, label='Analytical Solution')
+    plt.plot(T, analytical_sol(T, Y//4, Y), color='blue', linestyle=":", lw=4.5, label='Analytical Solution')
     plt.plot(T, profile, color='red', label='Simulated Result')
     plt.xlabel('Time step $t$')
     plt.ylabel(f'Velocity $u_x(y={Y//4})$')
@@ -234,7 +240,7 @@ def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str
         vx = np.load(vx_file_name)
         X, Y = vx.shape
         analy_sol = wall_vel[0] * (Y - np.arange(Y + 1)) / Y
-        vmax = int(max(wall_vel[0], np.ceil(vx[X // 2, :].max()))) + 1
+        vmax = int(max(wall_vel[0], np.ceil(vx[X // 2, :].max()))) + 2
 
         if not joint:
             plt.close('all')
@@ -253,9 +259,9 @@ def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str
         else:
             if t == start:
                 fig, ax = plt.subplots(figsize=(10, 3))
-                ax.plot(np.arange(vmax), np.ones(vmax) * (Y - 1) + 0.5, label="Rigid wall",
+                ax.plot(np.arange(vmax) - 1, np.ones(vmax) * (Y - 1) + 0.5, label="Rigid wall",
                         color='black', linewidth=3.0)
-                ax.plot(np.arange(vmax), np.zeros(vmax), label='Moving wall', color='red', linewidth=3.0)
+                ax.plot(np.arange(vmax) - 1, np.zeros(vmax), label='Moving wall', color='red', linewidth=3.0)
                 ax.set_xlim(-0.01 * wall_vel[0], wall_vel[0])
                 ax.set_ylim(-0.5, Y)
                 ax.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', linestyle=":",

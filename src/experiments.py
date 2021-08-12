@@ -92,7 +92,7 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
         d_bounds = np.array([rho0 - eps, rho0 + eps])
         v_bounds = np.array([-eps, eps])
     elif mode == 'velocity':
-        eps = experiment_vars.epsilon
+        eps, rho0 = experiment_vars.epsilon, 1.0
 
         assert eps is not None
         density, vel = sinusoidal_velocity(lattice_grid_shape,
@@ -127,8 +127,8 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
         visc = 1. / 3. * (1. / experiment_vars.omega - 0.5)
         visualize_velocity_plot(subj, profile=np.array(profile), epsilon=eps, visc=visc,
                                 freq=freq, save=True, end=total_time_steps, bounds=v_bounds)
-        visualize_density_plot(subj, profile=np.array(profile), save=True, freq=freq,
-                               end=total_time_steps, bounds=d_bounds)
+        visualize_density_plot(subj, profile=np.array(profile), epsilon=eps, visc=visc, rho0=rho0,
+                               save=True, freq=freq, end=total_time_steps, bounds=d_bounds)
         return None
     elif save:
         q_array = np.array(quantities)
@@ -161,10 +161,10 @@ def sinusoidal_viscosity(experiment_vars: ExperimentVariables) -> None:
         visc_truth.append(omega2viscosity(omega))
         visc_sim.append(v_sim)
 
-    plt.plot(omegas, visc_truth, label="Analytical viscosity", color='red')
-    plt.plot(omegas, visc_sim, label="Simulated result", color='blue')
-    plt.scatter(omegas, visc_truth, marker='x', s=100, color='red')
-    plt.scatter(omegas, visc_sim, marker='+', s=100, color='blue')
+    plt.plot(omegas, visc_truth, label="Analytical viscosity", color='blue')
+    plt.plot(omegas, visc_sim, label="Simulated result", color='red')
+    plt.scatter(omegas, visc_truth, marker='x', s=100, color='blue')
+    plt.scatter(omegas, visc_sim, marker='+', s=100, color='red')
     plt.xlabel('Relaxation term $\\omega$')
     plt.ylabel('viscosity $\\nu$ (Log scale)')
     plt.yscale('log')
