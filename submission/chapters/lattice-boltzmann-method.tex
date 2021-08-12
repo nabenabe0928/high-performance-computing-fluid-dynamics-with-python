@@ -238,13 +238,13 @@ This condition is implicitly implemented during the streaming operation.
 Another PBC handles
 the pressure variation $\Delta p$ between inlet and outlet.
 Since the density $\rho$ is computed as $\rho = \frac{p}{c_s^2}$
-where $p$ is the pressure and $c_s$ is the speed of sound,
-the density at the inlet $\rho_{\rm in} = \frac{p_{\rm in}}{c_s^2}$ and
-that at the outlet $\rho_{\rm out} = \frac{p_{\rm in} + \Delta p}{c_s^2}$ can be computed
-accordingly given the constant pressure $p_{\rm in}$
-at the outlet.
+where $p$ is the pressure,
+the density at the inlet $\rho_{\rm in} = \frac{p_{\rm out} + \Delta p }{c_s^2}$ and
+that at the outlet $\rho_{\rm out} = \frac{p_{\rm out}}{c_s^2}$ can be computed
+accordingly given the constant pressure $p_{\rm out}$
+at the outlet and the pressure variation $\Delta p ~(> 0)$.
 Then the prestreaming $f^\star$ at 
-the inlet and the outlet are computed as follows~\cite{succi2018lattice}:
+the inlet and the outlet are computed as~\cite{succi2018lattice}:
 \begin{equation}
 \begin{aligned}
   f_i^\star(-\dx, y, t) &=

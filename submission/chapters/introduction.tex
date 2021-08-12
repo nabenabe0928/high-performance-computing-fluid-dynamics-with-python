@@ -4,10 +4,10 @@ Large-scale physics experiments often require large budgets
 and it is hard to perform experiments with several different parameters.
 For this reason, many research has been performed to simulate real-world 
 phenomenon.
-One of the phenomenon is fluid flow.
-For example, fluid flow simulations allow us to deeply understand
-how the car body shape relates to the aerodynamic drag
-and to optimize the car design through the simulations with
+One example is fluid flow and
+fluid flow simulations allow us to deeply understand
+how car body shapes relate to the aerodynamic drag
+and how to optimize car designs through the simulations with
 various designs rather than making real cars~\cite{padagannavar2016automotive}.
 % Computational study of flow around a simplified car body
 
@@ -22,25 +22,28 @@ by mesoscale physical states at each lattice grid.
 The physical states or {\bf moments} are iteratively simulated based on
 the Maxwell velocity distribution function~\cite{huang1963statistical} and
 the fluid flow at each time step is derived from the moments.
-
 The major advantages of LBM are the followings:
 \begin{itemize}
   \item {\bf Simple implementation}: The governing equations of each moment
   are simple and the collision handling only considers the adjacent lattices. 
-  \item {\bf Parallelization}: The parallelization scales well due to
-  the local dynamics nature of LBM~\cite{raabe2004overview}
+  \item {\bf Parallelization}: The LBM scales well with respect to
+  the amount of parallel compuattional resources due to
+  the local dynamics nature~\cite{raabe2004overview}
 \end{itemize}
-For those reasons, LBM is one of the most successful methods and
-we would like to introduce LBM in detail in this paper.
+For those reasons, the LBM is one of the most successful methods and
+we would like to introduce the LBM in this paper.
 The paper structure is as follows:
 \begin{enumerate}
-  \item {\bf Lattice Boltzmann method (LBM) }: Show the governing equations and 
-  provide pseudocodes to promote the understandings
+  \item {\bf Lattice Boltzmann method (LBM) }: Show the theoretical aspects and
+  how to discretize the equations
+  \item {\bf Implementation}:
+  Provide pseudocodes and how to efficiently compute
+  the LBM
   \item {\bf Numerical results}~\footnote{
   The code is available at:
     https://github.com/nabenabe0928/high-performance-computing-fluid-dynamics-with-python
-  }: Provide how we can validate the implementations,
-  and how effective the parallel computation is
+  }: Provide how we can validate the implementations
+  and show how effective the parallel computation is
 \end{enumerate}
 All the codes follow {\tt pep8 style}~\footnote{https://www.python.org/dev/peps/pep-0008/} and 
 are tested using
