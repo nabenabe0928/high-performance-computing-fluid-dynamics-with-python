@@ -12,11 +12,11 @@ T=100
 # Domain related parameters #
 #############################
 # The lattice size in the x axis
-X=41
+X=300
 # The lattice size in the y axis
-Y=2
+Y=300
 # The number of processes to compare
-P=4
+P=9
 
 python -m run_experiment -E ss -T $T --freq $T -X $X -Y $Y --visc $visc -W $vel
 mpirun -n $P python -m run_experiment -E sm -T $T --freq $T -X $X -Y $Y --visc $visc -W $vel
