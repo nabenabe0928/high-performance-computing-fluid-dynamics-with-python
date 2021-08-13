@@ -248,9 +248,10 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.98\textwidth]{imgs/couette_and_poiseuille.pdf}
+  \vspace{-3mm}
   \caption{The conceptual visualizations of the Couette flow (Left) and
   Poiseuille flow (Right).}
-  \vspace{-5mm}
+  \vspace{-3mm}
   \label{couette-and-poiseuille-conceptual}
 \end{figure}
 
@@ -270,23 +271,23 @@ The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is gi
 \end{equation}
 ~\cite{nagy2019graphical} where $Y$ is the distance between the two walls
 and $u_x(\cdot, y)$ is the horizontal velocity of the flow
-at the location of $y$ and at the location of
-an arbitrary $x$. 
+given a position $(x, y)$.
+Note that $u_x(\cdot, y)$ does not depend on $x$.
 In the experiment, we apply the bounce-back boundary condition
 at the moving wall and the rigid wall
 and the PBC at the inlet and outlet.
-The results are shown in Figure~\ref{fig:couette-velocity-evolution}.
-As shown in the figures, the flow velocity iteratively approaches
+As shown in Figure~\ref{fig:couette-velocity-evolution},
+the flow velocity iteratively approaches
 the analytical solution and it perfectly fits in the end
 and {\bf the velocity stops growing} at the time step of $t = 6000 \sim 10000$.
-From this experiment, the moving wall can be validated.
+This experiment validates the moving wall implementation.
 
 \begin{figure}[H]
   \vspace{-1mm}
   \centering
   \includegraphics[width=0.90\textwidth]{../log/couette_flow/fig/couette_flow_joint.pdf}
   \vspace{-5mm}
-  \caption{The velocity evolution at
+  \caption{The velocity evolution of every $500$ time steps at
   $x = 25$ in the lattice grid size of $(50, 50)$ until the time step of $t = 10000$.
   The wall velocity $U_w$ at the bottom and the relaxation term $\omega$ are set
   to $0.1$ and $1.0$ respectively.
@@ -322,7 +323,7 @@ and {\bf the velocity stops growing} at the time step of $t = 7000 \sim 10000$.
   \centering
   \includegraphics[width=0.90\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow_joint.pdf}
   \vspace{-3mm}
-  \caption{The velocity evolution at
+  \caption{The velocity evolution of every $500$ time steps at
   $x = 25$ in the lattice grid size of $(50, 50)$ until the time step of $t = 10000$.
   The relaxation term $\omega$ is set to $1.0$.
   The density at the inlet $\rho_{\rm in}$ and the density
