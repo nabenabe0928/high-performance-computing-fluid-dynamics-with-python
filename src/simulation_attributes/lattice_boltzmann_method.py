@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 from tqdm import trange
 from typing import Callable, Optional, Tuple
@@ -93,6 +95,11 @@ class LatticeBoltzmannMethod():
         if self.dir_name is not None:
             repr += '\tLog directory: {}\n'.format(self.dir_name)
 
+        X, Y = self.lattice_grid_shape
+        if self.is_parallel():
+            X, Y = self.grid_manager.global_grid_size
+
+        repr += '\tDomain: [0, {}] x [0, {}]\n'.format(X - 1, Y - 1)
         repr += '\tViscosity: {}\n'.format(self.viscosity)
         repr += ')'
 
@@ -109,14 +116,21 @@ class LatticeBoltzmannMethod():
             if boundary_handling.__class__.__name__ != 'SequentialBoundaryHandlings':
                 raise ValueError('boundary_handling must be SequentialBoundaryHandlings instance.')
 
-        if self.grid_manager is None or self.grid_manager.rank == 0:
+        rank = self.grid_manager.rank if self.is_parallel() else 0
+        n_proc = self.grid_manager.size if self.is_parallel() else 1
+
+        if rank == 0:
             print(self)
+        if self.is_parallel():
+            time.sleep(0.001 * rank)  # Wait in order to print in the rank order
+            print(self.grid_manager)
 
         print('{}{}'.format(
-            '' if self.grid_manager is None else f'Rank {self.grid_manager.rank}\n',
+            '' if self.grid_manager is None else f'Rank {self.grid_manager.rank}: ',
             str(boundary_handling)
         ))
 
+        time.sleep(0.0015 * n_proc)  # Wait for the last process to print out info
         self.local_equilibrium_pdf_update()
         for t in trange(total_time_steps + 1):
             self.lattice_boltzmann_step(boundary_handling=boundary_handling)

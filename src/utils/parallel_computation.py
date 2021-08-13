@@ -97,6 +97,18 @@ class ChunkedGridManager():
         self._buffer_grid_size = self._compute_buffer_grid_size()
         self._neighbor_directions = self._compute_neighbor_directions()
 
+    def __repr__(self) -> str:
+        repr = 'ChunkedGridManager(\n'
+        repr += '\tRank: {}\n'.format(self.rank)
+        repr += '\tDomain: [{}, {}] x [{}, {}]\n'.format(
+            self.x_local_range[0],
+            self.x_local_range[1],
+            self.y_local_range[0],
+            self.y_local_range[1],
+        )
+
+        return repr + ')'
+
     @property
     def rank_grid_size(self) -> Tuple[int, int]:
         """

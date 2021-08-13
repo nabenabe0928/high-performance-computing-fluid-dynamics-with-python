@@ -114,13 +114,11 @@ class BaseBoundary():
             vert = (DirectionIndicators.TOP in self.boundary_locations and
                     DirectionIndicators.BOTTOM in self.boundary_locations)
             assert vert or horiz
-            if horiz:
-                # left to right
+            if horiz:  # left to right
                 dirs = AdjacentAttributes.x_right
                 out_indices[DirectionIndicators.RIGHT] = dirs
                 in_indices[DirectionIndicators.RIGHT] = rd[dirs]
-            else:
-                # bottom to top
+            else:  # bottom to top
                 dirs = AdjacentAttributes.y_top
                 out_indices[DirectionIndicators.TOP] = dirs
                 in_indices[DirectionIndicators.TOP] = rd[dirs]
@@ -148,25 +146,26 @@ class RigidWall(BaseBoundary):
     def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
         pdf_post, pdf_pre = field.pdf, field.pdf_pre
 
-        if DirectionIndicators.TOP in self.boundary_locations:
+        if DirectionIndicators.TOP in self.boundary_locations:  # The wall at the top
             dir = DirectionIndicators.TOP
             in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
             pdf_post[:, -1, in_idx] = pdf_pre[:, -1, out_idx]
-        if DirectionIndicators.BOTTOM in self.boundary_locations:
+        if DirectionIndicators.BOTTOM in self.boundary_locations:  # The wall at the bottom
             dir = DirectionIndicators.BOTTOM
             in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
             pdf_post[:, 0, in_idx] = pdf_pre[:, 0, out_idx]
-        if DirectionIndicators.LEFT in self.boundary_locations:
+        if DirectionIndicators.LEFT in self.boundary_locations:  # The wall at the left
             dir = DirectionIndicators.LEFT
             in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
             pdf_post[0, :, in_idx] = pdf_pre[0, :, out_idx]
-        if DirectionIndicators.RIGHT in self.boundary_locations:
+        if DirectionIndicators.RIGHT in self.boundary_locations:  # The wall at the right
             dir = DirectionIndicators.RIGHT
             in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
             pdf_post[-1, :, in_idx] = pdf_pre[-1, :, out_idx]
 
 
 def dir2coef(wall: DirectionIndicators, dir: DirectionIndicators, equilibrium: bool = False) -> float:
+    """ The coefficients for the extrapolation of the wall density """
     if dir.is_opposite(wall):
         return 0.0
     elif dir.is_sameside(wall):
@@ -271,6 +270,10 @@ class MovingWall(BaseBoundary):
         raise NotImplementedError("weighted_vel_dot_wall_vel6 is not supposed to change from outside.")
 
     def _precompute(self) -> None:
+        """
+        Since 2 * w[i] * (c[i] @ wall_vel) / c_s ** 2 is constant,
+        we pre-compute it and perform memorized recursion.
+        """
         assert not self._finish_precompute
         ws = AdjacentAttributes.weights
         vs = AdjacentAttributes.velocity_direction_set
@@ -344,24 +347,24 @@ class MovingWall(BaseBoundary):
 
         pdf_post, pdf_pre = field.pdf, field.pdf_pre
 
-        if self.extrapolation:
+        if self.extrapolation:  # Compute the wall density by the extrapolation
             self._compute_wall_density(field.pdf_pre, field.pdf, field.velocity)
 
         coef = self.wall_density * self.weighted_vel_dot_wall_vel6
 
-        if DirectionIndicators.TOP in self.boundary_locations:
+        if DirectionIndicators.TOP in self.boundary_locations:  # The wall at the top
             dir = DirectionIndicators.TOP
             in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
             pdf_post[:, -1, in_idx] = pdf_pre[:, -1, out_idx] - coef[:, -1, out_idx]
-        if DirectionIndicators.BOTTOM in self.boundary_locations:
+        if DirectionIndicators.BOTTOM in self.boundary_locations:  # The wall at the bottom
             dir = DirectionIndicators.BOTTOM
             in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
             pdf_post[:, 0, in_idx] = pdf_pre[:, 0, out_idx] - coef[:, 0, out_idx]
-        if DirectionIndicators.LEFT in self.boundary_locations:
+        if DirectionIndicators.LEFT in self.boundary_locations:  # The wall at the left
             dir = DirectionIndicators.LEFT
             in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
             pdf_post[0, :, in_idx] = pdf_pre[0, :, out_idx] - coef[0, :, out_idx]
-        if DirectionIndicators.RIGHT in self.boundary_locations:
+        if DirectionIndicators.RIGHT in self.boundary_locations:  # The wall at the right
             dir = DirectionIndicators.RIGHT
             in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
             pdf_post[-1, :, in_idx] = pdf_pre[-1, :, out_idx] - coef[-1, :, out_idx]
@@ -419,7 +422,7 @@ class PeriodicBoundaryConditionsWithPressureVariation(BaseBoundary):
     def boundary_handling(self, field: LatticeBoltzmannMethod) -> None:
         pdf_eq, pdf_pre = field.pdf_eq, field.pdf_pre
 
-        if self.horiz:
+        if self.horiz:  # If the flow goes horizontally (left to right)
             dir = DirectionIndicators.RIGHT
             in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
 
@@ -432,7 +435,7 @@ class PeriodicBoundaryConditionsWithPressureVariation(BaseBoundary):
             pdf_pre[-1, :, in_idx] = pdf_eq_out[:, in_idx].T + (
                 pdf_pre[1, :, in_idx] - pdf_eq[1, :, in_idx]
             )
-        else:
+        else:  # If the flow goes vertically (bottom to top)
             dir = DirectionIndicators.TOP
             in_idx, out_idx = self.in_indices[dir], self.out_indices[dir]
 
@@ -455,7 +458,6 @@ class SequentialBoundaryHandlings:
         self.bounce_backs = []
 
         if boundary_handlings is not None:
-
             for boundary_handling in boundary_handlings:
                 if isinstance(boundary_handling, PressurePBC):
                     self.pressure_pbcs.append(boundary_handling)
@@ -463,6 +465,7 @@ class SequentialBoundaryHandlings:
                     self.bounce_backs.append(boundary_handling)
 
     def __call__(self, field: LatticeBoltzmannMethod) -> None:
+        # Pressure boundary condition must be performed before the streaming
         for boundary_handling in self.pressure_pbcs:
             boundary_handling(field)
 
