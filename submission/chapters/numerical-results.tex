@@ -149,7 +149,7 @@ We perform the experiments to validate the implementation via the viscosity esti
 the exact experiment settings for Figure~\ref{fig:sinusoidal-velocity}
 and Figure~\ref{fig:sinusoidal-density}
 except the relaxation term $\omega$.
-The analytical viscosity is computed as $\nu = \frac{1}{3} (\frac{1}{\omega} - \frac{1}{2})$.
+The analytical viscosity is computed as $\nu = c_s^2 (\frac{1}{\omega} - \frac{1}{2})$~\cite{timm2016lattice}.
 For the experiments, the simulated viscosity is computed based on the exponential decay curve, i.e. Eq~(\ref{viscosity-analytical}),
 of the density and velocity using 
 {\tt curve\_fit}~\footnote{https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve\_fit.html}.
@@ -231,7 +231,7 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
     }
     \caption{The simulated viscosity value 
     over various relaxation values $\omega$.
-    The analytical solution uses $\nu = \frac{1}{3}(\frac{1}{\omega} - \frac{1}{2})$
+    The analytical solution uses $\nu = c_s^2(\frac{1}{\omega} - \frac{1}{2})$
     and the simulated viscosity $\nu$ is approximated from an exponential decay curve in Eq~(\ref{viscosity-analytical}).
     The simulation is performed $T = 3000$ steps
     and we take the maximum magnitude of
@@ -306,15 +306,16 @@ and we can validate the implementation of the pressure PBC.
 The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by
 \begin{equation}
 \begin{aligned}
-  u_x(\cdot, y) = - \frac{1}{2\rho \nu} \od{p}{x} y (Y - y)
+  u_x(\cdot, y) = - \frac{1}{2\bar{\rho} \nu} \od{p}{x} y (Y - y)
 \end{aligned}
 \end{equation}
-~\cite{mendiburu2009analytical}.
+~\cite{mendiburu2009analytical}
+where $\bar{\rho}$ is the average density.
 In the experiment, we apply the bounce-back boundary condition
 at the moving wall and the rigid wall
 and the pressure PBC at the inlet and outlet.
 Figure~\ref{fig:poiseuille-velocity-evolution} presents the results
-and the simulated results approach the analytical solution as in the Couette flow.
+and the simulated results approach the analytical solution.
 In the end, it fits completely
 and {\bf the velocity stops growing} at the time step of $t = 7000 \sim 10000$.
 

@@ -42,7 +42,7 @@ such as density and velocity.
 The moments updates are performed via~\cite{caroli1984non}:
 \begin{equation}
   \begin{aligned}
-    \rho(\xv, t) = \int f(\xv, \vv, t) d\vv,~
+    \rho(\xv, t) = \int f(\xv, \vv, t) d\vv,  \text{ and }
     \uv(\xv, t) = \frac{1}{\rho(\xv, t)} \int \vv f(\xv, \vv, t)  d\vv. 
   \end{aligned}
   \label{analytical-update}
@@ -80,6 +80,8 @@ of $\cv_i$ that is defined by:
 \end{aligned}
 \label{d2q9-velocity}
 \end{equation}
+Since $\dx = \Delta y = \dt = 1$ satisfies the equality, 
+we discretize the domain accordingly.
 Note that this specific discretization in two-dimensional
 space with nine directions shown in 
 Figure~\ref{fig:d2q9} is called D2Q9.
@@ -91,7 +93,7 @@ as $f_i(\xv, t)$.
 Then Eq~(\ref{analytical-update}) becomes the followings:
 \begin{equation}
   \begin{aligned}
-    \rho(\xv, t) = \sum_i f_i(\xv, t),~
+    \rho(\xv, t) = \sum_i f_i(\xv, t), \text{ and }
     \uv(\xv, t) = 
     \frac{1}{\rho(\xv, t)} \sum_i \cv_i f_i(\xv). \\
   \end{aligned}
@@ -207,7 +209,7 @@ modified as follows~\cite{succi2018lattice}:
   \end{aligned}
   \label{discretized-moving-wall}
 \end{equation}
-where $c_s$ is the speed of sound and 
+where $c_s = \frac{1}{\sqrt{3}}$ is the speed of sound and 
 $\rho_w$ is the density at the wall.
 The computation of $\rho_w$ is usually performed by
 either of the followings~\cite{zou1997pressure, khajepor2019study}:
