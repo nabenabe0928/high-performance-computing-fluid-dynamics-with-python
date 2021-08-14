@@ -329,6 +329,7 @@ and {\bf the velocity stops growing} at the time step of $t = 7000 \sim 10000$.
   The relaxation term $\omega$ is set to $1.0$.
   The density at the inlet $\rho_{\rm in}$ and the density
   at the outlet $\rho_{\rm out}$ are set to $1.005$ and $1.0$ respectively.
+  Then $\od{p}{x}$ is computed by $c_s^2(\rho_{\rm out} - \rho_{\rm in}) / X$.
   The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
   \label{fig:poiseuille-velocity-evolution}}
 \end{figure}
