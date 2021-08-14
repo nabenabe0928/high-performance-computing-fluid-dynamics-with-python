@@ -42,8 +42,8 @@ such as density and velocity.
 The moments updates are performed via~\cite{caroli1984non}:
 \begin{equation}
   \begin{aligned}
-    \rho(\xv, t) = \int f(\xv, \vv, t) d\vv,~
-    \uv(\xv, t) = \frac{1}{\rho(\xv, t)} \int \vv f(\xv, \vv, t)  d\vv 
+    \rho(\xv, t) = \int f(\xv, \vv, t) d\vv,  \text{ and }
+    \uv(\xv, t) = \frac{1}{\rho(\xv, t)} \int \vv f(\xv, \vv, t)  d\vv. 
   \end{aligned}
   \label{analytical-update}
 \end{equation}
@@ -62,11 +62,11 @@ The discretization for space and time
 is performed so that the equality condition of 
 the following inequality
 (Courant-Friedrichs-Lewy condition) holds~\cite{peyretcomputational, sterling1996stability}:
-\begin{equation}
+\begin{equation*}
 \begin{aligned}
   \cv_i \dt \leq || \Delta \xv_i ||
 \end{aligned}
-\end{equation}
+\end{equation*}
 where $\dt$ is the time step size 
 and $\Delta \xv_i$ is the distance between 
 the closest grid in the direction
@@ -76,10 +76,12 @@ of $\cv_i$ that is defined by:
   \cv = \begin{bmatrix}
     0 & 1 & 0 & -1 & 0 & 1 & -1 & -1 & 1 \\
     0 & 0 & 1 & 0 & -1 & 1 & 1 & -1 & -1 \\
-  \end{bmatrix}^\top
+  \end{bmatrix}^\top.
 \end{aligned}
 \label{d2q9-velocity}
 \end{equation}
+Since $\dx = \Delta y = \dt = 1$ satisfies the equality, 
+we discretize the domain accordingly.
 Note that this specific discretization in two-dimensional
 space with nine directions shown in 
 Figure~\ref{fig:d2q9} is called D2Q9.
@@ -91,9 +93,9 @@ as $f_i(\xv, t)$.
 Then Eq~(\ref{analytical-update}) becomes the followings:
 \begin{equation}
   \begin{aligned}
-    \rho(\xv, t) = \sum_i f_i(\xv, t),~
+    \rho(\xv, t) = \sum_i f_i(\xv, t), \text{ and }
     \uv(\xv, t) = 
-    \frac{1}{\rho(\xv, t)} \sum_i \cv_i f_i(\xv) \\
+    \frac{1}{\rho(\xv, t)} \sum_i \cv_i f_i(\xv). \\
   \end{aligned}
   \label{discretized-momentum}
 \end{equation}
@@ -190,7 +192,7 @@ slip condition at the boundary.
 The equation at the boundary is computed as~\cite{succi2018lattice}:
 \begin{equation}
 \begin{aligned}
-  f_i(\xv_b, t + \dt) = f_{i^\star}^\star(\xv_b, t)
+  f_i(\xv_b, t + \dt) = f_{i^\star}^\star(\xv_b, t).
 \end{aligned}
 \label{discretized-rigid-wall}
 \end{equation}
@@ -207,7 +209,7 @@ modified as follows~\cite{succi2018lattice}:
   \end{aligned}
   \label{discretized-moving-wall}
 \end{equation}
-where $c_s$ is the speed of sound and 
+where $c_s = \frac{1}{\sqrt{3}}$ is the speed of sound and 
 $\rho_w$ is the density at the wall.
 The computation of $\rho_w$ is usually performed by
 either of the followings~\cite{zou1997pressure, khajepor2019study}:
@@ -229,27 +231,27 @@ boundaries at $x = 0~(\text{inlet})$ and $X - 1~(\text{outlet})$
 where $X$ is the number of the lattice grid in the $x$-axis.
 The most basic PBC assumes that
 the flow from outlet comes in from inlet as follows~\cite{succi2018lattice}: 
-\begin{equation}
+\begin{equation*}
 \begin{aligned}
-  f(0, y, t) = f((X - 1)\dx, y, t)
+  f(0, y, t) = f((X - 1)\dx, y, t).
 \end{aligned}
-\end{equation}
+\end{equation*}
 This condition is implicitly implemented during the streaming operation.
 Another PBC handles
 the pressure variation $\Delta p$ between inlet and outlet.
 Since the density $\rho$ is computed as $\rho = \frac{p}{c_s^2}$
-where $p$ is the pressure and $c_s$ is the speed of sound,
-the density at the inlet $\rho_{\rm in} = \frac{p_{\rm in}}{c_s^2}$ and
-that at the outlet $\rho_{\rm out} = \frac{p_{\rm in} + \Delta p}{c_s^2}$ can be computed
-accordingly given the constant pressure $p_{\rm in}$
-at the outlet.
+where $p$ is the pressure,
+the density at the inlet $\rho_{\rm in} = \frac{p_{\rm out} + \Delta p }{c_s^2}$ and
+that at the outlet $\rho_{\rm out} = \frac{p_{\rm out}}{c_s^2}$ can be computed
+accordingly given the constant pressure $p_{\rm out}$
+at the outlet and the pressure variation $\Delta p ~(> 0)$.
 Then the prestreaming $f^\star$ at 
-the inlet and the outlet are computed as follows~\cite{succi2018lattice}:
+the inlet and the outlet are computed as~\cite{succi2018lattice}:
 \begin{equation}
 \begin{aligned}
   f_i^\star(-\dx, y, t) &=
   f_i^{\rm eq}(\rho_{\rm in}, \uv((X - 1)\dx, y, t))
-  + (f_i^\star((X - 1)\dx, y, t) - f_i^{\rm eq}((X - 1)\dx, y, t))\\
+  + (f_i^\star((X - 1)\dx, y, t) - f_i^{\rm eq}((X - 1)\dx, y, t)), \\
   f_i^\star(X\dx, y, t) &=
   f_i^{\rm eq}(\rho_{\rm out}, \uv(0, y, t))
   + (f_i^\star(0, y, t) - f_i^{\rm eq}(0, y, t))\\

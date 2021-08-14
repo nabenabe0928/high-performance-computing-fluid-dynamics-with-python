@@ -32,7 +32,7 @@ as the initial condition:
       \epsilon \sin \frac{2\pi y}{Y} \\
         0 \\
       \end{bmatrix}
-  \end{aligned}
+  \end{aligned}.
   \label{shear-vel-init}
 \end{equation}
 Then the analytical solution for the time evolution of 
@@ -43,7 +43,7 @@ the velocity is calculated as follows~\cite{fei2018three}:
     \epsilon \exp\biggl(
       -\nu \biggl(
         \frac{2\pi}{Y}
-      \biggr)^2 t\biggr) \sin \frac{2\pi y}{Y}
+      \biggr)^2 t\biggr) \sin \frac{2\pi y}{Y}.
   \end{aligned}
   \label{sinusoidal-vel-analytical-solution}
 \end{equation}
@@ -52,17 +52,17 @@ and the assumptions that the pressure term $\nabla p$ and
 the convection term $(\uv \cdot \nabla) \uv$ are negligible 
 compared to the viscosity term $\nu \nabla^2 \uv$.
 In Figure~\ref{fig:sinusoidal-velocity}, we show the plot of both
-simulated results and the analytical solutions of sinusoidal velocity.
+simulated results and the analytical solution of sinusoidal velocity.
 Note that the initial condition follows Eq~(\ref{shear-vel-init}). 
-As seen in the figure, the simulated results and the analytical solutions
+As seen in the figure, the simulated results and the analytical solution
 {\bf perfectly fit} and thus we could validate our implementation of
 rigid wall and moments updates.
 Figure~\ref{fig:sinusoidal-density} shows the density distribution
 over time.
-This simulation uses the sinusoidal density in the $x$-direction:
+This simulation uses the sinusoidal density in the $x$-direction
 \begin{equation}
 \begin{aligned}
-  \rho(\xv, 0) = \rho_0 + \epsilon \sin \frac{2 \pi x}{X}
+  \rho(\xv, 0) = \rho_0 + \epsilon \sin \frac{2 \pi x}{X}.
 \end{aligned}
 \label{sinusoidal-density-init}
 \end{equation}
@@ -117,7 +117,7 @@ a swing of the maxima and the minima unlike the sinusoidal velocity.
     % }\\
     \caption{
       The time evolution of the sinusoidal velocity
-      (Eq~(\ref{shear-vel-init})) at
+      in Eq~(\ref{shear-vel-init}) at
       the $x = 25$ in the lattice grid size of $(50, 50)$.
       The $x$-axis shows the location in the $y$ direction
       and the $y$-axis shows the magnitude of velocity at 
@@ -149,7 +149,7 @@ We perform the experiments to validate the implementation via the viscosity esti
 the exact experiment settings for Figure~\ref{fig:sinusoidal-velocity}
 and Figure~\ref{fig:sinusoidal-density}
 except the relaxation term $\omega$.
-The analytical viscosity is computed as $\nu = \frac{1}{3} (\frac{1}{\omega} - \frac{1}{2})$.
+The analytical viscosity is computed as $\nu = c_s^2 (\frac{1}{\omega} - \frac{1}{2})$~\cite{timm2016lattice}.
 For the experiments, the simulated viscosity is computed based on the exponential decay curve, i.e. Eq~(\ref{viscosity-analytical}),
 of the density and velocity using 
 {\tt curve\_fit}~\footnote{https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve\_fit.html}.
@@ -209,7 +209,7 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
     %   \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001650.pdf}
     % }\\
     \caption{The time evolution of the sinusoidal density
-    (Eq~(\ref{sinusoidal-density-init}))
+    in Eq~(\ref{sinusoidal-density-init})
       at $y = 25$ in the lattice grid size of $(50, 50)$.
       The $x$-axis shows the location in the $x$ direction
       and the $y$-axis shows the magnitude of density.
@@ -224,14 +224,14 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
 \begin{figure}[H]
   \begin{center}
     \subfloat[Sinusoidal density]{
-      \includegraphics[width=0.48\textwidth]{../log/sinusoidal_velocity/fig/omega_vs_visc.pdf}
+      \includegraphics[width=0.46\textwidth]{../log/sinusoidal_velocity/fig/omega_vs_visc.pdf}
     }
     \subfloat[Sinusoidal velocity]{
-      \includegraphics[width=0.48\textwidth]{../log/sinusoidal_density/fig/omega_vs_visc.pdf}
+      \includegraphics[width=0.46\textwidth]{../log/sinusoidal_density/fig/omega_vs_visc.pdf}
     }
     \caption{The simulated viscosity value 
     over various relaxation values $\omega$.
-    The analytical solution uses $\nu = \frac{1}{3}(\frac{1}{\omega} - \frac{1}{2})$
+    The analytical solution uses $\nu = c_s^2(\frac{1}{\omega} - \frac{1}{2})$
     and the simulated viscosity $\nu$ is approximated from an exponential decay curve in Eq~(\ref{viscosity-analytical}).
     The simulation is performed $T = 3000$ steps
     and we take the maximum magnitude of
@@ -248,9 +248,10 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.98\textwidth]{imgs/couette_and_poiseuille.pdf}
+  \vspace{-3mm}
   \caption{The conceptual visualizations of the Couette flow (Left) and
   Poiseuille flow (Right).}
-  \vspace{-5mm}
+  \vspace{-3mm}
   \label{couette-and-poiseuille-conceptual}
 \end{figure}
 
@@ -262,33 +263,34 @@ One is fixed and the other moves horizontally with the velocity of $U_w$.
 The flow is caused by the viscous drag force acting on the fluid.
 Since the Couette flow also has an analytical solution,
 we can validate the implementation of the moving wall.
-The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by~\cite{nagy2019graphical}:
-\begin{equation}
+The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by
+\begin{equation*}
 \begin{aligned}
   u_x(\cdot, y) =\frac{Y - y}{Y}U_w
 \end{aligned}
-\end{equation}
-where $Y$ is the distance between the two walls
+\end{equation*}
+~\cite{nagy2019graphical} where $Y$ is the distance between the two walls
 and $u_x(\cdot, y)$ is the horizontal velocity of the flow
-at the location of $y$ and at the location of an arbitrary $x$. 
+given a position $(x, y)$.
+Note that $u_x(\cdot, y)$ does not depend on $x$.
 In the experiment, we apply the bounce-back boundary condition
 at the moving wall and the rigid wall
 and the PBC at the inlet and outlet.
-The results are shown in Figure~\ref{fig:couette-velocity-evolution}.
-As shown in the figures, the flow velocity iteratively approaches
+As shown in Figure~\ref{fig:couette-velocity-evolution},
+the flow velocity iteratively approaches
 the analytical solution and it perfectly fits in the end
-and {\bf the velocity stops growing} as seen at $t=9000 \sim 15000$.
-From this experiment, the moving wall can be validated.
+and {\bf the velocity stops growing} at the time step of $t = 6000 \sim 10000$.
+This experiment validates the moving wall implementation.
 
 \begin{figure}[H]
   \vspace{-1mm}
   \centering
-  \includegraphics[width=0.58\textwidth]{../log/couette_flow/fig/couette_flow_joint.pdf}
+  \includegraphics[width=0.90\textwidth]{../log/couette_flow/fig/couette_flow_joint.pdf}
   \vspace{-5mm}
-  \caption{The velocity evolution at
-  $x = 25$ in the lattice grid size of $(50, 50)$.
+  \caption{The velocity evolution of every $500$ time steps at
+  $x = 25$ in the lattice grid size of $(50, 50)$ until the time step of $t = 10000$.
   The wall velocity $U_w$ at the bottom and the relaxation term $\omega$ are set
-  to $0.1$ and $1.2$ respectively.
+  to $0.1$ and $1.0$ respectively.
   We use {\bf dry node} as described in Section~\ref{boundary-handling-section}
   and the computation of wall density follows Section~\ref{boundary-wall-settings}.
   The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
@@ -301,29 +303,33 @@ The flow is caused by a constant pressure difference $\od{p}{x}$
 in the horizontal direction of the two walls.
 The Poiseuille flow also has the analytical solution
 and we can validate the implementation of the pressure PBC.
-The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by~\cite{mendiburu2009analytical}:
-\begin{equation}
+The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by
+\begin{equation*}
 \begin{aligned}
-  u_x(\cdot, y) = - \frac{1}{2\rho \nu} \od{p}{x} y (Y - y)
+  u_x(\cdot, y) = - \frac{1}{2\bar{\rho} \nu} \od{p}{x} y (Y - y)
 \end{aligned}
-\end{equation}
+\end{equation*}
+~\cite{mendiburu2009analytical}
+where $\bar{\rho}$ is the average density.
 In the experiment, we apply the bounce-back boundary condition
 at the moving wall and the rigid wall
 and the pressure PBC at the inlet and outlet.
 Figure~\ref{fig:poiseuille-velocity-evolution} presents the results
-and the simulated results approach the analytical solutions as in the Couette flow.
+and the simulated results approach the analytical solution.
 In the end, it fits completely
-and {\bf the velocity stops growing} as seen at $t=12000 \sim 18000$.
+and {\bf the velocity stops growing} at the time step of $t = 7000 \sim 10000$.
 
 \begin{figure}[H]
-  \centering
-  \includegraphics[width=0.58\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow_joint.pdf}
   \vspace{-3mm}
-  \caption{The velocity evolution at
-  $x = 25$ in the lattice grid size of $(50, 50)$.
-  The relaxation term $\omega$ is set to $1.2$.
+  \centering
+  \includegraphics[width=0.90\textwidth]{../log/poiseuille_flow/fig/poiseuille_flow_joint.pdf}
+  \vspace{-3mm}
+  \caption{The velocity evolution of every $500$ time steps at
+  $x = 25$ in the lattice grid size of $(50, 50)$ until the time step of $t = 10000$.
+  The relaxation term $\omega$ is set to $1.0$.
   The density at the inlet $\rho_{\rm in}$ and the density
-  at the outlet $\rho_{\rm out}$ are set to $0.301$ and $0.3$ respectively.
+  at the outlet $\rho_{\rm out}$ are set to $1.005$ and $1.0$ respectively.
+  Then $\od{p}{x}$ is computed by $c_s^2(\rho_{\rm out} - \rho_{\rm in}) / X$.
   The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
   \label{fig:poiseuille-velocity-evolution}}
 \end{figure}
@@ -335,11 +341,11 @@ The lid-driven cavity simulates the flow inside a box with
 three rigid walls and one moving wall, i.e. a lid.
 In this simulation, the turbulence is caused 
 when the following Reynolds number is larger than 1000~\cite{chiang1998effect}:
-\begin{equation}
+\begin{equation*}
 \begin{aligned}
   \text{Re} = \frac{LU}{\nu}
 \end{aligned}
-\end{equation}
+\end{equation*}
 where $L$ is the characteristic length parameter
 of the body and $U$ is the stream flow velocity.
 One key property of the Reynolds number is that two flow system
@@ -479,7 +485,7 @@ in the repository.
     \caption{The validation of the parallel implementation by comparing
     the velocity field in the serial and the parallel implementations.
     The parallel implementation is performed by the number of processes $P = 9$.
-    We set the lattice grid size is $(X, Y) = (30, 30)$,
+    We set the lattice grid size $(X, Y) = (30, 30)$,
     the wall velocity $U_w = 0.1$ and the viscosity $\nu = 0.03$
     and perform $T = 10000$ updates.
     The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.

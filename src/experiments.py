@@ -33,7 +33,7 @@ from src.utils.visualization import (
 )
 
 
-plt.rcParams['mathtext.fontset'] = 'stix' # The setting of math font
+plt.rcParams['mathtext.fontset'] = 'stix'  # The setting of math font
 
 
 class ExperimentVariables(AttrDict):
@@ -49,8 +49,8 @@ class ExperimentVariables(AttrDict):
     epsilon: Optional[float]
     rho0: Optional[float]
     mode: Optional[str]
-    in_density_factor: Optional[float]
-    out_density_factor: Optional[float]
+    density_in: Optional[float]
+    density_out: Optional[float]
     wall_vel: Optional[np.ndarray]
 
 
@@ -92,7 +92,7 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
         d_bounds = np.array([rho0 - eps, rho0 + eps])
         v_bounds = np.array([-eps, eps])
     elif mode == 'velocity':
-        eps = experiment_vars.epsilon
+        eps, rho0 = experiment_vars.epsilon, 1.0
 
         assert eps is not None
         density, vel = sinusoidal_velocity(lattice_grid_shape,
@@ -120,15 +120,15 @@ def sinusoidal_evolution(experiment_vars: ExperimentVariables, visualize: bool =
             quantities.append(np.abs(field.density - rho0).max())
             profile.append(field.density[X//4, 0])
 
-    field = get_field(experiment_vars)
+    field = get_field(experiment_vars, dir_name=subj)
     # run LBM
     field(total_time_steps, proc=proc)
     if save and visualize:
         visc = 1. / 3. * (1. / experiment_vars.omega - 0.5)
         visualize_velocity_plot(subj, profile=np.array(profile), epsilon=eps, visc=visc,
                                 freq=freq, save=True, end=total_time_steps, bounds=v_bounds)
-        visualize_density_plot(subj, profile=np.array(profile), save=True, freq=freq,
-                               end=total_time_steps, bounds=d_bounds)
+        visualize_density_plot(subj, profile=np.array(profile), epsilon=eps, visc=visc, rho0=rho0,
+                               save=True, freq=freq, end=total_time_steps, bounds=d_bounds)
         return None
     elif save:
         q_array = np.array(quantities)
@@ -161,12 +161,12 @@ def sinusoidal_viscosity(experiment_vars: ExperimentVariables) -> None:
         visc_truth.append(omega2viscosity(omega))
         visc_sim.append(v_sim)
 
-    plt.plot(omegas, visc_truth, label="Analytical viscosity", color='red')
-    plt.plot(omegas, visc_sim, label="Simulated result", color='blue')
-    plt.scatter(omegas, visc_truth, marker='x', s=100, color='red')
-    plt.scatter(omegas, visc_sim, marker='+', s=100, color='blue')
-    plt.xlabel('Relaxation term $\omega$')
-    plt.ylabel('viscosity $\nu$ (Log scale)')
+    plt.plot(omegas, visc_truth, label="Analytical viscosity", color='blue')
+    plt.plot(omegas, visc_sim, label="Simulated result", color='red')
+    plt.scatter(omegas, visc_truth, marker='x', s=100, color='blue')
+    plt.scatter(omegas, visc_sim, marker='+', s=100, color='red')
+    plt.xlabel('Relaxation term $\\omega$')
+    plt.ylabel('viscosity $\\nu$ (Log scale)')
     plt.yscale('log')
     plt.grid(which='both', color='black', linestyle='-')
     plt.legend(loc='lower left')
@@ -176,10 +176,11 @@ def sinusoidal_viscosity(experiment_vars: ExperimentVariables) -> None:
 def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> None:
     save = experiment_vars.save
     freq = experiment_vars.freq
+    subj = 'couette_flow'
 
     # Initialization
     velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
-    field = get_field(experiment_vars)
+    field = get_field(experiment_vars, dir_name=subj)
     extrapolation = experiment_vars.extrapolation
     total_time_steps = experiment_vars.total_time_steps
     rigid_wall = RigidWall(
@@ -195,8 +196,8 @@ def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> Non
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and (t == 0 or (t + 1) % freq == 0):
-            make_directories_to_path('log/couette_flow/npy/')
-            np.save(f'log/couette_flow/npy/v_x{t + 1 if t else 0 :0>6}.npy', field.velocity[..., 0])
+            make_directories_to_path(f'log/{subj}/npy/')
+            np.save(f'log/{subj}/npy/v_x{t + 1 if t else 0 :0>6}.npy', field.velocity[..., 0])
 
     # run LBM
     field(total_time_steps, proc=proc, boundary_handling=SequentialBoundaryHandlings(rigid_wall, moving_wall))
@@ -208,17 +209,18 @@ def couette_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> Non
 def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> None:
     save = experiment_vars.save
     freq = experiment_vars.freq
+    subj = 'poiseuille_flow'
 
     # Initialization
     velocity0_density1(experiment_vars, experiment_vars.lattice_grid_shape)
-    field = get_field(experiment_vars)
+    field = get_field(experiment_vars, dir_name=subj)
     total_time_steps = experiment_vars.total_time_steps
 
     pbc = PeriodicBoundaryConditionsWithPressureVariation(
         field=field,
         boundary_locations=[DirectionIndicators.LEFT, DirectionIndicators.RIGHT],
-        in_density_factor=experiment_vars.in_density_factor,
-        out_density_factor=experiment_vars.out_density_factor
+        density_in=experiment_vars.density_in,
+        density_out=experiment_vars.density_out
     )
 
     rigid_wall = RigidWall(
@@ -228,16 +230,16 @@ def poiseuille_flow_velocity_evolution(experiment_vars: ExperimentVariables) -> 
 
     def proc(field: LatticeBoltzmannMethod, t: int) -> None:
         if save and (t == 0 or (t + 1) % freq == 0):
-            make_directories_to_path('log/poiseuille_flow/npy/')
-            np.save(f'log/poiseuille_flow/npy/v_x{t + 1 if t else 0:0>6}.npy', field.velocity[..., 0])
-            np.save(f'log/poiseuille_flow/npy/density{t + 1 if t else 0:0>6}.npy', field.density)
+            make_directories_to_path(f'log/{subj}/npy/')
+            np.save(f'log/{subj}/npy/v_x{t + 1 if t else 0:0>6}.npy', field.velocity[..., 0])
+            np.save(f'log/{subj}/npy/density{t + 1 if t else 0:0>6}.npy', field.density)
 
     # run LBM
     field(total_time_steps, proc=proc, boundary_handling=SequentialBoundaryHandlings(rigid_wall, pbc))
     params = PoiseuilleFlowHyperparams(
         viscosity=omega2viscosity(experiment_vars.omega),
-        out_density_factor=experiment_vars.out_density_factor,
-        in_density_factor=experiment_vars.in_density_factor
+        density_out=experiment_vars.density_out,
+        density_in=experiment_vars.density_in
     )
 
     if save:
@@ -262,6 +264,8 @@ def sliding_lid_seq(experiment_vars: ExperimentVariables) -> None:
     field = get_field(experiment_vars, dir_name=dir_name)
     total_time_steps = experiment_vars.total_time_steps
 
+    # If we would like to make LEFT or RIGHT a moving wall,
+    # we need to flip wall_vel[0] and wall_vel[1]
     moving_wall = MovingWall(
         field,
         boundary_locations=[DirectionIndicators.BOTTOM],
@@ -321,6 +325,8 @@ def sliding_lid_mpi(experiment_vars: ExperimentVariables) -> None:
 
     moving_wall, rigid_wall = None, None
     if grid_manager.is_boundary(DirectionIndicators.BOTTOM):
+        # If we would like to make LEFT or RIGHT a moving wall,
+        # we need to flip wall_vel[0] and wall_vel[1]
         moving_wall = MovingWall(
             field,
             boundary_locations=[DirectionIndicators.BOTTOM],

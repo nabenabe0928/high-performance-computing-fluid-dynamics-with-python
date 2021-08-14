@@ -7,10 +7,10 @@ class pycolor:
     RED = '\033[31m'
     GREEN = '\033[32m'
     END = '\033[0m'
-    
+
     @classmethod
-    def print_(cls, txt: str, color='red') -> None:
-        if not color in ['red', 'green']:
+    def print_(cls, txt: str, color: str = 'red') -> None:
+        if color not in ['red', 'green']:
             raise ValueError('color must be either `red` or `green`, but got {}'.format(color))
 
         col = cls.RED if color == 'red' else cls.GREEN

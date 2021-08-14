@@ -12,13 +12,13 @@ from src.utils.utils import make_directories_to_path
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
 
-plt.rcParams['mathtext.fontset'] = 'stix' # The setting of math font
+plt.rcParams['mathtext.fontset'] = 'stix'  # The setting of math font
 
 
 class PoiseuilleFlowHyperparams(NamedTuple):
     viscosity: float
-    out_density_factor: float
-    in_density_factor: float
+    density_in: float
+    density_out: float
 
 
 def show_or_save(path: Optional[str] = None) -> None:
@@ -116,11 +116,16 @@ def visualize_density_countour(subject: str, save: bool = False, format: str = '
         show_or_save(path=f'log/{subject}/fig/density{t:0>6}.{format}' if save else None)
 
 
-def visualize_density_plot(subject: str, profile: np.ndarray, save: bool = False, format: str = 'pdf',
-                           start: int = 0, freq: int = 100, end: int = 100001,
+def visualize_density_plot(subject: str, profile: np.ndarray, visc: float, epsilon: float, rho0: float,
+                           save: bool = False, format: str = 'pdf', start: int = 0, freq: int = 100, end: int = 100001,
                            cmap: Optional[str] = None, bounds: np.ndarray = np.array([0., 1.])) -> None:
 
     buf = (bounds[1] - bounds[0]) * 0.1
+
+    def analytical_decay(t: int, x: np.ndarray, X: int) -> float:
+        lx = 2.0 * np.pi / X
+        return epsilon * np.exp(- visc * lx ** 2 * t) * np.sin(lx * x)
+
     for t in range(start, end, freq):
         density_file_name = f'log/{subject}/npy/density{t:0>6}.npy'
         density = np.load(density_file_name)
@@ -129,11 +134,11 @@ def visualize_density_plot(subject: str, profile: np.ndarray, save: bool = False
         plt.close('all')
         plt.figure(figsize=(5, 3))
         plt.ylabel(f'Density $\\rho(x, y={Y//2})$')
-        plt.xlabel(f'$x$ position')
+        plt.xlabel('$x$ position')
 
         plt.xlim(0, X)
         plt.ylim(bounds[0] - buf, bounds[1] + buf)
-        plt.plot(np.arange(X), density[:, Y // 2], label='Simulated Result')
+        plt.plot(np.arange(X), density[:, Y // 2], color='red', label='Simulated Result')
 
         if t == 0:
             plt.legend()
@@ -143,11 +148,12 @@ def visualize_density_plot(subject: str, profile: np.ndarray, save: bool = False
     plt.close('all')
     plt.figure(figsize=(20, 3))
     T = np.arange(profile.size)
-    plt.plot(T, profile, label='Simulated Result')
+    plt.plot(T, profile, color='red', label='Simulated Result')
+    plt.plot(T, rho0 + analytical_decay(T, X//4, X), color='blue', linestyle=":", lw=4.5, label='Analytical decay')
+    plt.plot(T, rho0 - analytical_decay(T, X//4, X), color='blue', linestyle=":", lw=4.5)
     plt.xlabel('Time step $t$')
     plt.ylabel('Density $\\rho(x={}, y={})$'.format(X//4, Y//2))
-    dy = profile.max() - profile.min()
-    plt.ylim(profile.min() - dy * 0.1, profile.max() + dy * 0.1)
+    plt.ylim(profile.min() - epsilon * 0.1, profile.max() + epsilon * 0.1)
     plt.grid()
     plt.legend()
     show_or_save(path=f'log/{subject}/fig/density_time_evolution.{format}' if save else None)
@@ -175,7 +181,7 @@ def visualize_velocity_plot(subject: str, profile: np.ndarray, epsilon: float, v
         plt.figure(figsize=(5, 3))
         plt.xlim(0, Y)
         plt.ylim(bounds[0] - buf, bounds[1] + buf)
-        plt.plot(y, analytical_sol(t, y, Y), color='blue', lw=4.5, label='Analytical Solution')
+        plt.plot(y, analytical_sol(t, y, Y), color='blue', linestyle=":", lw=4.5, label='Analytical Solution')
         plt.plot(y, v[X // 2, :], color='red', label='Simulated Result')
         if t == 0:
             plt.legend()
@@ -188,7 +194,7 @@ def visualize_velocity_plot(subject: str, profile: np.ndarray, epsilon: float, v
     plt.close('all')
     plt.figure(figsize=(20, 3))
     T = np.arange(profile.size)
-    plt.plot(T, analytical_sol(T, Y//4, Y), color='blue', lw=4.5, label='Analytical Solution')
+    plt.plot(T, analytical_sol(T, Y//4, Y), color='blue', linestyle=":", lw=4.5, label='Analytical Solution')
     plt.plot(T, profile, color='red', label='Simulated Result')
     plt.xlabel('Time step $t$')
     plt.ylabel(f'Velocity $u_x(y={Y//4})$')
@@ -224,14 +230,17 @@ def visualize_velocity_field(subj: str, save: bool = False, format: str = 'pdf',
 def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str = 'pdf', start: int = 0,
                            freq: int = 400, end: int = 100001, cmap: Optional[str] = None, joint: bool = True) -> None:
     """ we assume the wall slides to x-direction. """
-    plt.figure(figsize=(5, 3))
+    cm = plt.get_cmap('jet')
+    t_last, idx = 0, 0
+    n_lines = (end - start) // freq
 
     for t in range(start, end, freq):
+        t_last = t
         vx_file_name = f'log/couette_flow/npy/v_x{t:0>6}.npy'
         vx = np.load(vx_file_name)
         X, Y = vx.shape
         analy_sol = wall_vel[0] * (Y - np.arange(Y + 1)) / Y
-        vmax = int(max(wall_vel[0], np.ceil(vx[X // 2, :].max()))) + 1
+        vmax = int(max(wall_vel[0], np.ceil(vx[X // 2, :].max()))) + 2
 
         if not joint:
             plt.close('all')
@@ -249,20 +258,30 @@ def visualize_couette_flow(wall_vel: np.ndarray, save: bool = False, format: str
             show_or_save(path=f'log/couette_flow/fig/couette_flow{t:0>6}.{format}' if save else None)
         else:
             if t == start:
-                plt.plot(np.arange(vmax), np.ones(vmax) * (Y - 1) + 0.5, label="Rigid wall",
-                         color='black', linewidth=3.0)
-                plt.plot(np.arange(vmax), np.zeros(vmax), label='Moving wall', color='red', linewidth=3.0)
-                plt.xlim(-0.01 * wall_vel[0], wall_vel[0])
-                plt.ylim(-0.5, Y)
-                plt.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', lw=4.5, label="Analytical velocity")
+                fig, ax = plt.subplots(figsize=(10, 3))
+                ax.plot(np.arange(vmax) - 1, np.ones(vmax) * (Y - 1) + 0.5, label="Rigid wall",
+                        color='black', linewidth=3.0)
+                ax.plot(np.arange(vmax) - 1, np.zeros(vmax), label='Moving wall', color='red', linewidth=3.0)
+                ax.set_xlim(-0.01 * wall_vel[0], wall_vel[0])
+                ax.set_ylim(-0.5, Y)
+                ax.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', linestyle=":",
+                        lw=4.5, label="Analytical solution")
 
-            plt.plot(vx[X // 2, :], np.arange(Y), label=f"$t = {t}$", linestyle=":", linewidth=2)
+            ax.plot(vx[X // 2, :], np.arange(Y), linewidth=1, color=cm(idx / n_lines))
+            idx += 1
 
     if joint:
+        levels = np.linspace(start, t_last, n_lines)
+        zeros = [[0, 0], [0, 0]]
+        contour = plt.contourf(zeros, zeros, zeros, cmap=cm, levels=levels)
+        dx = analy_sol[0]
+        plt.xlim(-dx * 0.1, dx * 1.1)
         plt.rc('legend', fontsize=12)
-        plt.xlabel(f'Velocity $u_x(x={X//2}, y)$')
-        plt.ylabel('$y$ position')
-        plt.legend(loc='upper right')
+        ax.set_xlabel(f'Velocity $u_x(x={X//2}, y)$')
+        ax.set_ylabel('$y$ position')
+        ax.legend(loc='upper right')
+        cbar = fig.colorbar(contour)
+        cbar.ax.set_title('Time step', size=16, x=1, y=1.02)
         show_or_save(path=f'log/couette_flow/fig/couette_flow_joint.{format}' if save else None)
 
 
@@ -272,18 +291,22 @@ def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = Fa
 
     """ we assume the wall slides to x-direction. """
     viscosity = params.viscosity
-    out_density_factor = params.out_density_factor
-    in_density_factor = params.in_density_factor
+    density_out = params.density_out
+    density_in = params.density_in
+    t_last = 0
+    cm = plt.get_cmap('jet')
     V = []
 
     for t in range(start, end, freq):
+        t_last = t
         vx_file_name = f'log/poiseuille_flow/npy/v_x{t:0>6}.npy'
         density_file_name = f'log/poiseuille_flow/npy/density{t:0>6}.npy'
         vx, density = np.load(vx_file_name), np.load(density_file_name)
         X, Y = density.shape
         _, y = np.meshgrid(np.arange(X), np.arange(Y))
         average_density = viscosity * density[X // 2, :].mean()
-        deriv_density_x = (out_density_factor - in_density_factor) / X
+        # density / 3.0 = pressure
+        deriv_density_x = (density_out - density_in) / X / 3.0
         y = np.arange(Y + 1)
         analy_sol = - 0.5 * deriv_density_x * y * (Y - y) / average_density
 
@@ -301,24 +324,32 @@ def visualize_poiseuille_flow(params: PoiseuilleFlowHyperparams, save: bool = Fa
             show_or_save(path=f'log/poiseuille_flow/fig/poiseuille_flow{t:0>6}.{format}' if save else None)
         else:
             if t == start:
-                plt.figure(figsize=(5, 3))
-                plt.ylim(-0.5, Y)
+                fig, ax = plt.subplots(figsize=(10, 3))
+                ax.set_ylim(-0.5, Y)
 
             V.append(vx[X // 2, :])
 
     if joint:
-        plt.xlim(0, analy_sol.max() * 1.1)
-        plt.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', lw=4.5, label="Analytical velocity")
         plt.rc('legend', fontsize=12)
-        idx = 0
-        Y = np.arange(V[0].size)
+        ax.set_xlim(0, analy_sol.max() * 1.1)
+        ax.plot(analy_sol, np.arange(Y + 1) - 0.5, color='blue', linestyle=":", lw=4.5, label="Analytical solution")
+        idx, n_lines = 0, (end - start) // freq
+        y = np.arange(V[0].size)
+        levels = np.linspace(start, t_last, n_lines)
+
+        zeros = [[0, 0], [0, 0]]
+        contour = plt.contourf(zeros, zeros, zeros, cmap=cm, levels=levels)
         for t in range(start, end, freq):
-            plt.plot(V[idx], Y, label=f"$t = {t}$", linestyle=":", linewidth=2)
+            plt.plot(V[idx], y, color=cm(idx / n_lines), linewidth=1)
             idx += 1
 
-        plt.xlabel(f'Velocity $u_x(x={X//2}, y)$')
-        plt.ylabel('$y$ position')
-        plt.legend(loc='lower left')
+        dx = analy_sol[Y//2]
+        ax.set_xlim(-dx * 0.1, dx * 1.1)
+        ax.set_xlabel(f'Velocity $u_x(x={X//2}, y)$')
+        ax.set_ylabel('$y$ position')
+        ax.legend(loc='lower right')
+        cbar = fig.colorbar(contour)
+        cbar.ax.set_title('Time step', size=16, x=1, y=1.02)
         show_or_save(path=f'log/poiseuille_flow/fig/poiseuille_flow_joint.{format}' if save else None)
 
 

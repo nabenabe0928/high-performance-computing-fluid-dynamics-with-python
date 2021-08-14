@@ -21,8 +21,8 @@ class ExperimentVariables(AttrDict):
     scaling_test: bool
     save: bool
     freq: int
-    in_density_factor: Optional[float]
-    out_density_factor: Optional[float]
+    density_in: Optional[float]
+    density_out: Optional[float]
     wall_vel: Optional[np.ndarray]
 
 
@@ -45,8 +45,8 @@ def run() -> None:
     parser.add_argument('-Y', type=int, required=True, help='The lattice size in the y direction.')
     parser.add_argument('--omega', type=float, help='The relaxation factor.')
     parser.add_argument('--visc', type=float, help='The viscosity.')
-    parser.add_argument('-I', '--indensity', type=float, help='The density factor at the inlet.')
-    parser.add_argument('-O', '--outdensity', type=float, help='The density factor at the outlet.')
+    parser.add_argument('-I', '--indensity', type=float, help='The density at the inlet.')
+    parser.add_argument('-O', '--outdensity', type=float, help='The density at the outlet.')
     parser.add_argument('-W', '--wall_vel', type=float, help='The velocity of the wall along the x-axis.')
     parser.add_argument('--extrapolation', type=str, choices=['True', 'False'], default='False',
                         help='Whether using extrapolation for the wall density.')
@@ -74,8 +74,8 @@ def run() -> None:
 
     if args.indensity is not None and args.outdensity is not None:
         experiment_vars.update(
-            in_density_factor=args.indensity,
-            out_density_factor=args.outdensity
+            density_in=args.indensity,
+            density_out=args.outdensity
         )
 
     if args.wall_vel is not None:

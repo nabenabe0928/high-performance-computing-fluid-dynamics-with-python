@@ -1,8 +1,8 @@
-cmd="python -m run_experiment -E cf --freq 3000 -T 15500 -X 50 -Y 50 -W 0.1 --omega 1.2"
+cmd="python -m run_experiment -E cf --freq 500 -T 10500 -X 50 -Y 50 -W 0.1 --omega 1.0"
 echo $cmd
 $cmd
 
-cmd="python -m run_experiment -E pf --freq 3000 -T 15500 -X 50 -Y 50 -I 0.301 -O 0.300 --omega 1.2"
+cmd="python -m run_experiment -E pf --freq 500 -T 10500 -X 50 -Y 50 -I 1.005 -O 1.0 --omega 1.0"
 echo $cmd
 $cmd
 
