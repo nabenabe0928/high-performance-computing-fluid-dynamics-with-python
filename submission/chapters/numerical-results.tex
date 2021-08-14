@@ -117,7 +117,7 @@ a swing of the maxima and the minima unlike the sinusoidal velocity.
     % }\\
     \caption{
       The time evolution of the sinusoidal velocity
-      (Eq~(\ref{shear-vel-init})) at
+      in Eq~(\ref{shear-vel-init}) at
       the $x = 25$ in the lattice grid size of $(50, 50)$.
       The $x$-axis shows the location in the $y$ direction
       and the $y$-axis shows the magnitude of velocity at 
@@ -209,7 +209,7 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
     %   \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001650.pdf}
     % }\\
     \caption{The time evolution of the sinusoidal density
-    (Eq~(\ref{sinusoidal-density-init}))
+    in Eq~(\ref{sinusoidal-density-init})
       at $y = 25$ in the lattice grid size of $(50, 50)$.
       The $x$-axis shows the location in the $x$ direction
       and the $y$-axis shows the magnitude of density.
@@ -264,11 +264,11 @@ The flow is caused by the viscous drag force acting on the fluid.
 Since the Couette flow also has an analytical solution,
 we can validate the implementation of the moving wall.
 The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by
-\begin{equation}
+\begin{equation*}
 \begin{aligned}
   u_x(\cdot, y) =\frac{Y - y}{Y}U_w
 \end{aligned}
-\end{equation}
+\end{equation*}
 ~\cite{nagy2019graphical} where $Y$ is the distance between the two walls
 and $u_x(\cdot, y)$ is the horizontal velocity of the flow
 given a position $(x, y)$.
@@ -304,11 +304,11 @@ in the horizontal direction of the two walls.
 The Poiseuille flow also has the analytical solution
 and we can validate the implementation of the pressure PBC.
 The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by
-\begin{equation}
+\begin{equation*}
 \begin{aligned}
   u_x(\cdot, y) = - \frac{1}{2\bar{\rho} \nu} \od{p}{x} y (Y - y)
 \end{aligned}
-\end{equation}
+\end{equation*}
 ~\cite{mendiburu2009analytical}
 where $\bar{\rho}$ is the average density.
 In the experiment, we apply the bounce-back boundary condition
@@ -340,11 +340,11 @@ The lid-driven cavity simulates the flow inside a box with
 three rigid walls and one moving wall, i.e. a lid.
 In this simulation, the turbulence is caused 
 when the following Reynolds number is larger than 1000~\cite{chiang1998effect}:
-\begin{equation}
+\begin{equation*}
 \begin{aligned}
   \text{Re} = \frac{LU}{\nu}
 \end{aligned}
-\end{equation}
+\end{equation*}
 where $L$ is the characteristic length parameter
 of the body and $U$ is the stream flow velocity.
 One key property of the Reynolds number is that two flow system

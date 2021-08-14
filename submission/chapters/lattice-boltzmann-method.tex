@@ -62,11 +62,11 @@ The discretization for space and time
 is performed so that the equality condition of 
 the following inequality
 (Courant-Friedrichs-Lewy condition) holds~\cite{peyretcomputational, sterling1996stability}:
-\begin{equation}
+\begin{equation*}
 \begin{aligned}
   \cv_i \dt \leq || \Delta \xv_i ||
 \end{aligned}
-\end{equation}
+\end{equation*}
 where $\dt$ is the time step size 
 and $\Delta \xv_i$ is the distance between 
 the closest grid in the direction
@@ -231,11 +231,11 @@ boundaries at $x = 0~(\text{inlet})$ and $X - 1~(\text{outlet})$
 where $X$ is the number of the lattice grid in the $x$-axis.
 The most basic PBC assumes that
 the flow from outlet comes in from inlet as follows~\cite{succi2018lattice}: 
-\begin{equation}
+\begin{equation*}
 \begin{aligned}
   f(0, y, t) = f((X - 1)\dx, y, t).
 \end{aligned}
-\end{equation}
+\end{equation*}
 This condition is implicitly implemented during the streaming operation.
 Another PBC handles
 the pressure variation $\Delta p$ between inlet and outlet.
