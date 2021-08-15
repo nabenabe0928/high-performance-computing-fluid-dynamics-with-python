@@ -24,7 +24,7 @@ $f$ towards $f^{\rm eq}$ is described as follows~\cite{bhatnagar1954model}:
     \end{aligned}
     \label{analytical-eq}
   \end{equation}
-where $f^{\rm eq}$ is statistical equilibrium,
+where $f^{\rm eq}$ is the statistical equilibrium,
 $T(\xv, t)$ is the temperature at $\xv$
 of time step $t$,
 $\tau$ is a characteristic time, $\rho(\xv, t)$ is the macroscopic density
@@ -33,7 +33,7 @@ The characteristic time determines how quickly
 the fluid converges towards equilibrium.
 The higher $\tau$ yields the slower 
 convergence towards the equilibrium.
-Eq~(\ref{analytical-eq}) is used for the update 
+Eq.~(\ref{analytical-eq}) is used for the update 
 of the particle probability density function.
 Furthermore, this particle probability density function
 $f(\xv, \vv, t)$ is used for computing
@@ -90,7 +90,7 @@ we first discretize
 the particle probability density function
 in the nine directions by subscripting 
 as $f_i(\xv, t)$.
-Then Eq~(\ref{analytical-update}) becomes the followings:
+Then Eq.~(\ref{analytical-update}) becomes the followings:
 \begin{equation}
   \begin{aligned}
     \rho(\xv, t) = \sum_i f_i(\xv, t), \text{ and }
@@ -100,8 +100,8 @@ Then Eq~(\ref{analytical-update}) becomes the followings:
   \label{discretized-momentum}
 \end{equation}
 Note that we regard the density as
-a unit molecular mass in Eq~(\ref{discretized-momentum}).
-Additionally, the equilibrium in Eq~(\ref{analytical-eq}) is computed as:
+a unit molecular mass in Eq.~(\ref{discretized-momentum}).
+Additionally, the equilibrium in Eq.~(\ref{analytical-eq}) is computed as:
 \begin{equation}
 \begin{aligned}
   \underbrace{f_i(\xv + \cv_i\dt , t + \dt) - f_i(\xv, t)}_{
@@ -158,7 +158,9 @@ by considering the effects of the particle collision.
 \section{Boundary handling}\label{boundary-handling-section}
 In this section, we briefly discuss how we handle
 the particles that bump into boundaries.
-Note that the boundary handling is performed
+Note that the boundary handling
+except the pressure periodic boundary conditions
+is performed
 after the streaming step that is discussed in the previous section
 and we usually use the direction that is opposite to
 the direction $i$ for the bounce-back.
@@ -186,41 +188,42 @@ we use {\bf dry nodes} for the implementation.
 
 \subsection{Bounce-back from objects}\label{boundary-wall-settings}
 The most basic boundary condition is 
-{\bf rigid wall} or the {\bf bounce-back boundary condition}.
-In this condition, we apply the process without
-slip condition at the boundary.
+a {\bf rigid wall} or the {\bf bounce-back boundary condition}.
+In this condition, we apply the process with the
+no-slip condition at the boundary.
 The equation at the boundary is computed as~\cite{succi2018lattice}:
 \begin{equation}
 \begin{aligned}
-  f_i(\xv_b, t + \dt) = f_{i^\star}^\star(\xv_b, t).
+  f_i(\xv_{\rm b}, t + \dt) = f_{i^\star}^\star(\xv_{\rm b}, t).
 \end{aligned}
 \label{discretized-rigid-wall}
 \end{equation}
 When the {\bf boundary moves} with the velocity of
-$\Uv_w$, the variation in the moments of particles
+$\Uv_{\rm w}$, the variation in the moments of particles
 must be taken into consideration and the equation is
 modified as follows~\cite{succi2018lattice}:
 \begin{equation}
   \begin{aligned}
-    f_i(\xv_b, t + \dt) = f_{i^\star}^\star (\xv_b, t) - 
-    2 w_i \rho_w \frac{
-      \cv_i \cdot \Uv_w
-    }{c_s^2}
+    f_i(\xv_{\rm b}, t + \dt) = f_{i^\star}^\star (\xv_{\rm b}, t) - 
+    2 w_i \rho_{\rm w} \frac{
+      \cv_i \cdot \Uv_{\rm w}
+    }{c_{\rm s}^2}
   \end{aligned}
   \label{discretized-moving-wall}
 \end{equation}
-where $c_s = \frac{1}{\sqrt{3}}$ is the speed of sound and 
-$\rho_w$ is the density at the wall.
-The computation of $\rho_w$ is usually performed by
-either of the followings~\cite{zou1997pressure, khajepor2019study}:
+where $c_{\rm s} = \frac{1}{\sqrt{3}}$ is the speed of sound and 
+$\rho_{\rm w}$ is the density at the wall.
+Note that we use $\Uv_{\rm w} = [U_{\rm w}, 0]^\top$ in this paper.
+$\rho_{\rm w}$ is usually computed by
+one of the followings~\cite{zou1997pressure, khajepor2019study}:
 \begin{enumerate}
   \item Take the average density $\bar{\rho}$ of the simulated field
-  \item Extrapolate $\rho_w$ using 
-  the particle probability density function in the physical domain by Eq~(19) in \cite{zou1997pressure}
+  \item Extrapolate $\rho_{\rm w}$ using 
+  the particle probability density function in the physical domain by Eq.~(19) in \cite{zou1997pressure}
 \end{enumerate}
 Although we get {\bf similar velocity fields in lid-driven cavity by both solutions},
 the extrapolation is highly unstable with respect to
-the wall velocity $U_w (> 0.3)$ compared to the first solution.
+the wall velocity $U_{\rm w} (> 0.3)$ compared to the first solution.
 For this reason, we {\bf take the first solution} for this paper.
 Note that we can activate the usage of the extrapolation by
 {\tt --extrapolation True} from the command line as well.
@@ -230,21 +233,18 @@ In this section, we assume that we have
 boundaries at $x = 0~(\text{inlet})$ and $X - 1~(\text{outlet})$
 where $X$ is the number of the lattice grid in the $x$-axis.
 The most basic PBC assumes that
-the flow from outlet comes in from inlet as follows~\cite{succi2018lattice}: 
-\begin{equation*}
-\begin{aligned}
-  f(0, y, t) = f((X - 1)\dx, y, t).
-\end{aligned}
-\end{equation*}
+the flow from outlet comes in from inlet, i.e.
+$f(0, y, t) = f((X - 1)\dx, y, t)$
+~\cite{succi2018lattice}.
 This condition is implicitly implemented during the streaming operation.
 Another PBC handles
 the pressure variation $\Delta p$ between inlet and outlet.
-Since the density $\rho$ is computed as $\rho = \frac{p}{c_s^2}$
+Since the density $\rho$ is computed as $\rho = \frac{p}{c_{\rm s}^2}$
 where $p$ is the pressure,
-the density at the inlet $\rho_{\rm in} = \frac{p_{\rm out} + \Delta p }{c_s^2}$ and
-that at the outlet $\rho_{\rm out} = \frac{p_{\rm out}}{c_s^2}$ can be computed
+the density at the inlet $\rho_{\rm in} = \frac{p_{\rm out} + \Delta p }{c_{\rm s}^2}$ and
+that at the outlet $\rho_{\rm out} = \frac{p_{\rm out}}{c_{\rm s}^2}$ can be computed
 accordingly given the constant pressure $p_{\rm out}$
-at the outlet and the pressure variation $\Delta p ~(> 0)$.
+at the outlet and the pressure variation $\Delta p$.
 Then the prestreaming $f^\star$ at 
 the inlet and the outlet are computed as~\cite{succi2018lattice}:
 \begin{equation}
@@ -258,7 +258,10 @@ the inlet and the outlet are computed as~\cite{succi2018lattice}:
 \end{aligned}
 \label{discretized-pbc-pressure}
 \end{equation}
-where $x = -\dx$ and $x = X\dx$ correspond to $x = (X - 1)\dx$ and $x = 0$ in this setting,
-respectively.
+where $x = -\dx$ and $x = X\dx$
+are extra layers of nodes for the implementation
+and $-\dx$ (an extra layer at the inlet) and $X\dx$
+(an extra layer at the outlet) correspond
+to $(X - 1)\dx$ (the outlet) and $0$ (the inlet).
 Note that since the pressure PBC computes the prestreaming $f^\star$,
 {\bf it must be performed before the streaming operation} unlike the bounce-back.
