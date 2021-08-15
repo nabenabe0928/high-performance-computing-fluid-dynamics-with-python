@@ -1,7 +1,7 @@
 \chapter{Numerical results}
 \vspace{-8mm}
 In the previous chapter, we discuss the implementation details
-and how we apply LBM to various settings.
+and how we apply the LBM to various settings.
 In this chapter, we first illustrate
 how to validate the implementations and 
 then show the visualizations and numerical results
@@ -541,7 +541,7 @@ the number of processes.
   \caption{The scaling test of the lid-driven cavity simulation.
   The grid size is either $100 \times 100, 300 \times 300 \text{ or } 1000 \times 1000$.
   The set of numbers of processes are 
-  $\{2^x \mid x \leq 9, x \in \mathbb{Z}_{\geq 0}\}$
+  $\{2^x \mid 0 \leq x \leq 9, x \in \mathbb{Z}_{\geq 0}\}$
   and this set is chosen so that the interval of each plot is equally distributed.
   Note that both axes are log-scale.
     The viscosity and the wall velocity are set to $\nu = 0.03$ and $0.1$

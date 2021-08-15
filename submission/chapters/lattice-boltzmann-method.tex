@@ -1,6 +1,6 @@
 \chapter{Lattice Boltzmann method}
 \vspace{-8mm}
-In this chapter, we describe how the equations used in LBM
+In this chapter, we describe how the equations used in the LBM
 are derived.
 More specifically, we explain
 the {\bf Boltzmann transport equation (BTE)}~\cite{mcnamara1988use}, i.e.
@@ -158,8 +158,8 @@ by considering the effects of the particle collision.
 \section{Boundary handling}\label{boundary-handling-section}
 In this section, we briefly discuss how we handle
 the particles that bump into boundaries.
-Note that the boundary handling
-except the pressure periodic boundary conditions
+Note that the boundary handling,
+except the pressure periodic boundary conditions,
 is performed
 after the streaming step that is discussed in the previous section
 and we usually use the direction that is opposite to
@@ -230,7 +230,7 @@ Note that we can activate the usage of the extrapolation by
 
 \subsection{Periodic boundary conditions (PBC)}
 In this section, we assume that we have
-boundaries at $x = 0~(\text{inlet})$ and $X - 1~(\text{outlet})$
+boundaries at $x = 0~(\text{inlet})$ and $(X - 1)\dx~(\text{outlet})$
 where $X$ is the number of the lattice grid in the $x$-axis.
 The most basic PBC assumes that
 the flow from outlet comes in from inlet, i.e.
@@ -262,6 +262,6 @@ where $x = -\dx$ and $x = X\dx$
 are extra layers of nodes for the implementation
 and $-\dx$ (an extra layer at the inlet) and $X\dx$
 (an extra layer at the outlet) correspond
-to $(X - 1)\dx$ (the outlet) and $0$ (the inlet).
+to $(X - 1)\dx$ and $0$.
 Note that since the pressure PBC computes the prestreaming $f^\star$,
 {\bf it must be performed before the streaming operation} unlike the bounce-back.
