@@ -6,7 +6,8 @@ pip install --user --upgrade mpi4py numpy matplotlib tqdm scipy
 # Use only half of the CPUs for the correct performance measurement
 # Note: 40 CPUs are available for each node
 
-N_THREADS_LIST=(36 25 16 9 4 1)
+# N_THREADS_LIST=(36 25 16 9 4 1)
+N_THREADS_LIST=(32 8)
 
 for S in 100 300 1000
 do
