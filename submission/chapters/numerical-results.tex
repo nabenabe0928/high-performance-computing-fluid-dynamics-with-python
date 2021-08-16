@@ -1,7 +1,7 @@
 \chapter{Numerical results}
 \vspace{-8mm}
 In the previous chapter, we discuss the implementation details
-and how we apply LBM to various settings.
+and how we apply the LBM to various settings.
 In this chapter, we first illustrate
 how to validate the implementations and 
 then show the visualizations and numerical results
@@ -53,7 +53,7 @@ the convection term $(\uv \cdot \nabla) \uv$ are negligible
 compared to the viscosity term $\nu \nabla^2 \uv$.
 In Figure~\ref{fig:sinusoidal-velocity}, we show the plot of both
 simulated results and the analytical solution of sinusoidal velocity.
-Note that the initial condition follows Eq~(\ref{shear-vel-init}). 
+Note that the initial condition follows Eq.~(\ref{shear-vel-init}). 
 As seen in the figure, the simulated results and the analytical solution
 {\bf perfectly fit} and thus we could validate our implementation of
 rigid wall and moments updates.
@@ -62,10 +62,11 @@ over time.
 This simulation uses the sinusoidal density in the $x$-direction
 \begin{equation}
 \begin{aligned}
-  \rho(\xv, 0) = \rho_0 + \epsilon \sin \frac{2 \pi x}{X}.
+  \rho(\xv, 0) = \rho_{\rm b} + \epsilon \sin \frac{2 \pi x}{X}.
 \end{aligned}
 \label{sinusoidal-density-init}
 \end{equation}
+where $\rho_{\rm b}$ is a positive constant value.
 As seen in the figure, the sinusoidal density also
 yields the convergence.
 On the other hand, the sinusoidal density has
@@ -117,12 +118,12 @@ a swing of the maxima and the minima unlike the sinusoidal velocity.
     % }\\
     \caption{
       The time evolution of the sinusoidal velocity
-      in Eq~(\ref{shear-vel-init}) at
+      in Eq.~(\ref{shear-vel-init}) at
       the $x = 25$ in the lattice grid size of $(50, 50)$.
       The $x$-axis shows the location in the $y$ direction
       and the $y$-axis shows the magnitude of velocity at 
       the corresponding location.
-      The coefficients $\epsilon$ in Eq~(\ref{shear-vel-init}) and
+      The coefficients $\epsilon$ in Eq.~(\ref{shear-vel-init}) and
       the initial density $\rho_0$
       are set to $0.01$ and $1.0$ respectively.
       The relaxation term $\omega$ is set to $1.0$.
@@ -143,14 +144,14 @@ such a decay is represented as follows~\cite{palmer1994transverse, hess2002deter
 \end{equation}
 where $Q(\xv, t) = \epsilon Q_x(\xv) Q_t(t)$
 and $Q(\xv, t)$ is one of the moment quantities.
-Note that we assume that the assumptions for Eq~(\ref{sinusoidal-vel-analytical-solution}) hold
-and the case of the sinusoidal velocity is equivalent to Eq~(\ref{sinusoidal-vel-analytical-solution})~\cite{fei2018three}.
-We perform the experiments to validate the implementation via the viscosity estimated by Eq~(\ref{viscosity-analytical}) using
+Note that we assume that the assumptions for Eq.~(\ref{sinusoidal-vel-analytical-solution}) hold
+and the case of the sinusoidal velocity is equivalent to Eq.~(\ref{sinusoidal-vel-analytical-solution})~\cite{fei2018three}.
+We perform the experiments to validate the implementation via the viscosity estimated by Eq.~(\ref{viscosity-analytical}) using
 the exact experiment settings for Figure~\ref{fig:sinusoidal-velocity}
 and Figure~\ref{fig:sinusoidal-density}
 except the relaxation term $\omega$.
-The analytical viscosity is computed as $\nu = c_s^2 (\frac{1}{\omega} - \frac{1}{2})$~\cite{timm2016lattice}.
-For the experiments, the simulated viscosity is computed based on the exponential decay curve, i.e. Eq~(\ref{viscosity-analytical}),
+The analytical viscosity is computed as $\nu = c_{\rm s}^2 (\frac{1}{\omega} - \frac{1}{2})$~\cite{timm2016lattice}.
+For the experiments, the simulated viscosity is computed based on the exponential decay curve, i.e. Eq.~(\ref{viscosity-analytical}),
 of the density and velocity using 
 {\tt curve\_fit}~\footnote{https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve\_fit.html}.
 {\tt curve\_fit} approximates the optimal viscosity $\nu$ from the observations.
@@ -209,11 +210,11 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
     %   \includegraphics[width=0.23\textwidth]{../log/sinusoidal_density/fig/density001650.pdf}
     % }\\
     \caption{The time evolution of the sinusoidal density
-    in Eq~(\ref{sinusoidal-density-init})
+    in Eq.~(\ref{sinusoidal-density-init})
       at $y = 25$ in the lattice grid size of $(50, 50)$.
       The $x$-axis shows the location in the $x$ direction
       and the $y$-axis shows the magnitude of density.
-      The coefficients $\epsilon$ and $\rho_0$ in Eq~(\ref{sinusoidal-density-init})
+      The coefficients $\epsilon$ and $\rho_{\rm b}$ in Eq.~(\ref{sinusoidal-density-init})
       are set to $0.01$ and $1.0$ and the velocity is initialized by
       $\uv(\xv, 0) = (0,0)$.
       The relaxation term $\omega$ is set to $1.0$.
@@ -231,11 +232,11 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
     }
     \caption{The simulated viscosity value 
     over various relaxation values $\omega$.
-    The analytical solution uses $\nu = c_s^2(\frac{1}{\omega} - \frac{1}{2})$
-    and the simulated viscosity $\nu$ is approximated from an exponential decay curve in Eq~(\ref{viscosity-analytical}).
+    The analytical solution uses $\nu = c_{\rm s}^2(\frac{1}{\omega} - \frac{1}{2})$
+    and the simulated viscosity $\nu$ is approximated from an exponential decay curve in Eq.~(\ref{viscosity-analytical}).
     The simulation is performed $T = 3000$ steps
     and we take the maximum magnitude of
-    $|| u_x ||$ for (a) and $|| \rho - \rho_0 ||$ for (b)
+    $|| u_x ||$ for (a) and $|| \rho - \rho_{\rm b} ||$ for (b)
     to fit the curve.
     Note that (a) uses the same parameters as in 
     Figure~\ref{fig:sinusoidal-velocity}
@@ -259,14 +260,14 @@ Therefore, we need to avoid using $\omega$ closer to $0$ or $2$ for more accurat
 \subsection{Couette flow}
 The Couette flow is the flow between two walls as shown in
 Figure~\ref{couette-and-poiseuille-conceptual}:
-One is fixed and the other moves horizontally with the velocity of $U_w$.
+One is fixed and the other moves horizontally with the velocity of $U_{\rm w}$.
 The flow is caused by the viscous drag force acting on the fluid.
 Since the Couette flow also has an analytical solution,
 we can validate the implementation of the moving wall.
 The analytical solution for Figure~\ref{couette-and-poiseuille-conceptual} is given by
 \begin{equation*}
 \begin{aligned}
-  u_x(\cdot, y) =\frac{Y - y}{Y}U_w
+  u_x(\cdot, y) =\frac{Y - y}{Y}U_{\rm w}
 \end{aligned}
 \end{equation*}
 ~\cite{nagy2019graphical} where $Y$ is the distance between the two walls
@@ -289,7 +290,7 @@ This experiment validates the moving wall implementation.
   \vspace{-5mm}
   \caption{The velocity evolution of every $500$ time steps at
   $x = 25$ in the lattice grid size of $(50, 50)$ until the time step of $t = 10000$.
-  The wall velocity $U_w$ at the bottom and the relaxation term $\omega$ are set
+  The wall velocity $U_{\rm w}$ at the bottom and the relaxation term $\omega$ are set
   to $0.1$ and $1.0$ respectively.
   We use {\bf dry node} as described in Section~\ref{boundary-handling-section}
   and the computation of wall density follows Section~\ref{boundary-wall-settings}.
@@ -329,7 +330,7 @@ and {\bf the velocity stops growing} at the time step of $t = 7000 \sim 10000$.
   The relaxation term $\omega$ is set to $1.0$.
   The density at the inlet $\rho_{\rm in}$ and the density
   at the outlet $\rho_{\rm out}$ are set to $1.005$ and $1.0$ respectively.
-  Then $\od{p}{x}$ is computed by $c_s^2(\rho_{\rm out} - \rho_{\rm in}) / X$.
+  Then $\od{p}{x}$ is computed by $c_{\rm s}^2(\rho_{\rm out} - \rho_{\rm in}) / X$.
   The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
   \label{fig:poiseuille-velocity-evolution}}
 \end{figure}
@@ -351,7 +352,7 @@ of the body and $U$ is the stream flow velocity.
 One key property of the Reynolds number is that two flow system
 is dynamically similar if the Reynolds number and the geometry are similar~\cite{kundu2008fluid}.
 Therefore, we present the results with various 
-viscosity $\nu$ and the wall velocity $U = U_w$ that 
+viscosity $\nu$ and the wall velocity $U = U_{\rm w}$ that 
 satisfy the Reynolds number of $1000$ under $L = X = Y = 300$
 in Figure~\ref{fig:sliding-lid-reynolds-comparison}.
 In the figures, all the settings converge to a similar flow in the end
@@ -377,7 +378,7 @@ in the repository.
   \vspace{-7mm}
   \centering
   \includegraphics[width=0.48\textwidth]{imgs/lid-driven-cavity.pdf}
-  \vspace{-3mm}
+  \vspace{-5mm}
   \caption{The conceptual visualizations of the lid-driven cavity.}
   \label{lid-driven-cavity-conceptual}
   \vspace{-3mm}
@@ -385,52 +386,52 @@ in the repository.
 
 \begin{figure}[t]
   \begin{center}
-    \subfloat[$U_w = 0.1, \nu = 0.03$]{
+    \subfloat[$U_{\rm w} = 0.1, \nu = 0.03$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size75x75_parallel/fig/vel_flow100000.pdf}
     }
-    \subfloat[$U_w = 0.2, \nu = 0.06$]{
+    \subfloat[$U_{\rm w} = 0.2, \nu = 0.06$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size75x75_parallel/fig/vel_flow100000.pdf}
     }
-    \subfloat[$U_w = 0.3, \nu = 0.09$]{
+    \subfloat[$U_{\rm w} = 0.3, \nu = 0.09$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size75x75_parallel/fig/vel_flow100000.pdf}
     }
-    \subfloat[$U_w = 0.4, \nu = 0.12$]{
+    \subfloat[$U_{\rm w} = 0.4, \nu = 0.12$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size75x75_parallel/fig/vel_flow100000.pdf}
     }\\
-    \subfloat[$U_w = 0.1, \nu = 0.03$]{
+    \subfloat[$U_{\rm w} = 0.1, \nu = 0.03$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size150x150_parallel/fig/vel_flow100000.pdf}
     }
-    \subfloat[$U_w = 0.2, \nu = 0.06$]{
+    \subfloat[$U_{\rm w} = 0.2, \nu = 0.06$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size150x150_parallel/fig/vel_flow100000.pdf}
     }
-    \subfloat[$U_w = 0.3, \nu = 0.09$]{
+    \subfloat[$U_{\rm w} = 0.3, \nu = 0.09$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size150x150_parallel/fig/vel_flow100000.pdf}
     }
-    \subfloat[$U_w = 0.4, \nu = 0.12$]{
+    \subfloat[$U_{\rm w} = 0.4, \nu = 0.12$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size150x150_parallel/fig/vel_flow100000.pdf}
     }\\
-    \subfloat[$U_w = 0.1, \nu = 0.03$]{
+    \subfloat[$U_{\rm w} = 0.1, \nu = 0.03$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size225x225_parallel/fig/vel_flow100000.pdf}
     }
-    \subfloat[$U_w = 0.2, \nu = 0.06$]{
+    \subfloat[$U_{\rm w} = 0.2, \nu = 0.06$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size225x225_parallel/fig/vel_flow100000.pdf}
     }
-    \subfloat[$U_w = 0.3, \nu = 0.09$]{
+    \subfloat[$U_{\rm w} = 0.3, \nu = 0.09$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size225x225_parallel/fig/vel_flow100000.pdf}
     }
-    \subfloat[$U_w = 0.4, \nu = 0.12$]{
+    \subfloat[$U_{\rm w} = 0.4, \nu = 0.12$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size225x225_parallel/fig/vel_flow100000.pdf}
     }\\
-    \subfloat[$U_w = 0.1, \nu = 0.03$]{
+    \subfloat[$U_{\rm w} = 0.1, \nu = 0.03$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.10_visc0.03_size300x300_parallel/fig/vel_flow100000.pdf}
     }
-    \subfloat[$U_w = 0.2, \nu = 0.06$]{
+    \subfloat[$U_{\rm w} = 0.2, \nu = 0.06$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.20_visc0.06_size300x300_parallel/fig/vel_flow100000.pdf}
     }
-    \subfloat[$U_w = 0.3, \nu = 0.09$]{
+    \subfloat[$U_{\rm w} = 0.3, \nu = 0.09$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.30_visc0.09_size300x300_parallel/fig/vel_flow100000.pdf}
     }
-    \subfloat[$U_w = 0.4, \nu = 0.12$]{
+    \subfloat[$U_{\rm w} = 0.4, \nu = 0.12$]{
       \includegraphics[width=0.24\textwidth]{../log/sliding_lid_W0.40_visc0.12_size300x300_parallel/fig/vel_flow100000.pdf}
     }\\
     \caption{The stream plots of the lid-driven cavity
@@ -486,7 +487,7 @@ in the repository.
     the velocity field in the serial and the parallel implementations.
     The parallel implementation is performed by the number of processes $P = 9$.
     We set the lattice grid size $(X, Y) = (30, 30)$,
-    the wall velocity $U_w = 0.1$ and the viscosity $\nu = 0.03$
+    the wall velocity $U_{\rm w} = 0.1$ and the viscosity $\nu = 0.03$
     and perform $T = 10000$ updates.
     The initial density and velocity are $\rho(\xv) = 1.0, \uv(\xv) = (0, 0)$.
     }
@@ -496,9 +497,9 @@ in the repository.
       \toprule
        & Min & Max & Sum of absolute values \\
       \midrule
-      Velocity $\uv_p$ in parallel implementation & -0.03488 & 0.08998 & 20.12832 \\
-      Velocity $\uv_s$ in serial implementation & -0.03488 & 0.08998 & 20.12832 \\
-      The absolute difference $|| \uv_p - \uv_s ||$ & {\bf 0.0} & {\bf 0.0} & {\bf 0.0} \\
+      Velocity $\uv_{\rm p}$ in parallel implementation & -0.03488 & 0.08998 & 20.12832 \\
+      Velocity $\uv_{\rm s}$ in serial implementation & -0.03488 & 0.08998 & 20.12832 \\
+      The absolute difference $|| \uv_{\rm p} - \uv_{\rm s} ||$ & {\bf 0.0} & {\bf 0.0} & {\bf 0.0} \\
       \bottomrule
     \end{tabular}
   \end{center}
@@ -513,7 +514,7 @@ parallel easily.
 For this reason, we test the scalability of this simulation using
 various numbers of processes.
 Note that all the experiments related to the scaling test
-are performed on {\bf BWUniCluster}
+are performed on {\bf bwUniCluster}
 \footnote{https://wiki.bwhpc.de/e/Category:BwUniCluster\_2.0}.
 The implementation follows Section~\ref{section-mpi}
 and each thread is bound to one processor.
@@ -527,11 +528,12 @@ On the other hand, as the number of processes
 becomes larger, the simulation with a larger domain exhibits
 higher efficiency.
 Ideally, the MLUPS should grow linearly with respect to the number of processes.
-However, it does not happen due to the latency of the communication
+However, all the settings yield slowdown from approximately $\frac{X \times Y}{1000}$ processes
+in Figure~\ref{fig:sliding-lid-scaling}
+due to the latency of the communication
 and the waiting for the synchronization as described in Amdahl's law~\cite{amdahl1967validity}.
 It explains why larger domains lead to more scalability with respect to
 the number of processes.
-
 
 \begin{figure}[b]
   \centering
@@ -539,7 +541,9 @@ the number of processes.
   \vspace{-3mm}
   \caption{The scaling test of the lid-driven cavity simulation.
   The grid size is either $100 \times 100, 300 \times 300 \text{ or } 1000 \times 1000$.
-  The number of processes are $1 ,4 ,9 ,16 ,25 ,36 ,100 ,144 ,225 ,400$ respectively.
+  The set of numbers of processes are 
+  $\{2^x \mid 0 \leq x \leq 11, x \in \mathbb{Z}_{\geq 0}\}$
+  and this set is chosen so that the interval of each plot is equally distributed.
   Note that both axes are log-scale.
     The viscosity and the wall velocity are set to $\nu = 0.03$ and $0.1$
     and we perform the update $T = 10000$ times.

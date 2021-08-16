@@ -399,5 +399,6 @@ def visualize_proc_vs_MLUPS(save: bool = False, format: str = 'pdf') -> None:
     plt.xticks(fontsize=28)
     plt.yticks(fontsize=28)
     plt.legend()
-    plt.grid()
+    plt.grid(which='minor', color='gray', linestyle=':')
+    plt.grid(which='major', color='black')
     show_or_save(path=f'log/scaling_test.{format}' if save else None)

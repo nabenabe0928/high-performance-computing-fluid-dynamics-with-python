@@ -16,13 +16,13 @@ at each time step
 and the lattice Boltzmann method (LBM) ~\cite{timm2016lattice}
 is one of the well-known
 schemes for the fluid flow simulation method.
-LBM approximates the physical states of a myriad of microscopic particles,
+The LBM approximates the physical states of a myriad of microscopic particles,
 i.e. usually obtained by solving the Navier-Stokes equation,
 by mesoscale physical states at each lattice grid.
 The physical states or {\bf moments} are iteratively simulated based on
 the Maxwell velocity distribution function~\cite{huang1963statistical} and
 the fluid flow at each time step is derived from the moments.
-The major advantages of LBM are the followings:
+The major advantages of the LBM are the followings:
 \begin{itemize}
   \item {\bf Simple implementation}: The governing equations of each moment
   are simple and the collision handling only considers the adjacent lattices. 
@@ -34,7 +34,7 @@ For those reasons, the LBM is one of the most successful methods and
 we would like to introduce the LBM in this paper.
 The paper structure is as follows:
 \begin{enumerate}
-  \item {\bf Lattice Boltzmann method (LBM) }: Show the theoretical aspects and
+  \item {\bf Lattice Boltzmann method}: Show the theoretical aspects and
   how to discretize the equations
   \item {\bf Implementation}:
   Provide pseudocodes and how to efficiently compute

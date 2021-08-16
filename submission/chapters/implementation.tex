@@ -2,11 +2,11 @@
 \vspace{-8mm}
 In this chapter, we describe how the LBM is implemented in {\tt Python}
 and how to compute the LBM in parallel.
-All the implementation is assuming that
+All the implementations are assuming that
 the physical domain is discretized by D2Q9
 and the horizontal axis is $x$ and 
 the vertical axis is $y$, respectively.
-Note that entire codes are based on
+Note that entire codes use
 {\tt Numpy}~\footnote{Numpy: https://numpy.org/}
 and {\tt mpi4py}~\footnote{mpi4py: https://mpi4py.readthedocs.io/en/stable/}.
 Throughout the chapter, {\tt numpy} is imported as {\tt np}.
@@ -20,12 +20,12 @@ First, we provide the initial values for the density and the velocity.
 Then, we compute the probability function and equilibrium and
 apply the collision step.
 The equilibrium implementation is shown in Algorithm~\ref{alg:equilibrium-algorithm}.
-After applying equilibrium, we perform the
+After applying the equilibrium, we perform the
 streaming operation shown in Algorithm~\ref{alg:streaming-algorithm}
 and slide each quantity to the adjacent cells.
 Finally, we apply the boundary handling at each boundary cell as 
 described in Algorithm~\ref{alg:boundary-conditions-algorithm}
-and update the density and the velocity as in Eq~(\ref{discretized-momentum}).
+and update the density and the velocity as in Eq.~(\ref{discretized-momentum}).
 Note that the order of each step might vary depending on literature~\cite{timm2016lattice, succi2018lattice}.
 Since {\tt Python} slows down when using for loops
 and {\tt Python} speeds up when replacing for loops with {\tt numpy} processing,
@@ -50,7 +50,7 @@ that specifies the $i$-th direction in D2Q9.
 In Algorithm~\ref{alg:boundary-conditions-algorithm},
 we use {\tt in\_indices} and {\tt out\_indices}
 to eliminate for-loop by slicing.
-Additionally, we compute $\rho_w$ as described in Section~\ref{boundary-wall-settings}.
+Additionally, we compute $\rho_{\rm w}$ as described in Section~\ref{boundary-wall-settings}.
 Note that 
 although the pressure PBC is included in Algorithm~\ref{alg:boundary-conditions-algorithm}
 for simplicity,
@@ -58,7 +58,7 @@ only the pressure PBC updates the pre-streaming $f^\star$
 and thus we need to perform it {\bf before the streaming operation}.
 Additioinally, the domain is extended with virtual nodes 
 at both edges of the periodic boundary in the pressure PBC
-so that we can handle the boundary condition naturally. 
+so that we can handle the boundary condition more easily. 
 
 
 \begin{algorithm}[tb]
@@ -75,15 +75,15 @@ so that we can handle the boundary condition naturally.
     \State{$\rho(\xv, 0) = \rho_0, \uv(\xv, 0) = \uv_0$ for all $\xv \in [0, X) \times [0, Y)$}
     \For{$t= 0, 1, \dots$}
     \State{$\feq(\cdot, t)$ = equilibrium($\rho(\cdot, t), \uv(\cdot, t)$)}
-    \Comment{Eq~(\ref{discretized-eq})}
+    \Comment{Eq.~(\ref{discretized-eq})}
     \State{$f^\star$ = $f + \omega (\feq - f)$}
-    \Comment{Eq~(\ref{discretized-streaming})}
-    \State{$f^\star(\cdot, t)$ =streaming($f^\star(\cdot, t)$)}
-    \Comment{Eq~(\ref{discretized-streaming})}
-    \State{$f(\cdot, t + 1)$ = boundary\_handling($f^\star(\cdot, t),\feq(\cdot, t)$)}
-    \Comment{Eq~(\ref{discretized-rigid-wall}), (\ref{discretized-moving-wall}), (\ref{discretized-pbc-pressure})}
+    \Comment{Eq.~(\ref{discretized-streaming})}
+    \State{$f(\cdot, t + 1)$ =streaming($f^\star(\cdot, t)$)}
+    \Comment{Eq.~(\ref{discretized-streaming})}
+    \State{$f(\cdot, t + 1)$ = boundary\_handling($f(\cdot, t + 1), f^\star(\cdot, t),\feq(\cdot, t)$)}
+    \Comment{Eq.~(\ref{discretized-rigid-wall}), (\ref{discretized-moving-wall}), (\ref{discretized-pbc-pressure})}
     \State{$\rho(\cdot, t + 1), \uv(\cdot, t + 1)$=moments\_update($f(\cdot, t + 1)$)}
-    \Comment{Eq~(\ref{discretized-momentum})}
+    \Comment{Eq.~(\ref{discretized-momentum})}
     \EndFor
     \EndFunction
   \end{algorithmic}
@@ -97,7 +97,7 @@ so that we can handle the boundary condition naturally.
     \frac{4}{9}, \frac{1}{9}, \frac{1}{9}, 
     \frac{1}{9}, \frac{1}{9}, \frac{1}{36}, 
     \frac{1}{36}, \frac{1}{36}, \frac{1}{36}
-    \text{])}$, $\cv$ in Eq~(\ref{d2q9-velocity})}
+    \text{])}$, $\cv$ in Eq.~(\ref{d2q9-velocity})}
     \Function{equilibrium}{$\rho$ = $\rho(\cdot, t)$, $\uv$ = $\uv(\cdot, t)$}
     \Comment{$\uv$.shape = $(X, Y, 2)$, $\rho$.shape = $(X, Y)$}
     \State{u\_norm2 = ($\uv$ ** 2).sum(axis=-1)[..., None]}
@@ -115,7 +115,7 @@ so that we can handle the boundary condition naturally.
   \caption{Streaming operation}
   \label{alg:streaming-algorithm}
   \begin{algorithmic}[1]
-    \Statex{$\cv$ in Eq~(\ref{d2q9-velocity})}
+    \Statex{$\cv$ in Eq.~(\ref{d2q9-velocity})}
     \Function{streaming}{$f^\star$ = $f^\star(\cdot, t)$}
     \State{$f^{\rm post}$ = np.zeros\_like($f^\star$)}
     \For{$i= 0, 1, \dots, 8$}
@@ -139,8 +139,7 @@ so that we can handle the boundary condition naturally.
       The indices in D2Q9 s.t. the flow goes out
       given boundaries: out\_indices
     }
-    \Function{boundary handlling}{$f^\star$ = $f^\star(\cdot, t)$,
-      $\feq$ = $\feq(\cdot, t)$}
+    \Function{boundary handlling}{$f(\cdot, t + 1) = f, f^\star$ = $f^\star(\cdot, t)$, $\feq$ = $\feq(\cdot, t)$}
     \If{Pressure PBC}
     \Comment{fluid flows from $x = 0$ to $X - 1$}
     \State{{\bf \# Note: Pressure PBC must be applied before streaming operation}}
@@ -155,9 +154,9 @@ so that we can handle the boundary condition naturally.
     \If{Moving wall}
     \Comment{The case when the wall is at the top}
     \State{coef = np.zeros\_like((X, Y, 9))}
-    \State{value = 2 * $\wv$[out\_indices] * ($\cv$[out\_indices] @ $\uv$) / $c_s$ ** 2}
+    \State{value = 2 * $\wv$[out\_indices] * ($\cv$[out\_indices] @ $\uv$) / $c_{\rm s}$ ** 2}
     \State{coef[:, -1, out\_indices] = value[np.newaxis, :]}
-    \State{$f$[:, -1, in\_indices] = $f^\star$[:, -1, out\_indices] $- \rho_w$ * coef[:, -1, out\_indices]}
+    \State{$f$[:, -1, in\_indices] = $f^\star$[:, -1, out\_indices] $- \rho_{\rm w}$ * coef[:, -1, out\_indices]}
     \EndIf
     \State{{\bf return} $f$}
     \EndFunction
@@ -270,7 +269,7 @@ Furthermore, the implementations focus on abstraction and
 most codes are abstracted to reduce the coding lines as much as possible.
 Therefore, the codes are {\bf highly reusable} and
 the implementation has only one explicit coding for
-each Algorithm provided in this chapter.
+each algorithm provided in this chapter.
 Furthermore, {\tt ArgumentParser} allows users to
 pass an arbitrary setting to run the experiments
 and it {\bf contributes to the generality} in this code.

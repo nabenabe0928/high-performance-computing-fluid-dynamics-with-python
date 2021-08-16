@@ -1,64 +1,64 @@
 \chapter{Conclusions}
 \vspace{-8mm}
 In this paper,
-we delineate the theoretical aspects of the LBM
+we delineated the theoretical aspects of the LBM
 and the implementations of the LBM.
-Chapter 1 describes the motivation behind the numerical integrations
+Chapter 1 described the motivation behind the numerical integrations
 and 
-we explain that the advantages of the LBM
+we explained that the advantages of the LBM
 are the simple implementation
 and scalability with respect to the computational
 resources.
 
-Chapter 2 explains the theoretical aspects of LBM
+Chapter 2 explained the theoretical aspects of the LBM
 and how those equations are plugged into two-dimensional
 computational simulations.
 The governing equation of the particle movement is
 the BTE and the BTE relaxes the particle distribution
 to the Maxwell velocity distribution.
-Thereafter, we show the approximation and how we obtain each moment, i.e.
+Thereafter, we showed the approximation and how we obtained each moment, i.e.
 physical states such as density or velocity
 from the particle distribution.
 Then the discretization of each equation and
-the boundary handlings are presented.
-In the descriptions, we also add the
+the boundary handlings were presented.
+In the descriptions, we also added the
 reasons behind some tricks used in the implementations.
 
-Chapter 3 shows the algorithms of each component.
-Especially, we focus on the explanation of how
+Chapter 3 showed the algorithms of each component.
+Especially, we focused on the explanation of how
 the simulation should be implemented using numpy
 which is effective to speed up {\tt Python} implementations.
 Additionally, the MPI usage and the domain division method
-are described.
+were described.
 The domain decomposition is performed so that the 
 load balance is optimized.
 Note that each algorithm in the implementations
-is tested using {\tt unittest} and abstracted as much as possible
+was tested using {\tt unittest} and abstracted as much as possible
 so that each component can be reused and we can reduce
 the bugs over the whole implementation.
-Additionally, we provide the running scripts and {\tt requirements.txt}
+Additionally, we provided the running scripts and {\tt requirements.txt}
 to reproduce the experimental settings.
 
-Chapter 4 presents the validations of each component
+Chapter 4 presented the validations of each component
 using the comparison between the analytical solutions
 and visualizes how the LBM works in the lid-driven cavity
 example.
-For the validations, we use the shear wave decay, 
+For the validations, we used the shear wave decay, 
 the Couette flow and the Poissuille flow.
-The results show that the simulated results
-coincide with the analytical solutions except for
+The results showed that the simulated results
+coincided with the analytical solutions except for
 the cases where the relaxation term $\omega$ is 
 close to either $0$ or $2$.
-After the validations, we perform the lid-driven cavity simulation
-and the result exhibits similar dynamics when we have a constant Reynolds number
+After the validations, we performed the lid-driven cavity simulation
+and the result exhibited similar dynamics when we have a constant Reynolds number
 and more noisy turbulence as the Reynolds number becomes larger.
-Furthermore, we test the scalability of the LBM in the lid-driven cavity simulation.
-The experiments show speedup in all the settings compared to
+Furthermore, we tested the scalability of the LBM in the lid-driven cavity simulation.
+The experiments showed speedup in all the settings compared to
 the serial implementations.
-On the other hand, the smaller domains have
-less efficiency and they even slow down as the number of processes increases.
+On the other hand, the smaller domains had
+less efficiency and they even slowed down as the number of processes increases.
 This observation corresponds to the intuition from Amdahl's law due to
 the latency of the communication and the waiting for the synchronization.
-Recall that the parallel implementation is tested by the direct
+Recall that the parallel implementation was tested by the direct
 comparison of the velocity field with the identical settings
 as the serial implementation. 
