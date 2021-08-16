@@ -378,7 +378,7 @@ in the repository.
   \vspace{-7mm}
   \centering
   \includegraphics[width=0.48\textwidth]{imgs/lid-driven-cavity.pdf}
-  \vspace{-3mm}
+  \vspace{-5mm}
   \caption{The conceptual visualizations of the lid-driven cavity.}
   \label{lid-driven-cavity-conceptual}
   \vspace{-3mm}
@@ -528,11 +528,12 @@ On the other hand, as the number of processes
 becomes larger, the simulation with a larger domain exhibits
 higher efficiency.
 Ideally, the MLUPS should grow linearly with respect to the number of processes.
-However, it does not happen due to the latency of the communication
+However, all the settings yield slowdown from approximately $\frac{X \times Y}{1000}$ processes
+in Figure~\ref{fig:sliding-lid-scaling}
+due to the latency of the communication
 and the waiting for the synchronization as described in Amdahl's law~\cite{amdahl1967validity}.
 It explains why larger domains lead to more scalability with respect to
 the number of processes.
-
 
 \begin{figure}[b]
   \centering
@@ -541,7 +542,7 @@ the number of processes.
   \caption{The scaling test of the lid-driven cavity simulation.
   The grid size is either $100 \times 100, 300 \times 300 \text{ or } 1000 \times 1000$.
   The set of numbers of processes are 
-  $\{2^x \mid 0 \leq x \leq 9, x \in \mathbb{Z}_{\geq 0}\}$
+  $\{2^x \mid 0 \leq x \leq 11, x \in \mathbb{Z}_{\geq 0}\}$
   and this set is chosen so that the interval of each plot is equally distributed.
   Note that both axes are log-scale.
     The viscosity and the wall velocity are set to $\nu = 0.03$ and $0.1$
