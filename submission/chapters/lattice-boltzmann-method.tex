@@ -64,7 +64,7 @@ the following inequality
 (Courant-Friedrichs-Lewy condition) holds~\cite{peyretcomputational, sterling1996stability}:
 \begin{equation*}
 \begin{aligned}
-  \cv_i \dt \leq || \Delta \xv_i ||
+  \cv_i \dt \leq \| \Delta \xv_i \|
 \end{aligned}
 \end{equation*}
 where $\dt$ is the time step size 
@@ -125,7 +125,7 @@ The equilibrium is computed as~\cite{zhao2002non}:
   w_i \rho(\xv, t) \biggl[
     1 + 3 \cv_i \cdot \uv(\xv, t) +
     \frac{9}{2}(\cv_i \cdot \uv(\xv, t))^2
-    -\frac{3}{2} || \uv(\xv, t) ||^2
+    -\frac{3}{2} \| \uv(\xv, t) \|^2
   \biggr] \\
 \end{aligned}
 \label{discretized-eq}

@@ -1,3 +1,7 @@
+[![Build Status](https://github.com/nabenabe0928/high-performance-computing-fluid-dynamics-with-python/workflows/Functionality%20test/badge.svg?branch=stable)](https://github.com/nabenabe0928/high-performance-computing-fluid-dynamics-with-python)
+[![codecov](https://codecov.io/gh/nabenabe0928/high-performance-computing-fluid-dynamics-with-python/branch/stable/graph/badge.svg?token=QGSRQJM3OQ)](https://codecov.io/gh/nabenabe0928/high-performance-computing-fluid-dynamics-with-python)
+
+
 # Lid-driven cavity using lattice boltzmann method
 <p align="middle">
     <img src="/media/lid-driven-cavity-w0.1-visc0.03-small.gif" width="96%" />

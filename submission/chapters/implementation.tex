@@ -175,13 +175,13 @@ Then, we explain how we divide the domain.
 Suppose we are provided the number of processes of $P$,
 we first factorize $P$ such that $P = P_x \times P_y$
 where $P_x, P_y \in \mathbb{Z}^{+}$,
-$P_x, P_y = \text{arg} \min_{P_x, P_y}(|| P_y - P_x ||)$
+$P_x, P_y = \text{arg} \min_{P_x, P_y}(\| P_y - P_x \|)$
 and $P_x \leq P_y$ if $X \leq Y$ otherwise $P_y \leq P_x$.
 Then, we divide the $x$-axis into $P_x$ intervals and
 the $y$-axis into $P_y$ intervals where
 any pairs of intervals $I_{i}, I_{j}$ in the same direction satisfy
-$-1 \leq || I_{i} || - ||I_{j}|| \leq 1$.
-Note that $||I||$ is the size of the interval $I$.
+$-1 \leq \| I_{i} \| - \|I_{j}\| \leq 1$.
+Note that $\|I\|$ is the size of the interval $I$.
 This split of the domain achieves the most balanced distribution of
 the computation.
 For the streaming step, we need to consider particles
